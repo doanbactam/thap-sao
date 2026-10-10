@@ -39,6 +39,9 @@ const P = {
   C116: ['t:a successful parry lifts the lockout', 's:V2_parry', 's:V2_projectile_reflect'],
   C117: ['t:tablet: target cells with sign, level change and disabling', 't:moving an item compares against the pre-drag snapshot', 's:V2_drag_preview'],
   C118: ['t:every choice card has a concrete numeric delta', 't:lock keeps an option through a reroll', 's:V2_choice_deltas', 's:V2_choice_keep', 's:V2_choice_banish'],
+  C119: ['t:skills: every spell and weapon special has tuning, cooldown and a distinct sfx', 't:balance band', 's:V2_skill_spell_cast', 's:V2_skill_weapon_special'],
+  C120: ['t:cast buffer', 't:wind-up: effect fires', 't:touch drag', 's:V2_skill_touch_drag_cancel'],
+  C121: ['t:synergy: tooltip numbers follow', 't:ready pulse fires once', 's:V2_skill_cooldown_sweep', 's:V2_skill_mp_deny'],
 };
 const proofOk = (p) => {
   if (p === 's:__noerrors') return (smoke.errors ?? []).filter((e) => !e.startsWith('check failed')).length === 0;

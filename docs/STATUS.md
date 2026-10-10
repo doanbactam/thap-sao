@@ -1,6 +1,43 @@
 # Tháp Sao — engine status
 
-_Last updated: 2026-10-10 (v2 depth pass — integration/QA of the four v2 workstreams)._
+_Last updated: 2026-10-10 (v2 skills polish — spells + weapon specials)._
+
+## v2 skills polish (commit "v2 skills polish")
+Improve + polish the existing active skills — 6 quick-slot spells (keys 1/2) and the 6 weapon specials (F/L/touch). No new content.
+Full audit, before → after table, feel rules and synergy check: `docs/V2_SKILLS.md`.
+- **Retune**: spells — icebolt cd 1.5→1.2 s; fireball 15→16 MP, blast 70→90 px; chain 18→16 MP, bounce 70→80 %; arcane 10→14 MP,
+  cd 1.2→1.5 s, Magic share 100→40 % per missile (was 2× better per MP than anything); bubble 20→18 MP, cd 8→7 s, 4→5 s; blink 10→8 MP,
+  cd 3→2.5 s. Specials — MP 20/25/15/20/20/30 → **16/22/14/18/18/24** (S&S/GS/dagger/katana/crossbow/staff) and new cooldowns
+  2 / 3 / 1.5 / 1.2 (perfect iaido refunds) / 1 / 2.5 s; bash coef 1.5→1.8 + stun 1→1.2 s; iaido 2.2→2.4; heavy bolt 3.0→4.2; nova 2.5→3.0
+  + 200 ms i-frames; spin minimum 0.6→0.75 × duration. Spell crits now use Crit Damage; Cooldown% now also shortens specials.
+- **Bugs fixed**: HUD cooldown overlay used the base cooldown (ignored Cooldown%); dagger special spent MP with no target; spell crit ignored
+  Crit Damage; staff nova / iaido / chain zaps allocated a Graphics + tween per cast (now one pooled Graphics, cap 48).
+- **Feel**: hold = floor aim preview (line / circle / cone / target ring / blink landing / self), release = cast; 120 ms cast buffer;
+  per-skill wind-up (0–180 ms) with rig pose + progress ring; MP + cooldown committed at the end of the wind-up; dash / guard / getting hit
+  (no super armor) cancels with nothing spent; right-click or touch drag past 110 px cancels; per-skill hit-stop + shake; 12 distinct SFX +
+  cast / ready / cancel; iaido perfect-window glint.
+- **HUD**: 3 slots (spell 1, spell 2, weapon special) with clipped radial sweep + seconds, MP cost, key labels, low-MP dim, red deny flash
+  (+ MP bar flash), ready pulse + ping, tooltip on hover / long-press with live numbers. Touch: new Phép 1 / Phép 2 buttons, hold-to-aim,
+  release-to-cast, drag-out cancel, cooldown overlay on the buttons.
+- **Code**: `src/systems/skills.ts` (pure), `src/systems/skillFx.ts` (scene glue), `HudScene.drawSkills`, `input.ts` skill edges,
+  `audio.ts` voices, small hooks in `RunScene` (castSpellSlot / doSpell / zap now delegate; `hitEnemy` options `shownCrit`, `hs`, `shk`),
+  `combatFx.attackInput` (wind-up blocks attacks), `power.ts` (uses the new tuning). Debug: `window.__TSSkills.state()`.
+
+### Gates (v2 skills)
+| Gate | Command | Result |
+|---|---|---|
+| Typecheck | `npm run typecheck` | clean |
+| Unit tests | `npm test` | 21 files, 350 pass + 1 skipped (new `tests/skills.test.ts`: 20) |
+| Build | `npm run build` | `dist/` + `docs/ThapSao.html` (26.1 MB, 234 embedded files) |
+| Smoke | `setsid nohup node tools/smoke.mjs > work/smoke.log 2>&1 &` (~11 min) | **119/119 checks, 0 console errors, boss real kills 6 / 6** (new: `V2_skill_spell_cast`, `V2_skill_cooldown_sweep`, `V2_skill_weapon_special`, `V2_skill_mp_deny`, `V2_skill_touch_drag_cancel`) |
+| Checklist | `npm run checklist` | **121/121** (new C119–C121) |
+| Source zip | `npm run zip` | `docs/ThapSao_src.zip` 47.3 MB |
+| Balance sim | `npm run sim` | **not re-run** this pass |
+
+Screenshot: `out/smoke/18_v2_skills.png` (Lao Khiên line preview held, fireball sweep 1.4 s, icebolt ready pulse, slot keys/costs).
+Notes: one smoke run failed `C045_tablet_level_live` (a Q-rotate key press lost mid-drag under load, unrelated code) and passed on rerun;
+the first sweep-check failure was a read-order race in the check (now waits for the HUD frame). Detach smoke with `setsid` — a plain
+`nohup … &` inside the agent shell is killed with the 120 s command timeout.
 
 ## v2 depth pass (commit "v2 depth pass")
 Four workstreams merged on top of `v1 baseline` (no new content: no new weapons, enemies, bosses, items, artifacts):

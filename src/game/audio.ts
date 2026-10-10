@@ -1,7 +1,11 @@
 // Procedural WebAudio SFX (jsfxr-style). No audio files. Mute persisted in meta settings.
 import { G } from './state';
 
-type Sfx = 'hit' | 'crit' | 'hurt' | 'dash' | 'pickup' | 'coin' | 'levelup' | 'ui' | 'shoot' | 'explode' | 'boss' | 'door' | 'deny' | 'magic' | 'guard' | 'death' | 'win';
+export type Sfx = 'hit' | 'crit' | 'hurt' | 'dash' | 'pickup' | 'coin' | 'levelup' | 'ui' | 'shoot' | 'explode' | 'boss' | 'door' | 'deny' | 'magic' | 'guard' | 'death' | 'win'
+  // v2 skills polish: one voice per active skill + cast wind-up, ready ping, cancel
+  | 'cast' | 'ready' | 'cancel' | 'sp_ice' | 'sp_fire' | 'sp_chain' | 'sp_arcane' | 'sp_shield' | 'sp_blink'
+  | 'sk_bash' | 'sk_spin' | 'sk_shadow' | 'sk_iaido' | 'sk_iaido_perfect' | 'sk_pierce' | 'sk_nova';
+export const SKILL_SFX: Sfx[] = ['sp_ice', 'sp_fire', 'sp_chain', 'sp_arcane', 'sp_shield', 'sp_blink', 'sk_bash', 'sk_spin', 'sk_shadow', 'sk_iaido', 'sk_pierce', 'sk_nova'];
 let ctx: AudioContext | null = null; let master: GainNode | null = null;
 export const sfxLog: string[] = [];
 function ac(): AudioContext | null {
@@ -46,6 +50,22 @@ export function sfx(name: Sfx) {
     case 'magic': tone('sine', 400, 1200, 0.2, 0.15); break;
     case 'guard': tone('square', 1200, 900, 0.06, 0.15); noise(0.05, 0.2, 3000); break;
     case 'death': tone('triangle', 400, 60, 0.8, 0.25); break;
+    case 'cast': tone('sine', 300, 620, 0.12, 0.08); break;
+    case 'ready': tone('triangle', 1046, 1318, 0.07, 0.07); break;
+    case 'cancel': tone('sine', 500, 260, 0.1, 0.08); break;
+    case 'sp_ice': tone('triangle', 1500, 900, 0.14, 0.12); noise(0.06, 0.1, 5000); break;
+    case 'sp_fire': noise(0.25, 0.22, 200); tone('sawtooth', 180, 90, 0.22, 0.12); break;
+    case 'sp_chain': noise(0.12, 0.2, 2500); tone('square', 1800, 600, 0.1, 0.08); tone('square', 1400, 500, 0.08, 0.06, 0.06); break;
+    case 'sp_arcane': [700, 900, 1100].forEach((f, i) => tone('sine', f, f * 1.3, 0.08, 0.08, i * 0.05)); break;
+    case 'sp_shield': tone('sine', 330, 660, 0.3, 0.14); tone('triangle', 495, 990, 0.3, 0.08); break;
+    case 'sp_blink': tone('sine', 1200, 300, 0.12, 0.12); tone('sine', 300, 1200, 0.1, 0.08, 0.08); break;
+    case 'sk_bash': noise(0.12, 0.3, 300); tone('square', 160, 70, 0.14, 0.18); break;
+    case 'sk_spin': noise(0.3, 0.16, 1200); tone('sawtooth', 220, 440, 0.3, 0.08); break;
+    case 'sk_shadow': tone('sine', 900, 200, 0.1, 0.1); noise(0.08, 0.15, 3000); break;
+    case 'sk_iaido': noise(0.06, 0.25, 4000); tone('square', 1400, 300, 0.12, 0.12); break;
+    case 'sk_iaido_perfect': noise(0.08, 0.3, 4000); tone('triangle', 2000, 1500, 0.25, 0.16); tone('triangle', 3000, 2400, 0.2, 0.08, 0.04); break;
+    case 'sk_pierce': tone('square', 1200, 200, 0.16, 0.12); noise(0.1, 0.2, 1500); break;
+    case 'sk_nova': noise(0.4, 0.3, 150); tone('sine', 220, 50, 0.35, 0.22); tone('triangle', 660, 220, 0.25, 0.08); break;
     case 'win': [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, 0.2, 0.2, i * 0.12)); break;
   }
 }

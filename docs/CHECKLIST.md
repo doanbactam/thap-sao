@@ -28,12 +28,12 @@ playthrough (`tools/smoke.mjs`, run by `npm run smoke`) proves it. Proof referen
 - [x] C022 Knockback, hit-stop, screen shake, damage numbers in real combat — proof: smoke C022_real_combat
 
 ## §3 Weapons
-- [x] C023 Kiếm & Khiên: 3-hit combo + Shield Bash special (20 MP) + guard — proof: test "sword&shield 3-hit"
-- [x] C024 Đại Kiếm: 2-hit heavy wide arc with knockback + charged spin (25 MP) + super armor — proof: test "greatsword 2-hit"
-- [x] C025 Dao Găm: 4-hit fast + shadow-step backstab (15 MP) + Fury meter (+50% speed 5 s) — proof: test "dagger 4-hit"
+- [x] C023 Kiếm & Khiên: 3-hit combo + Shield Bash special (16 MP, cd 2 s; v1 20 MP) + guard — proof: test "sword&shield 3-hit"
+- [x] C024 Đại Kiếm: 2-hit heavy wide arc with knockback + charged spin (22 MP, cd 3 s; v1 25 MP) + super armor — proof: test "greatsword 2-hit"
+- [x] C025 Dao Găm: 4-hit fast + shadow-step backstab (14 MP, cd 1.5 s; v1 15 MP) + Fury meter (+50% speed 5 s) — proof: test "dagger 4-hit"
 - [x] C026 Kiếm Cong: 3-hit with lunge + Iaido hold/release dash-slash; perfect release = crit — proof: test "katana 3rd hit"
-- [x] C027 Nỏ: magazine 6, reload 1.2 s, auto-aim, piercing heavy bolt (20 MP) — proof: test "crossbow magazine"
-- [x] C028 Gậy Phép: homing orb using MagicDamage partially + elemental nova (30 MP) — proof: test "staff uses magic"
+- [x] C027 Nỏ: magazine 6, reload 1.2 s, auto-aim, piercing heavy bolt (18 MP, cd 1 s; v1 20 MP) — proof: test "crossbow magazine"
+- [x] C028 Gậy Phép: homing orb using MagicDamage partially + elemental nova (24 MP, cd 2.5 s; v1 30 MP) — proof: test "staff uses magic"
 - [x] C029 Dash attack for every weapon — proof: test "every weapon has a dash attack"
 - [x] C030 Only Kiếm & Khiên unlocked at start; others via Destiny + training room — proof: test "weapons need destiny unlock"; smoke C030_weapon_training_unlock
 - [x] C031 ≥8 Anvil upgrades per weapon in 2–3 tiers with requires/excludes — proof: test ">= 8 upgrades per weapon"
@@ -142,3 +142,6 @@ playthrough (`tools/smoke.mjs`, run by `npm run smoke`) proves it. Proof referen
 - [x] C116 Parry: perfect guard staggers melee attackers (riposte) and reflects projectiles — proof: test "a successful parry lifts the lockout"; smoke V2_parry; smoke V2_projectile_reflect
 - [x] C117 Inventory drag preview (+/− tablet targets, level/★ changes, combo progress before dropping) — proof: test "tablet: target cells with sign, level change and disabling"; test "moving an item compares against the pre-drag snapshot"; smoke V2_drag_preview
 - [x] C118 Choice cards: concrete power/stat deltas, keep (lock through reroll) and banish (1 die) — proof: test "every choice card has a concrete numeric delta"; test "lock keeps an option through a reroll"; smoke V2_choice_deltas; smoke V2_choice_keep; smoke V2_choice_banish
+- [x] C119 Active skills: every spell + weapon special has a tuned role, MP cost, cooldown (cooldown% applies) and its own SFX — proof: test "skills: every spell and weapon special has tuning, cooldown and a distinct sfx"; test "balance band"; smoke V2_skill_spell_cast; smoke V2_skill_weapon_special
+- [x] C120 Skill feel: 120 ms cast buffer, wind-up with rig pose, cancel by dash/guard/hit (nothing spent), hold-to-aim preview, touch drag-to-cancel — proof: test "cast buffer"; test "wind-up: effect fires"; test "touch drag"; smoke V2_skill_touch_drag_cancel
+- [x] C121 Skill HUD: radial cooldown sweep, MP-insufficient flash + deny, ready pulse, key labels, tooltip numbers that follow build synergies — proof: test "synergy: tooltip numbers follow"; test "ready pulse fires once"; smoke V2_skill_cooldown_sweep; smoke V2_skill_mp_deny

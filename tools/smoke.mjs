@@ -313,6 +313,24 @@ try {
   const spellId = await ev(() => { const T = window.__TS; for (const id of T.artifactIds()) { T.G.run.grid.items = []; T.giveArtifact(id); const rs = window.__game.scene.getScene('Run'); if (rs.spells.length) return id; } return null; });
   await ev(() => { window.__TS.G.run.mp = 999; }); await page.keyboard.press('1'); await sleep(400);
   ok('C057_spell_slot', !!spellId && (await ev(() => window.__TS.log('spell').length)) > 0, String(spellId));
+  // ---------- V2 skills (docs/V2_SKILLS.md): spell cast with hold-to-aim, cooldown sweep, weapon special, aim preview screenshot ----------
+  { const T0s = await ev(() => { const T = window.__TS; T.G.run.grid.items = []; T.giveArtifact('a_fireball_tome'); T.giveArtifact('a_icebolt_tome'); T.setWeapon('swordshield'); T.G.run.mp = 999; return window.__game.scene.getScene('Run').spells.map((s) => s.spell); });
+    await sleep(400); const nCast = await ev(() => window.__TS.log('skillCast').length);
+    await page.keyboard.down('2'); await sleep(350); const pv = await ev(() => window.__TSSkills.state().preview); await page.keyboard.up('2'); await sleep(450);
+    const st1 = await ev(() => window.__TSSkills.state());
+    ok('V2_skill_spell_cast', pv?.visible && (await ev(() => window.__TS.log('skillCast').length)) > nCast && st1.slots.spell2.cd > 0, `${JSON.stringify(T0s)} preview ${JSON.stringify(pv)}`);
+    await waitFor(() => { const v = window.__game.scene.getScene('Hud').skillView?.spell2; return v && v.frac > 0; }, 2000);
+    const hudSweep = await ev(() => window.__game.scene.getScene('Hud').skillView?.spell2);
+    ok('V2_skill_cooldown_sweep', !!hudSweep && hudSweep.frac > 0 && hudSweep.frac < 1, JSON.stringify(hudSweep));
+    await ev(() => { window.__TS.G.run.mp = 999; }); const nSp = await ev(() => window.__TS.log('special').length);
+    await page.keyboard.down('1'); await sleep(250); await page.keyboard.up('1'); await sleep(450); // fireball → cooling
+    await ev(() => { window.__TS.G.run.mp = 999; });
+    await page.keyboard.down('f'); await sleep(600); await shot('v2_skills'); await page.keyboard.up('f'); await sleep(500);
+    const sp = await ev(() => window.__TSSkills.state());
+    ok('V2_skill_weapon_special', (await ev(() => window.__TS.log('special').length)) > nSp && sp.slots.special.cd > 0, JSON.stringify(sp.slots.special));
+    await ev(() => { window.__TS.G.run.mp = 0; }); await sleep(2600); await page.keyboard.press('2'); await sleep(120);
+    ok('V2_skill_mp_deny', (await ev(() => window.__TS.log('skillDeny').filter((d) => d.data.reason === 'mp').length)) > 0);
+    await ev(() => { window.__TS.G.run.mp = 999; }); }
   ok('C103_font_vn', await ev(() => document.fonts.check('800 20px "Baloo 2"')));
   await page.keyboard.press('m'); ok('map_overlay', await waitScene('Map')); await shot('map'); await btn('close'); await sleep(400);
 
@@ -462,6 +480,11 @@ try {
   const p1 = await tp.evaluate(() => window.__TS.getState().room.px);
   ok('C104_touch_joystick', p1 > p0 + 10, `${p0}→${p1}`);
   const ab = await tp.evaluate(() => window.__TS.toPage(1170, 600)); await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ab.x, y: ab.y, id: 2 }] }); await tp.waitForTimeout(400); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  { const sb = await tp.evaluate(() => window.__TS.toPage(1065, 530)); const n0 = await tp.evaluate(() => window.__TS.log('skillCancel').length);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: sb.x, y: sb.y, id: 3 }] }); await tp.waitForTimeout(300);
+    for (let i = 1; i <= 8; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: sb.x - i * 25, y: sb.y, id: 3 }] }); await tp.waitForTimeout(40); }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await tp.waitForTimeout(300);
+    ok('V2_skill_touch_drag_cancel', (await tp.evaluate(() => window.__TS.log('skillCancel').length)) > n0); }
   ok('C104_touch_attack_button', (await tp.evaluate(() => window.__TS.log('attack').length)) > 0);
   const vp = await tp.evaluate(() => { const c = window.__game.canvas.getBoundingClientRect(); return { w: c.width, h: c.height }; });
   ok('C106_landscape_fit', Math.abs(vp.w / vp.h - 16 / 9) < 0.02, JSON.stringify(vp));

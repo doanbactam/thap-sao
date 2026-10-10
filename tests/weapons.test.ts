@@ -7,16 +7,16 @@ import type { WeaponId } from '../src/data/types';
 const IDS: WeaponId[] = ['swordshield', 'greatsword', 'dagger', 'katana', 'crossbow', 'staff'];
 describe('weapons (C023-C034)', () => {
   it('six weapons registered', () => { for (const id of IDS) expect(weapons.find((w) => w.id === id)).toBeTruthy(); });
-  it('sword&shield 3-hit combo with guard, cost 20', () => {
-    const c = buildWeapon('swordshield'); expect(c.coefs.length).toBe(3); expect(c.hasGuard).toBe(true); expect(c.specialCost).toBe(20);
+  it('sword&shield 3-hit combo with guard, cost 16 (v2 skills; v1 20)', () => {
+    const c = buildWeapon('swordshield'); expect(c.coefs.length).toBe(3); expect(c.hasGuard).toBe(true); expect(c.specialCost).toBe(16);
     const s = newWeaponState(c); const hits: number[] = [];
     for (let i = 0; i < 4; i++) { const h = tryAttack(s, c)!; hits.push(h.hit); tickWeapon(s, c, 0.6); }
     expect(hits).toEqual([0, 1, 2, 0]);
   });
   it('combo resets after idle', () => { const c = buildWeapon('swordshield'); const s = newWeaponState(c); tryAttack(s, c); tickWeapon(s, c, 1.0); expect(tryAttack(s, c)!.hit).toBe(0); });
-  it('greatsword 2-hit heavy, knockback, super armor, 25 MP', () => { const c = buildWeapon('greatsword'); expect(c.coefs.length).toBe(2); expect(c.superArmor).toBe(true); expect(c.knockback).toBeGreaterThan(buildWeapon('swordshield').knockback); expect(c.specialCost).toBe(25); expect(c.arc).toBeGreaterThan(140); });
+  it('greatsword 2-hit heavy, knockback, super armor, 22 MP (v1 25)', () => { const c = buildWeapon('greatsword'); expect(c.coefs.length).toBe(2); expect(c.superArmor).toBe(true); expect(c.knockback).toBeGreaterThan(buildWeapon('swordshield').knockback); expect(c.specialCost).toBe(22); expect(c.arc).toBeGreaterThan(140); });
   it('dagger 4-hit, fury triggers +50% attack speed', () => {
-    const c = buildWeapon('dagger'); expect(c.coefs.length).toBe(4); expect(c.specialCost).toBe(15);
+    const c = buildWeapon('dagger'); expect(c.coefs.length).toBe(4); expect(c.specialCost).toBe(14);
     const s = newWeaponState(c); let trig = false; for (let i = 0; i < 20 && !trig; i++) trig = addFury(s, c);
     expect(trig).toBe(true); expect(s.furyT).toBe(c.furyDuration); expect(attackRate(s, 100)).toBe(1.5);
   });
@@ -34,8 +34,8 @@ describe('weapons (C023-C034)', () => {
     tickWeapon(s, c, 1.25); expect(s.ammo).toBe(6);
     s.ammo = 3; manualReload(s, c); expect(s.reloading).toBeGreaterThan(0);
   });
-  it('staff uses magic partially, homing, 30 MP', () => { const c = buildWeapon('staff'); expect(c.magicShare).toBeGreaterThan(0); expect(c.homing).toBeGreaterThan(0); expect(c.specialCost).toBe(30); });
-  it('special mp check', () => { const c = buildWeapon('swordshield'); expect(trySpecial(10, c).ok).toBe(false); expect(trySpecial(25, c).mp).toBe(5); });
+  it('staff uses magic partially, homing, 24 MP (v1 30)', () => { const c = buildWeapon('staff'); expect(c.magicShare).toBeGreaterThan(0); expect(c.homing).toBeGreaterThan(0); expect(c.specialCost).toBe(24); });
+  it('special mp check', () => { const c = buildWeapon('swordshield'); expect(trySpecial(10, c).ok).toBe(false); expect(trySpecial(25, c).mp).toBe(9); });
   it('guard frontal 120° arc, MP cost, perfect guard free', () => {
     const c = buildWeapon('swordshield'); const s = newWeaponState(c); s.guarding = true; s.guardT = 0.05;
     expect(guardBlock(s, c, 0, 0.3, 50)).toMatchObject({ blocked: true, perfect: true, mpCost: 0 });

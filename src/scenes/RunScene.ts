@@ -14,8 +14,11 @@ import { newStatus, applyStatus, tickStatus, isDisabled, expose, takenMult, woun
 import { fireOnHit, fireOnKill, fireOnDash, fireOnHurt, tickPeriodic, quickSpells, castSpell, type Bundle, type Ctx, type SpellSlot } from '../systems/effects';
 import { getSpecials, hitMultiplier, chainCount, isBehind, splitManaShield, doomMark, phoenix, spellCritChance, spellEchoes, companionSlots, companionMods, guardCounterDamage, galeDashDamage, procDamage, type Specials } from '../systems/specials';
 import { buildWeapon, newWeaponState, tickWeapon, tryAttack, addFury, trySpecial, iaidoRelease, guardBlock, manualReload, chargedFor, PERFECT_GUARD, type WeaponConfig, type WeaponState } from '../systems/weapons';
+import { SHAKE as CFX_SHAKE } from '../systems/combat';
 import { newCombat, tickReal, timeScale, takeDash, onDash, onHurt, moveMul, beginMove, guardOpen, guardClose, consumeBonus, type CombatState, type Pending } from '../systems/combat';
 import * as CFX from '../systems/combatFx';
+import * as SKF from '../systems/skillFx'; // v2 skills polish (src/systems/skills.ts, docs/V2_SKILLS.md)
+import { newCasts, CAST_MOVE_MUL, type CastState } from '../systems/skills';
 import { newAgent, shieldBlocks, newBrain, bossThink, contactMult, AiWorld, type Agent, type BossBrain, type AiAction, type BossAction } from '../systems/ai';
 import { eliteMods, SPLIT_HP, type Affix } from '../systems/director'; // v2 AI: encounter director + elites
 import { planWaves, enemyScale, choicesFrom, type MapNode } from '../systems/floorgen';
@@ -39,7 +42,7 @@ interface Enemy {
   bar?: EnemyBar; hits: number; mark?: Phaser.GameObjects.Image; facing: number; decoy?: boolean;
   elite?: Affix; eliteG?: Phaser.GameObjects.Graphics; eliteLabel?: Phaser.GameObjects.Text;
 }
-interface Proj { x: number; y: number; vx: number; vy: number; r: number; dmg: number; from: 'player' | 'enemy'; sprite: Phaser.GameObjects.Image; life: number; pierce: number; hit: Set<Enemy>; homing: number; element: Element; status?: StatusId; coef?: number; spell?: boolean; explode?: number; magicShare?: number; crit?: boolean }
+interface Proj { x: number; y: number; vx: number; vy: number; r: number; dmg: number; from: 'player' | 'enemy'; sprite: Phaser.GameObjects.Image; life: number; pierce: number; hit: Set<Enemy>; homing: number; element: Element; status?: StatusId; coef?: number; spell?: boolean; explode?: number; magicShare?: number; crit?: boolean; hs?: number; shk?: number; shownCrit?: boolean }
 interface Hazard { x: number; y: number; r: number; t: number; delay: number; dmg: number; g: Phaser.GameObjects.Graphics; kind: 'circle' | 'line' | 'laser' | 'mine' | 'trail' | 'tornado'; angle?: number; len?: number; width?: number; sweep?: number; dur?: number; beams?: number; life?: number; armed?: boolean; fromPlayer?: boolean; done?: boolean; tick?: number; status?: StatusId; follow?: Enemy; art?: Phaser.GameObjects.Sprite }
 interface Pickup { x: number; y: number; kind: 'money' | 'xp'; value: number; sprite: Phaser.GameObjects.Image; t: number }
 interface Interact { x: number; y: number; r: number; sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image; label: Phaser.GameObjects.Text; use: () => void; used: boolean; auto?: boolean; id: string; hp?: number }
@@ -56,6 +59,7 @@ export class RunScene extends Phaser.Scene {
   // player
   px = 640; py = 560; pvx = 0; pvy = 0; facing = -Math.PI / 2; hero!: Phaser.GameObjects.Sprite; heroKey = 'hero_bong'; wpn!: Phaser.GameObjects.Image; shadow!: Phaser.GameObjects.Ellipse;
   rig: HeroRig | null = null; // v2 hero animation rig (src/game/heroAnim.ts)
+  casts: CastState = newCasts(); // v2 skills: cooldowns, cast buffer, wind-up
   cs: CombatState = newCombat(); strikeCtx: CFX.StrikeCtx | null = null; // v2 combat feel (src/systems/combat.ts)
   dashes = 2; dashTimer = 0; dashT = 0; dashA = 0; iframes = 0; hurtT = 0; sinceSpend = 99; shield = 0; shieldT = 0; afterDash = 0; dashHit = new Set<Enemy>();
   specialHold = 0; spinT = 0; spinTick = 0; lastAttackHeld = false; lastSpecialHeld = false; lastGuardHeld = false; doomCounter = 0; novaCd = 0; secondWindUsed = false; companionShareCd = 0;
@@ -74,7 +78,7 @@ export class RunScene extends Phaser.Scene {
     this.mode = d?.mode ?? 'run';
     this.enemies = []; this.projs = []; this.hazards = []; this.pickups = []; this.interacts = []; this.doors = []; this.comps = [];
     this.aiw = null; this.waveElites = [];
-    this.waveIdx = 0; this.fighting = false; this.bossRef = null; this.hitStop = 0; this.cs = newCombat(); this.strikeCtx = null; this.trainingHits = 0; this.trainingDone = false; this.pendingMiniDrop = false;
+    this.waveIdx = 0; this.fighting = false; this.bossRef = null; this.hitStop = 0; this.cs = newCombat(); this.casts = newCasts(); this.strikeCtx = null; this.trainingHits = 0; this.trainingDone = false; this.pendingMiniDrop = false;
     this.periodicTimers = {}; this.secondWindUsed = false; this.shield = 0; this.iframes = 0; this.dashT = 0; this.spinT = 0; this.specialHold = 0;
   }
   create() {
@@ -107,7 +111,7 @@ export class RunScene extends Phaser.Scene {
   refreshLoadout(fresh: boolean) {
     this.bundle = runBundle(this.run); this.sp = getSpecials(this.bundle);
     this.wcfg = buildWeapon(this.run.weapon, this.run.upgrades);
-    if (fresh || !this.ws) { this.ws = newWeaponState(this.wcfg); }
+    if (fresh || !this.ws) { this.ws = newWeaponState(this.wcfg); if (this.casts) this.casts.slots.special.cd = 0; }
     else { this.ws.ammo = Math.min(this.ws.ammo, this.wcfg.magazine); }
     this.spells = quickSpells(this.bundle);
     this.recalcStats();
@@ -392,7 +396,7 @@ export class RunScene extends Phaser.Scene {
     if (c.consume('inventory')) { openOverlay(this, 'Inventory', { onClose: () => { this.refreshLoadout(false); G.saveRun(); } }); return; }
     if (c.consume('map') && this.mode === 'run') { openOverlay(this, 'Map', {}); return; }
     if (c.consume('potion')) this.drinkFirstPotion();
-    if (c.consume('spell1')) this.castSpellSlot(0);
+    if (c.consume('spell1')) this.castSpellSlot(0); // simulated taps (SIM queue); real keys/touch go through SKF.frame
     if (c.consume('spell2')) this.castSpellSlot(1);
     if (c.consume('reload')) manualReload(this.ws, this.wcfg);
   }
@@ -408,11 +412,12 @@ export class RunScene extends Phaser.Scene {
     this.iframes = Math.max(0, this.iframes - dt); this.hurtT = Math.max(0, this.hurtT - dt); this.afterDash = Math.max(0, this.afterDash - dt);
     this.sinceSpend += dt; this.novaCd = Math.max(0, this.novaCd - dt); this.companionShareCd = Math.max(0, this.companionShareCd - dt);
     if (this.shieldT > 0) { this.shieldT -= dt; if (this.shieldT <= 0) this.shield = 0; }
-    for (let i = 0; i < this.spellCd.length; i++) this.spellCd[i] = Math.max(0, this.spellCd[i] - dt); // in place (no per-frame array)
+    this.spellCd[0] = this.casts.slots.spell1.cd; this.spellCd[1] = this.casts.slots.spell2.cd; // mirror (legacy readers)
     run.mp = regenMp(run.mp, s.maxMp, s.mpRegen, this.sinceSpend, dt);
     const dd = tickDash(this.dashes, this.dashTimer, s.dashCount, dashRechargeTime(s), dt); this.dashes = dd.charges; this.dashTimer = dd.timer;
     tickWeapon(this.ws, this.wcfg, dt);
     CFX.frame(this as any, dt);
+    SKF.frame(this as any, dt); // skills: input, buffer, wind-up, cancel, aim preview, VFX
     tickBuffs(run, dt);
     this.statsT -= dt; if (this.statsT <= 0) { this.statsT = 0.25; this.recalcStats(); }
     if (c.aimSet) this.facing = c.aim;
@@ -432,10 +437,10 @@ export class RunScene extends Phaser.Scene {
       const guarding = this.wcfg.hasGuard && c.guard;
       if (guarding && !this.ws.guarding) { this.ws.guarding = true; this.ws.guardT = guardOpen(this.cs, PERFECT_GUARD); }
       if (!guarding && this.ws.guarding) { this.ws.guarding = false; guardClose(this.cs); }
-      // special
-      this.updateSpecial(dt, c.special);
+      // special (input/charge/release handled in SKF.frame; this ticks the greatsword spin)
+      this.updateSpecial(dt);
       // move
-      let spd = moveSpeedPx(s) * (this.ws.guarding ? 0.45 : 1) * (this.ws.charging || this.spinT > 0 ? 0.5 : 1) * moveMul(this.cs, chargedFor(this.wcfg).moveMul);
+      let spd = moveSpeedPx(s) * (this.ws.guarding ? 0.45 : 1) * (this.ws.charging || this.spinT > 0 ? 0.5 : 1) * (this.casts.phase === 'windup' ? CAST_MOVE_MUL : 1) * moveMul(this.cs, chargedFor(this.wcfg).moveMul);
       this.moveBy(c.moveX * spd * dt, c.moveY * spd * dt);
       // attack
       CFX.attackInput(this as any, dt); // tap = light (buffered), hold = charged attack
@@ -527,90 +532,26 @@ export class RunScene extends Phaser.Scene {
     void sweep; // the weapon swing itself is animated by the hero rig (src/game/heroAnim.ts)
   }
   // ---- specials ----
-  updateSpecial(dt: number, held: boolean) {
-    const w = this.wcfg.id; const pressed = held && !this.lastSpecialHeld; const released = !held && this.lastSpecialHeld; this.lastSpecialHeld = held;
+  updateSpecial(dt: number) {
     if (this.spinT > 0) {
       this.spinT -= dt; this.spinTick -= dt; this.facing += dt * 14;
       if (this.spinTick <= 0) { this.spinTick = 0.2; this.meleeHit(0, this.wcfg.range * 1.1, 360, this.wcfg.coefs[0] * 0.7); this.swingFx(this.wcfg.range, 160, true); }
-      return;
-    }
-    if (w === 'greatsword' || w === 'katana') {
-      if (pressed && this.run.mp >= this.wcfg.specialCost) { this.ws.charging = true; this.ws.charge = 0; }
-      if (this.ws.charging && released) {
-        const r = trySpecial(this.run.mp, this.wcfg); if (!r.ok) { this.ws.charging = false; return; }
-        this.spendMp(this.run.mp - r.mp);
-        if (w === 'greatsword') { this.ws.charging = false; this.spinT = this.wcfg.spinDuration * Math.min(1.5, 0.6 + this.ws.charge); this.ws.charge = 0; this.spinTick = 0; sfx('magic'); G.logEvent('special', { w }); }
-        else {
-          const ir = iaidoRelease(this.ws, this.wcfg); const len = 220; const a = this.facing;
-          playAttack(this, 'thrust', 20, 260, { reach: 22, power: 1.6, angle: a }); // iaido draw pose
-          const x0 = this.px, y0 = this.py; this.moveBy(Math.cos(a) * len, Math.sin(a) * len); this.iframes = Math.max(this.iframes, 0.25);
-          const g = this.add.graphics().setDepth(3000); g.lineStyle(10, 0xffffff, 0.9).lineBetween(x0, y0 - 16, this.px, this.py - 16); this.tweens.add({ targets: g, alpha: 0, duration: 250, onComplete: () => g.destroy() });
-          for (const e of this.enemies) if (!e.dead && this.segDist(e.agent.x, e.agent.y - 10, x0, y0 - 16, this.px, this.py - 16) < e.radius + 24) this.hitEnemy(e, { coef: 2.2 * ir.power, forceCrit: ir.perfect, knock: a });
-          sfx(ir.perfect ? 'crit' : 'hit'); if (ir.perfect) { toast(this, 'Hoàn hảo!', '#ffcb6b', 220); this.cameras.main.shake(120, 0.006); }
-          G.logEvent('special', { w, perfect: ir.perfect });
-        }
-      }
-      return;
-    }
-    if (!pressed) return;
-    const r = trySpecial(this.run.mp, this.wcfg); if (!r.ok) { sfx('deny'); return; }
-    this.spendMp(this.run.mp - r.mp); G.logEvent('special', { w });
-    switch (w) {
-      case 'swordshield': { // shield bash dash
-        const a = this.facing; this.iframes = Math.max(this.iframes, 0.3); playAttack(this, 'bash', 0, 260, { power: 1.4, angle: a }); // shield bash pose
-        const x0 = this.px, y0 = this.py; this.moveBy(Math.cos(a) * 160, Math.sin(a) * 160);
-        for (const e of this.enemies) if (!e.dead && this.segDist(e.agent.x, e.agent.y, x0, y0, this.px, this.py) < e.radius + 30) { this.hitEnemy(e, { coef: 1.5, knock: a, knockMul: 2 }); applyStatus(e.status, 'stun', 1, 0, 1); }
-        this.fxAt('fx_dash_dust', this.px, this.py, 60); sfx('guard'); break;
-      }
-      case 'dagger': { // shadow step behind target + backstab
-        const n = this.nearestEnemy(this.px, this.py, 400); if (!n) break;
-        const fa = Math.atan2(this.py - n.agent.y, this.px - n.agent.x);
-        this.px = Phaser.Math.Clamp(n.agent.x - Math.cos(n.agent.angle) * (n.radius + 26), ROOM.x0 + 14, ROOM.x1 - 14); this.py = Phaser.Math.Clamp(n.agent.y - Math.sin(n.agent.angle) * (n.radius + 26), ROOM.y0 + 10, ROOM.y1 - 6);
-        this.facing = Math.atan2(n.agent.y - this.py, n.agent.x - this.px); void fa;
-        this.fxAt('fx_dash_dust', this.px, this.py, 60); this.iframes = Math.max(this.iframes, 0.3);
-        this.hitEnemy(n, { coef: this.wcfg.coefs[this.wcfg.coefs.length - 1] * this.wcfg.backstabMult, forceCrit: true, knock: this.facing }); sfx('crit'); break;
-      }
-      case 'crossbow': playAttack(this, 'shoot', 0, 220, { power: 1.5 }); this.spawnProj('pj_bolt', this.px, this.py - 20, this.facing, 760, 12, 3, { pierce: 99 }); sfx('shoot'); break;
-      case 'staff': {
-        playCast(this, 300); // staff nova pose
-        const R = this.wcfg.novaRadius; const g = this.add.graphics().setDepth(3000); const col = this.wcfg.element === 'ice' ? 0x9be4ff : this.wcfg.element === 'lightning' ? 0xfff07a : this.wcfg.element === 'fire' ? 0xff8a3a : 0xffffff;
-        g.fillStyle(col, 0.35).fillCircle(this.px, this.py - 10, R).lineStyle(4, col, 1).strokeCircle(this.px, this.py - 10, R); this.tweens.add({ targets: g, alpha: 0, duration: 350, onComplete: () => g.destroy() });
-        for (const e of this.enemies) if (!e.dead && this.dist(e.agent, { x: this.px, y: this.py }) < R + e.radius) { this.hitEnemy(e, { coef: 2.5, knock: Math.atan2(e.agent.y - this.py, e.agent.x - this.px) }); const st = ELEMENT_STATUS[this.wcfg.element]; if (st) applyStatus(e.status, st, 2, this.stats[this.wcfg.element] * 0.15); }
-        sfx('explode'); this.cameras.main.shake(120, 0.005); break;
-      }
     }
   }
   spendMp(n: number) { if (n > 0) { this.run.mp = Math.max(0, this.run.mp - n); this.sinceSpend = 0; } }
   // ---- spells ----
-  castSpellSlot(i: number) {
-    const sl = this.spells[i]; if (!sl) { sfx('deny'); return; }
-    const cd = sl.cooldown * (1 - this.stats.cooldownPct / 100);
-    const r = castSpell(sl, this.run.mp, this.spellCd[i]); if (!r.ok) { sfx('deny'); return; }
-    this.spendMp(this.run.mp - r.mp); this.spellCd[i] = cd; playAnim(this.hero, this.heroKey, 'cast', false); playCast(this);
-    this.doSpell(sl); if (spellEchoes(this.sp, Math.random())) this.time.delayedCall(250, () => this.doSpell(sl));
-    G.logEvent('spell', { spell: sl.spell });
-  }
-  doSpell(sl: SpellSlot) {
-    sfx('magic'); const a = this.facing; const crit = Math.random() * 100 < spellCritChance(this.sp, this.stats.critChance);
-    const dmg = spellDamage(this.stats, sl.power) * (crit ? 1.5 : 1);
-    switch (sl.spell) {
-      case 'icebolt': this.spawnProj('pj_icebolt', this.px, this.py - 20, a, 520, 10, 0, { flat: dmg, status: 'frostbite', spell: true, element: 'ice' }); break;
-      case 'fireball': this.spawnProj('pj_fireball', this.px, this.py - 20, a, 420, 12, 0, { flat: dmg, status: 'burn', spell: true, explode: 70, element: 'fire' }); break;
-      case 'chainLightning': { const n = this.nearestEnemy(this.px, this.py, 500); if (n) { this.zap(this.px, this.py - 20, n.agent.x, n.agent.y - 20); this.hitEnemy(n, { flat: dmg, status: 'shock', element: 'lightning', spell: true }); let prev = n; for (const c of chainTargets(n.agent as any, this.enemies.filter((e) => !e.dead && e !== n).map((e) => e.agent as any), chainCount(this.sp)) as any[]) { const e = this.enemies.find((x) => x.agent === c)!; this.zap(prev.agent.x, prev.agent.y - 20, e.agent.x, e.agent.y - 20); this.hitEnemy(e, { flat: Math.round(dmg * 0.7), status: 'shock', element: 'lightning', spell: true }); prev = e; } } break; }
-      case 'arcaneMissiles': for (let k = 0; k < 5; k++) this.time.delayedCall(k * 90, () => this.spawnProj('pj_orb_magic', this.px, this.py - 20, a + (k - 2) * 0.25, 360, 8, 0, { flat: dmg, homing: 1.2, spell: true })); break;
-      case 'shieldBubble': this.shield = Math.max(this.shield, sl.power); this.shieldT = 4; this.fxAt('fx_heal', this.px, this.py - 20, 70); break;
-      case 'blink': { const d = Math.max(80, sl.power); this.fxAt('fx_dash_dust', this.px, this.py, 50); this.moveBy(Math.cos(a) * d, Math.sin(a) * d); this.iframes = Math.max(this.iframes, 0.3); this.fxAt('fx_spawn', this.px, this.py - 20, 50); break; }
-    }
-  }
+  /** Tap a spell slot (simulated input); real presses go through SKF.frame (hold = aim, release = cast). */
+  castSpellSlot(i: number) { SKF.request(this as any, i ? 'spell2' : 'spell1'); }
+  doSpell(sl: SpellSlot) { SKF.doSpell(this as any, sl, this.facing); }
 
   // ---------------- damage to enemies ----------------
-  hitEnemy(e: Enemy, o: { coef?: number; flat?: number; isDash?: boolean; forceCrit?: boolean; knock?: number; knockMul?: number; status?: StatusId; element?: Element; spell?: boolean; melee?: boolean; magicShare?: number; ignoreDef?: boolean; fromX?: number; fromY?: number; noTrigger?: boolean }) {
+  hitEnemy(e: Enemy, o: { coef?: number; flat?: number; isDash?: boolean; forceCrit?: boolean; knock?: number; knockMul?: number; status?: StatusId; element?: Element; spell?: boolean; melee?: boolean; magicShare?: number; ignoreDef?: boolean; fromX?: number; fromY?: number; noTrigger?: boolean; shownCrit?: boolean; hs?: number; shk?: number }) {
     if (e.dead) return 0;
     const el = o.element ?? this.wcfg.element;
     const behind = isBehind(e.agent.angle, e.agent.x, e.agent.y, o.fromX ?? this.px, o.fromY ?? this.py);
     const mult = hitMultiplier(this.sp, { frozen: e.status.frozenT > 0, shocked: e.status.shockT > 0, anyStatus: e.status.burn.stacks + e.status.frost.stacks + e.status.poison.stacks + e.status.wound.stacks > 0 || e.status.shockT > 0 || e.status.frozenT > 0 || e.status.stunT > 0, behind }, !!o.isDash);
     let amt: number; let crit = false;
-    if (o.flat !== undefined) amt = Math.round(o.flat * (1 + takenMult(e.status)) * mult);
+    if (o.flat !== undefined) { amt = Math.round(o.flat * (1 + takenMult(e.status)) * mult); crit = !!o.shownCrit; } // spell crits are rolled by the caster
     else {
       const sk = o.melee ? this.strikeCtx : null;
       const r = computeDamage({ stats: { ...this.stats, critChance: this.stats.critChance + this.wcfg.critBonus + (sk?.critBonus ?? 0) }, element: el, coef: o.coef ?? 1, bonusPct: this.wcfg.damagePct + (sk?.bonusPct ?? 0), magicShare: o.magicShare ?? this.wcfg.magicShare, targetDefense: e.armor, targetTakenPct: takenMult(e.status), forceCrit: o.forceCrit || sk?.forceCrit });
@@ -625,6 +566,7 @@ export class RunScene extends Phaser.Scene {
     if (e.dummy) { e.hp = e.maxHp; this.trainingHits++; this.checkTraining(); }
     this.floatText(e.agent.x + Phaser.Math.Between(-10, 10), e.agent.y - 44, String(amt), crit ? '#ffcb3a' : '#ffffff', crit ? 26 : 20);
     sfx(crit ? 'crit' : 'hit');
+    if (o.hs) this.hitStop = Math.max(this.hitStop, o.hs); if (o.shk) this.cameras.main.shake(...CFX_SHAKE[Math.min(3, o.shk) as 1 | 2 | 3]); // skill feel (src/systems/skills.ts)
     CFX.impact(this as any, e, o, amt, crit, o.melee ? this.strikeCtx : null); // spark, hit-stop, shake tier, poise/weight knockback
     if (this.stats.lifesteal > 0) this.healPlayer(lifestealHeal(amt, this.stats.lifesteal), false);
     if (!o.noTrigger) {
@@ -716,7 +658,7 @@ export class RunScene extends Phaser.Scene {
     if (this.shield > 0) { const a = Math.min(this.shield, dmg); this.shield -= a; dmg -= a; }
     const ms = splitManaShield(this.sp, dmg, this.run.mp); if (ms.mp) this.spendMp(ms.mp); dmg = ms.hp;
     if (dmg <= 0) return;
-    this.run.hp -= dmg; this.iframes = 0.6; this.hurtT = 0.3; onHurt(this.cs, this.wcfg.superArmor); sfx('hurt'); this.cameras.main.shake(120, 0.006);
+    this.run.hp -= dmg; this.iframes = 0.6; this.hurtT = 0.3; onHurt(this.cs, this.wcfg.superArmor); SKF.onHurt(this as any); sfx('hurt'); this.cameras.main.shake(120, 0.006);
     this.floatText(this.px, this.py - 56, `-${dmg}`, '#ff6a5a', 22);
     playHurt(this, Math.atan2(fromY - this.py, fromX - this.px));
     this.hero.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL); this.time.delayedCall(90, () => { this.hero.setTint(0xff9090).setTintMode(Phaser.TintModes.MULTIPLY); this.time.delayedCall(120, () => this.hero.clearTint()); });
@@ -860,9 +802,9 @@ export class RunScene extends Phaser.Scene {
     const s = acquireImage(this, key, 18, x, y, a); // pooled
     this.projs.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r: 8, dmg, from: 'enemy', sprite: s, life: 5, pierce: 0, hit: NO_HITS, homing: 0, element: 'physical' });
   }
-  spawnProj(key: string, x: number, y: number, a: number, speed: number, r: number, coef: number, o: { pierce?: number; homing?: number; flat?: number; status?: StatusId; spell?: boolean; explode?: number; element?: Element; magicShare?: number } = {}) {
+  spawnProj(key: string, x: number, y: number, a: number, speed: number, r: number, coef: number, o: { pierce?: number; homing?: number; flat?: number; status?: StatusId; spell?: boolean; explode?: number; element?: Element; magicShare?: number; hs?: number; shk?: number; shownCrit?: boolean } = {}) {
     const s = acquireImage(this, key, r * 2.4, x, y, a); // pooled
-    const p: Proj = { x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r, dmg: o.flat ?? 0, coef, from: 'player', sprite: s, life: 1.8, pierce: o.pierce ?? 0, hit: new Set(), homing: o.homing ?? 0, element: o.element ?? this.wcfg.element, status: o.status, spell: o.spell, explode: o.explode, magicShare: o.magicShare };
+    const p: Proj = { x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r, dmg: o.flat ?? 0, coef, from: 'player', sprite: s, life: 1.8, pierce: o.pierce ?? 0, hit: new Set(), homing: o.homing ?? 0, element: o.element ?? this.wcfg.element, status: o.status, spell: o.spell, explode: o.explode, magicShare: o.magicShare, hs: o.hs, shk: o.shk, shownCrit: o.shownCrit };
     this.projs.push(p); return p;
   }
   updateProjs(dt: number) {
@@ -884,7 +826,8 @@ export class RunScene extends Phaser.Scene {
             if (e.brain && (e as any).reflect) { p.from = 'enemy'; p.vx *= -1; p.vy *= -1; p.dmg = e.dmg; p.life = 3; break; }
             p.hit.add(e);
             if (p.explode) { this.radialDamage(p.x, p.y, p.explode, p.dmg * 0.6, p.element, 'fx_explosion'); }
-            this.hitEnemy(e, p.dmg ? { flat: p.dmg, status: p.status, element: p.element, spell: p.spell, fromX: p.x - p.vx * 0.1, fromY: p.y - p.vy * 0.1 } : { coef: p.coef, magicShare: p.magicShare, fromX: p.x - p.vx * 0.1, fromY: p.y - p.vy * 0.1, knock: Math.atan2(p.vy, p.vx), knockMul: 0.5 });
+            const hs = p.hit.size === 1 ? p.hs : undefined, shk = p.hit.size === 1 ? p.shk : undefined; // skill feel on the first hit only
+            this.hitEnemy(e, p.dmg ? { flat: p.dmg, status: p.status, element: p.element, spell: p.spell, shownCrit: p.shownCrit, hs, shk, fromX: p.x - p.vx * 0.1, fromY: p.y - p.vy * 0.1 } : { coef: p.coef, magicShare: p.magicShare, hs, shk, fromX: p.x - p.vx * 0.1, fromY: p.y - p.vy * 0.1, knock: Math.atan2(p.vy, p.vx), knockMul: 0.5 });
             if (p.pierce-- <= 0) { p.life = 0; break; }
           }
         }
@@ -1048,7 +991,7 @@ export class RunScene extends Phaser.Scene {
   fxAt(key: string, x: number, y: number, size: number) {
     poolFx(this, key, x, y, size); // pooled + capped (src/game/fxPool.ts)
   }
-  zap(x1: number, y1: number, x2: number, y2: number) { const g = this.add.graphics().setDepth(3200); g.lineStyle(3, 0xfff07a, 1); let px = x1, py = y1; for (let i = 1; i <= 5; i++) { const nx = x1 + (x2 - x1) * i / 5 + (i < 5 ? Phaser.Math.Between(-10, 10) : 0), ny = y1 + (y2 - y1) * i / 5 + (i < 5 ? Phaser.Math.Between(-10, 10) : 0); g.lineBetween(px, py, nx, ny); px = nx; py = ny; } this.tweens.add({ targets: g, alpha: 0, duration: 180, onComplete: () => g.destroy() }); }
+  zap(x1: number, y1: number, x2: number, y2: number) { SKF.bolt(this as any, x1, y1, x2, y2); } // pooled (one Graphics, src/systems/skillFx.ts)
   floatText(x: number, y: number, s: string, color: string, size = 20) {
     poolText(this, x, y, s, color, size); // pooled; digits use a runtime bitmap font (src/game/fxPool.ts)
   }

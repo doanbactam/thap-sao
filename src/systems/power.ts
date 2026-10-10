@@ -3,6 +3,7 @@
 // greedy policy and the headless balance simulator (src/systems/sim.ts). Framework-free, deterministic, no RNG.
 import type { Stats } from './stats';
 import { BASE_STATS, computeStats } from './stats';
+import { SPELL, SPECIAL, effectiveCooldown } from './skills';
 import { critMultiplier } from './damage';
 import { specialsOf, procScale, procElement, type Bundle, type Ctx, condOk } from './effects';
 import { buildWeapon, type WeaponConfig } from './weapons';
@@ -66,23 +67,23 @@ function estimatePowerRaw(s: Stats, b: Bundle, w: WeaponConfig, ctx: Ctx = { hpP
   for (const t of b.onHurt) if (t.e.action === 'mp' && condOk(t.when, ctx)) mpPerSec += t.value * TEMPO.hurts;
   // ---- spells ----
   parts.spells = 0;
-  const spellCrit = Math.min(1, (s.critChance + (sp.spellCrit ?? 0)) / 100) * 0.5 + 1;
+  const spellCrit = Math.min(1, (s.critChance + (sp.spellCrit ?? 0)) / 100) * (critMultiplier(s.critDamage) - 1) + 1; // v2 skills: spell crits follow critDamage
   const echo = 1 + (sp.spellEcho ?? 0) / 100;
   const spells = b.spells.slice(0, 2);
   for (const t of spells) {
     const casts = Math.min(1 / Math.max(0.3, t.e.cooldown * cdr), mpPerSec / Math.max(1, t.e.mpCost * spells.length)) * TEMPO.uptime;
-    const dmg = (t.value + s.magic) * dmgPct * spellCrit * echo;
+    const dmg = (t.value + s.magic * (SPELL[t.e.spell].missileMagic ?? 1)) * dmgPct * spellCrit * echo;
     switch (t.e.spell) {
       case 'icebolt': parts.spells += dmg * casts; break;
       case 'fireball': parts.spells += dmg * 1.5 * casts; break;
-      case 'chainLightning': parts.spells += dmg * (1 + 0.7 * 2) * casts; break;
+      case 'chainLightning': parts.spells += dmg * (1 + (SPELL.chainLightning.chainFalloff ?? 0.8) * 2) * casts; break;
       case 'arcaneMissiles': parts.spells += dmg * 3 * casts; break;
-      case 'shieldBubble': shield += absorbed(t.value, 4) * casts * TEMPO.fightSeconds; break;
+      case 'shieldBubble': shield += absorbed(t.value, SPELL.shieldBubble.shieldTime ?? 5) * casts * TEMPO.fightSeconds; break;
       case 'blink': shield += 4 * casts * TEMPO.fightSeconds; break;
     }
   }
   const spellMp = spells.reduce((a, t) => a + t.e.mpCost * Math.min(1 / Math.max(0.3, t.e.cooldown * cdr), mpPerSec / Math.max(1, t.e.mpCost * spells.length)) * TEMPO.uptime, 0);
-  parts.special = w.specialCost > 0 ? hit * mult * 2.5 * 1.5 * Math.min(1 / 3, Math.max(0, mpPerSec - spellMp) / w.specialCost) : 0;
+  parts.special = w.specialCost > 0 ? hit * mult * 2.5 * 1.5 * Math.min(1 / Math.max(1, effectiveCooldown(SPECIAL[w.id].cooldown, s.cooldownPct) + 1), Math.max(0, mpPerSec - spellMp) / w.specialCost) : 0;
   // ---- companions ----
   parts.companions = 0;
   if (b.summons.length) {

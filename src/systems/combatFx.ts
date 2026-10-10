@@ -41,7 +41,7 @@ export function frame(rs: RS, dt: number) {
 export function attackInput(rs: RS, dt: number) {
   const c = rs.ctl, ws = rs.ws, wc = rs.wcfg, cs = rs.cs;
   const ch = chargedFor(wc);
-  const busy = ws.charging || rs.spinT > 0 || ws.guarding;
+  const busy = ws.charging || rs.spinT > 0 || ws.guarding || rs.casts?.phase === 'windup'; // a skill wind-up blocks attacks
   const cmds = stepAttack(cs, {
     pressed: c.takeAttackPress(), held: c.attack, canAttack: !busy, canCharge: canCharge(ws, wc),
     ready: ws.cooldown <= 0 && !(wc.magazine > 0 && ws.reloading > 0), chargeTime: ch.chargeTime,
