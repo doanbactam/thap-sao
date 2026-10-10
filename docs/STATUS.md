@@ -1,6 +1,58 @@
 # Tháp Sao — engine status
 
-_Last updated: 2026-10-10 (v2 skills polish — spells + weapon specials)._
+_Last updated: 2026-10-11 (v2 layout and map — room layouts, floor map, HUD layout)._
+
+## v2 layout and map (commit "v2 layout and map")
+Three parallel workstreams merged on top of `v2 skills polish` (no new content — only existing props, tiles, rooms, events):
+- **Rooms** (`docs/V2_ROOMS.md`): `src/systems/roomgen.ts` — seeded layouts (11 shared templates + 6 chapter signatures +
+  procedural scatter, mirrored by seed) with real cover: rocks / pillars / bushes / low walls block movement and shots, liquid
+  blocks movement only. Validated (no pockets, doors/anchors reachable for 2×2 bodies, boss arenas open), safe spawns.
+  `ai.ts` `AiWorld.nav` + `navSteer` (BFS flow field, probe-and-slide, stuck detector, line-of-sight gate on attacks).
+- **Floor map** (`docs/V2_MAP.md`): `floorgen.ts` generator rules (2–3 non-crossing diagonals, 5–8 paths, varied choices,
+  guaranteed sustain room, 0–2 elites that guard high-value rewards, boss foreshadow), doors in their map column's slot
+  (`src/ui/layout.ts DOOR_X`), `src/ui/mapView.ts` collapsible mini-map (top-right in the wall band, tap → full map, state persisted
+  in `thapsao.minimapCollapsed`) and the full-screen map with legend (`MapScene`).
+- **HUD layout** (`docs/V2_HUD_LAYOUT.md`): `src/ui/hudLayout.ts` (pure geometry) + `src/ui/safeArea.ts` (env() insets → logical px),
+  FIT letterbox on 20:9 phones, right-thumb touch cluster with ≥ 48 dp targets, hub chrome, pause card on an 8-px rhythm.
+
+### Integration fixes
+- `hudLayout.MINIMAP_BASE` already pointed at `layout.MINIMAP` (verified + unit test `mini-map rect follows the floor-map layout`).
+- **Mini-map now follows safe-area insets**: `Minimap(scene, openFull, insets)` shifts its container (incl. hit zones) by (−r, +t),
+  `rect()` reports the shifted rect; HudScene passes `safeInsets`. Smoke `V2_minimap_safe_inset` (`?safe=0,24,100,0` on 800×360 → insets
+  t 48 / r 40 → mini-map at (1022, 56) = `hudLayout.minimap`; pause/music fall back to a row left of the bag).
+- Shared files verified after the 3-way merge: HudScene (layout + Minimap), RunScene (roomgen build/collision/spawns/shots + `DOOR_X`
+  doors), overlays (MapScene + pause card + shop buttons), i18n (`map.*` strings), input/kit/main/index.html.
+- Debug: `__TS.getState().room.layout` (template, kind, trim, obstacle count, grid hash) and `__TS.navStep(x, y)`.
+- Smoke bot pathing: `walkTo` and the fight approach steer with `navStep` (straight when a hero-wide line is walkable, else the room
+  flow field). No checks were weakened.
+
+### Gates (v2 layout and map)
+| Gate | Command | Result |
+|---|---|---|
+| Typecheck | `npm run typecheck` | clean |
+| Unit tests | `npm test` | 24 files, 406 pass + 1 skipped (new: `roomgen` 19, `hudLayout`, `map_layout`, floorgen map rules) |
+| Smoke | `setsid sh -c 'node tools/smoke.mjs > work/int_smoke.log 2>&1' &` (~16 min) | **130/130 checks, 0 console errors, boss real kills 6 / 6** (ch1 7 s · ch2 29 s · ch3 58 s · ch4 57 s · ch5 107 s · ch6 111 s) |
+| Checklist | `npm run checklist` | **126/126** (new C122–C126) |
+| Balance sim | `npm run sim` (200 runs each, mid-progress meta) | greedy **48 %** (was 42 %), casual **41 %** (was 37 %), random 1 % (was 0 %); tier-2 combo on reaching ch3 83 / 78 / 30 % |
+| Build | `npm run build` | `dist/` + `docs/ThapSao.html` (26.2 MB, 234 embedded files) |
+| Source zip | `npm run zip` | `docs/ThapSao_src.zip` (~47 MB) |
+
+New smoke checks: `V2_minimap_visible`, `V2_minimap_collapse`, `V2_minimap_expand`, `V2_minimap_tap_opens_map`, `V2_fullmap_closes`,
+`V2_rooms_3_distinct_layouts` (3 combat rooms with different templates, mid-fight), `V2_rooms_spawns_clear_of_cover`,
+`V2_phone_fit_letterbox`, `V2_phone_touch_target_48dp`, `V2_phone_hud_no_overlap` (800×360 CSS @3x = 2400×1080 touch),
+`V2_minimap_safe_inset`. Screenshots: `out/smoke/21_v2_fullmap.png`, `22..24_v2_room_{1,2,3}.png`, `20_v2_minimap_collapsed.png`,
+`52_v2_phone_hud.png`, `53_v2_phone_safe_area.png`.
+
+Sim note: the win rate went **up** (+6 / +4 pts), not down. The sim models the floor generator but not room obstacles; the rise
+matches the map pass's extra sustain (≥ 1 shop/heart per floor, one before each boss; per-floor shops 0.56 → 0.76, hearts 0.56 → 0.98)
+and elites now never blocking every lane. Encounter budget left unchanged (the brief asked to tune only on a big drop).
+
+### Remaining risks
+- Sim has no obstacles, so cover's effect on real difficulty is unmeasured (ranged enemies lose sight lines; melee must path around).
+- Melee swings / greatsword spin still hit through cover; bosses are not path-aware (arenas kept open).
+- `roomgen.ANCHORS` duplicates RunScene's literal interactable positions — move one, update the other.
+- Low walls / liquid can sit under the touch cluster on phones (visual only; the cluster draws on top).
+- No real-device check of `env(safe-area-inset-*)` on Android WebView (falls back to 0).
 
 ## v2 skills polish (commit "v2 skills polish")
 Improve + polish the existing active skills — 6 quick-slot spells (keys 1/2) and the 6 weapon specials (F/L/touch). No new content.

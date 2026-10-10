@@ -42,6 +42,12 @@ const P = {
   C119: ['t:skills: every spell and weapon special has tuning, cooldown and a distinct sfx', 't:balance band', 's:V2_skill_spell_cast', 's:V2_skill_weapon_special'],
   C120: ['t:cast buffer', 't:wind-up: effect fires', 't:touch drag', 's:V2_skill_touch_drag_cancel'],
   C121: ['t:synergy: tooltip numbers follow', 't:ready pulse fires once', 's:V2_skill_cooldown_sweep', 's:V2_skill_mp_deny'],
+  // V2 layout + map (rooms / floor map / HUD layout integration)
+  C122: ['t:layouts validate: no pockets', 't:combat rooms actually have cover', 't:boss arenas keep an open readable middle', 's:V2_rooms_3_distinct_layouts', 's:V2_rooms_spawns_clear_of_cover'],
+  C123: ['t:melee enemies path around a U-shaped wall', 't:ranged enemies reposition until they have line of sight', 't:shots: rocks / pillars / bushes / walls block', 's:C022_real_combat', ...[1, 2, 3, 4, 5, 6].map((c) => `s:C087_boss_ch${c}_damaged`)],
+  C124: ['t:every floor over 7200 seeds passes validateFloor', 't:paths never cross', 't:mapView: current / cleared / reachable', 't:boss foreshadow names the gate boss', 't:door slots sit on the wall'],
+  C125: ['t:mini-map stays in the top wall band', 't:mini-map rect follows the floor-map layout', 's:V2_minimap_visible', 's:V2_minimap_collapse', 's:V2_minimap_expand', 's:V2_minimap_tap_opens_map', 's:V2_fullmap_closes', 's:V2_minimap_safe_inset'],
+  C126: ['t:hit circles ≥', 't:never covers the quick bar', 't:48 dp holds on a 360 dp-tall landscape phone', 't:groups do not overlap and stay in the safe rect', 't:an inset that reaches into the canvas', 's:V2_phone_fit_letterbox', 's:V2_phone_touch_target_48dp', 's:V2_phone_hud_no_overlap'],
 };
 const proofOk = (p) => {
   if (p === 's:__noerrors') return (smoke.errors ?? []).filter((e) => !e.startsWith('check failed')).length === 0;

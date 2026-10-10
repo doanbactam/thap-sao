@@ -4,6 +4,8 @@ import { PAL, iconRef } from './assets';
 import { txt } from '../ui/kit';
 import { unlockAudio } from './audio';
 import { aimFromDrag, SKILL_KEYS, type SkillKey } from '../systems/skills';
+import { touchLayout, inJoystickZone, JOY, type TouchBtn, type TouchId } from '../ui/hudLayout';
+import { safeInsets, onSafeArea } from '../ui/safeArea';
 
 export type Act = 'dash' | 'potion' | 'inventory' | 'spell1' | 'spell2' | 'interact' | 'pause' | 'map' | 'reload';
 export interface SimInput { move?: [number, number]; aim?: number; attack?: boolean; special?: boolean; guard?: boolean; until: number; press?: Act[]; spell1?: boolean; spell2?: boolean; drag?: { key: SkillKey; dx: number; dy: number } }
@@ -30,6 +32,10 @@ export class Controls {
   private skillCancelled: Record<SkillKey, boolean> = { spell1: false, spell2: false, special: false };
   private skillDowns = new Set<SkillKey>(); private skillUps = new Map<SkillKey, 'cast' | 'cancel'>();
   skillButtons: Partial<Record<SkillKey, { c: Phaser.GameObjects.Container; img: Phaser.GameObjects.Image; r: number }>> = {};
+  /** v2 layout: every touch button by id (position = src/ui/hudLayout.ts touchLayout), re-anchored on safe-area change. */
+  touchBtns: Partial<Record<TouchId, Phaser.GameObjects.Container>> = {};
+  /** potion slots on the HUD belt (HudScene keeps it current) — the joystick never starts on the belt. */
+  quickPots = 2; private unSafe: (() => void) | null = null;
   /** Attack press latch (performance.now of the last press edge). Survives hit-stop frames; read with takeAttackPress(). */
   private atkPress = 0; private prevAttack = false;
   constructor(public scene: Phaser.Scene, public opts: { touchButtons?: boolean } = {}) {
@@ -48,7 +54,7 @@ export class Controls {
     scene.input.on('pointerdown', (p: Phaser.Input.Pointer, over: any[]) => {
       unlockAudio();
       if (over && over.length) return;
-      if (this.touch && p.wasTouch) { if (p.x < 640 && !this.joy) this.joy = { id: p.id, bx: p.x, by: p.y, dx: 0, dy: 0 }; return; }
+      if (this.touch && p.wasTouch) { if (!this.joy && inJoystickZone(p.x, p.y, safeInsets(), this.quickPots)) this.joy = { id: p.id, bx: p.x, by: p.y, dx: 0, dy: 0 }; return; }
       if (p.rightButtonDown()) { if (!this.cancelHeldSkills()) this.mouseGuard = true; } else { this.mouseAttack = true; this.latchAttack(); }
     });
     scene.input.on('pointerup', (p: Phaser.Input.Pointer) => {
@@ -66,31 +72,34 @@ export class Controls {
   private buildTouch() {
     const s = this.scene; const c = s.add.container(0, 0).setScrollFactor(0).setDepth(9000); this.touchUi = c;
     this.joyG = s.add.graphics().setScrollFactor(0).setDepth(9000);
-    const mk = (x: number, y: number, r: number, icon: string, label: string, down: (p: Phaser.Input.Pointer) => void, up?: () => void) => {
+    const mk = (x: number, y: number, r: number, icon: string, label: string, down: (p: Phaser.Input.Pointer) => void, up?: () => void, hit = r) => {
       const b = s.add.container(x, y); const g = s.add.graphics();
       g.fillStyle(PAL.orangeLip, 1).fillCircle(0, 4, r); g.fillStyle(PAL.orange, 1).fillCircle(0, 0, r); g.fillStyle(PAL.orangeHi, 0.8).fillCircle(-r * 0.25, -r * 0.3, r * 0.3); g.lineStyle(3, PAL.outline, 1).strokeCircle(0, 0, r);
-      b.add(g); const ir = iconRef(s, icon); b.add(s.add.image(0, -4, ir.tex, ir.frame).setDisplaySize(r * 1.1, r * 1.1)); b.add(txt(s, 0, r * 0.55, label, 12).setOrigin(0.5));
-      b.setSize(r * 2, r * 2).setInteractive(new Phaser.Geom.Circle(r, r, r), Phaser.Geom.Circle.Contains);
+      b.add(g); const ir = iconRef(s, icon); b.add(s.add.image(0, -4, ir.tex, ir.frame).setDisplaySize(r * 1.1, r * 1.1)); b.add(txt(s, 0, r * 0.58, label, r >= 44 ? 13 : 12).setOrigin(0.5));
+      b.setSize(r * 2, r * 2).setInteractive(new Phaser.Geom.Circle(r, r, hit), Phaser.Geom.Circle.Contains); // hit radius ≥ visual (touch target)
       b.on('pointerdown', (p: Phaser.Input.Pointer) => { unlockAudio(); down(p); }); b.on('pointerup', () => up?.()); b.on('pointerout', () => up?.());
       c.add(b); return b;
     };
-    mk(1170, 600, 58, 'btn_attack', 'Đánh', () => { this.touchHeld.attack = true; this.latchAttack(); }, () => (this.touchHeld.attack = false));
-    mk(1050, 650, 42, 'btn_dash', 'Lướt', () => this.pressed.add('dash'));
+    // v2 layout: right-thumb cluster from touchLayout (hit circles ≥ 96 logical px = 48 dp on a 360 dp-tall phone, no overlaps)
+    const L = touchLayout(safeInsets()); const add = (b: TouchBtn, down: (p: Phaser.Input.Pointer) => void, up?: () => void) => { const o = mk(b.x, b.y, b.r, b.icon, b.label, down, up, b.hit); this.touchBtns[b.id] = o; return o; };
+    add(L.attack, () => { this.touchHeld.attack = true; this.latchAttack(); }, () => (this.touchHeld.attack = false));
+    add(L.dash, () => this.pressed.add('dash'));
     // skill buttons: hold = aim preview (+ name tooltip after a long press), drag = aim, drag beyond the ring = cancel, release = cast
-    const skillBtn = (k: SkillKey, x: number, y: number, r: number, icon: string, label: string) => {
-      const b = mk(x, y, r, icon, label, (p) => {
-        this.touchSkill[k] = { id: p.id, x, y }; this.skillDrag[k] = { mode: 'auto', angle: 0 }; this.skillPress(k);
-      });
-      this.skillButtons[k] = { c: b, img: b.list[1] as Phaser.GameObjects.Image, r };
+    const skillBtn = (k: SkillKey, b: TouchBtn) => {
+      const o = add(b, (p) => { this.touchSkill[k] = { id: p.id, x: o.x, y: o.y }; this.skillDrag[k] = { mode: 'auto', angle: 0 }; this.skillPress(k); });
+      this.skillButtons[k] = { c: o, img: o.list[1] as Phaser.GameObjects.Image, r: b.r };
     };
-    skillBtn('special', 1065, 530, 40, 'btn_special', 'Kỹ năng');
-    skillBtn('spell1', 965, 495, 30, 'btn_special', 'Phép 1');
-    skillBtn('spell2', 1030, 440, 30, 'btn_special', 'Phép 2');
-    mk(1190, 470, 34, 'btn_potion', 'Bình', () => this.pressed.add('potion'));
-    mk(960, 670, 34, 'btn_bag', 'Túi', () => this.pressed.add('inventory'));
-    mk(960, 580, 32, 'wpn_shield', 'Đỡ', () => (this.touchHeld.guard = true), () => (this.touchHeld.guard = false));
-    mk(1110, 410, 30, 'btn_map', 'Dùng', () => this.pressed.add('interact'));
+    skillBtn('special', L.special); skillBtn('spell1', L.spell1); skillBtn('spell2', L.spell2);
+    add(L.potion, () => this.pressed.add('potion'));
+    add(L.guard, () => (this.touchHeld.guard = true), () => (this.touchHeld.guard = false));
+    add(L.interact, () => this.pressed.add('interact'));
+    // (the bag lives on the HUD — enlarged to a touch target there — so there is no duplicate "Túi" button here)
+    this.unSafe = onSafeArea(() => this.layoutTouch());
   }
+  /** Re-anchor the touch buttons to the current safe area (orientation change / cutout). */
+  layoutTouch() { const L = touchLayout(safeInsets()); for (const id of Object.keys(this.touchBtns) as TouchId[]) this.touchBtns[id]?.setPosition(L[id].x, L[id].y); }
+  /** Debug / smoke: touch button centres in logical px. */
+  touchPositions(): Partial<Record<TouchId, { x: number; y: number }>> { const o: Partial<Record<TouchId, { x: number; y: number }>> = {}; for (const id of Object.keys(this.touchBtns) as TouchId[]) { const b = this.touchBtns[id]!; o[id] = { x: b.x, y: b.y }; } return o; }
   // ---- skills ----
   private skillPress(k: SkillKey) { this.skillCancelled[k] = false; this.skillDowns.add(k); this.skillSince[k] = performance.now(); }
   private skillRelease(k: SkillKey) { this.skillUps.set(k, this.skillCancelled[k] ? 'cancel' : 'cast'); this.skillCancelled[k] = false; this.skillDrag[k] = null; }
@@ -147,8 +156,8 @@ export class Controls {
     this.prevAttack = this.attack;
     if (this.joyG) {
       this.joyG.clear();
-      if (this.joy) { this.joyG.fillStyle(0x000000, 0.18).fillCircle(this.joy.bx, this.joy.by, 60).lineStyle(3, PAL.outline, 0.7).strokeCircle(this.joy.bx, this.joy.by, 60); const d = Math.min(60, Math.hypot(this.joy.dx, this.joy.dy)); const a = Math.atan2(this.joy.dy, this.joy.dx); this.joyG.fillStyle(PAL.cream, 0.9).fillCircle(this.joy.bx + Math.cos(a) * d, this.joy.by + Math.sin(a) * d, 26).lineStyle(3, PAL.outline, 1).strokeCircle(this.joy.bx + Math.cos(a) * d, this.joy.by + Math.sin(a) * d, 26); }
+      if (this.joy) { this.joyG.fillStyle(0x000000, 0.18).fillCircle(this.joy.bx, this.joy.by, JOY.base).lineStyle(3, PAL.outline, 0.7).strokeCircle(this.joy.bx, this.joy.by, JOY.base); const d = Math.min(JOY.travel, Math.hypot(this.joy.dx, this.joy.dy)); const a = Math.atan2(this.joy.dy, this.joy.dx); this.joyG.fillStyle(PAL.cream, 0.9).fillCircle(this.joy.bx + Math.cos(a) * d, this.joy.by + Math.sin(a) * d, JOY.knob).lineStyle(3, PAL.outline, 1).strokeCircle(this.joy.bx + Math.cos(a) * d, this.joy.by + Math.sin(a) * d, JOY.knob); }
     }
   }
-  destroy() { this.touchUi?.destroy(); this.joyG?.destroy(); }
+  destroy() { this.unSafe?.(); this.unSafe = null; this.touchUi?.destroy(); this.joyG?.destroy(); }
 }

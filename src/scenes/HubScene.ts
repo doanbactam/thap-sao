@@ -4,7 +4,9 @@ import { G } from '../game/state';
 import { Controls } from '../game/input';
 import { tex, applyEntry, playAnim, face, MANIFEST, PAL, bakeTiles } from '../game/assets';
 import { sfx } from '../game/audio';
-import { txt, button, pill, toast } from '../ui/kit';
+import { txt, button, pill, toast, fitText, padHit } from '../ui/kit';
+import { safeInsets } from '../ui/safeArea';
+import { MARGIN } from '../ui/hudLayout';
 import { t } from '../systems/i18n';
 import { newRun } from '../systems/run';
 import { getCostume } from '../systems/registry';
@@ -15,7 +17,7 @@ import { startTraining } from './meta';
 interface Station { id: string; x: number; y: number; r: number; label: string; open: () => void }
 export class HubScene extends Phaser.Scene {
   constructor() { super('Hub'); }
-  ctl!: Controls; hero!: Phaser.GameObjects.Sprite; heroKey = 'hero_bong'; px = 640; py = 560; stations: Station[] = []; labels: Phaser.GameObjects.Text[] = []; prompt!: Phaser.GameObjects.Text;
+  near: Station | null = null; ctl!: Controls; hero!: Phaser.GameObjects.Sprite; heroKey = 'hero_bong'; px = 640; py = 560; stations: Station[] = []; labels: Phaser.GameObjects.Text[] = []; prompt!: Phaser.GameObjects.Text;
   create() {
     G.run = null; G.training = false; this.stations = []; this.labels = [];
     if (!weaponUsable(G.meta, G.meta.weapon)) G.meta.weapon = 'swordshield';
@@ -45,10 +47,16 @@ export class HubScene extends Phaser.Scene {
     st('journal', 480, 490, t('hub.journal'), () => this.open('Journal'));
     st('training', 1145, 490, t('hub.training'), () => startTraining(this, G.meta.weapon));
     st('portal', 845, 610, t('hub.portal'), () => this.startRun(), 70);
+    // v2 layout: readable name plates, placed by hand so none overlaps another plate or the station art's focal point
+    // (wardrobe / dummy / portal plates sit above their art, the others below). Tap / click a plate = use the station.
+    const plates: Array<[string, number, number]> = [['destiny', 630, 305], ['talents', 515, 325], ['costumes', 440, 206], ['journal', 480, 486], ['weapons', 1040, 506], ['training', 1146, 394], ['portal', 845, 460]];
+    for (const [id, x, y] of plates) { const s0 = this.stations.find((q) => q.id === id); if (s0) this.plate(x, y, s0); }
     // hero
     const ck = getCostume(G.meta.costume)?.sprite ?? 'hero_bong'; this.heroKey = ck; tex(this, ck, 'char');
     this.hero = this.add.sprite(this.px, this.py, ck); applyEntry(this.hero, ck, 46, [0.5, 0.92]); playAnim(this.hero, ck, 'idle');
     this.prompt = txt(this, 640, 600, '', 18, '#ffcb6b').setOrigin(0.5).setDepth(6000);
+    // the prompt says "chạm để dùng": on touch it is the tap target for the nearby station (taps on it never start the joystick)
+    this.prompt.setPadding(10, 6, 10, 6).setInteractive({ useHandCursor: true }).on('pointerup', () => { if (this.near) { G.logEvent('station', { id: this.near.id, tap: true }); this.near.open(); } });
     this.buildUi();
     this.events.once('shutdown', () => this.ctl.destroy());
     this.events.on('resume', () => { this.ctl.clearPressed(); this.refreshUi(); });
@@ -70,22 +78,33 @@ export class HubScene extends Phaser.Scene {
   buildUi() {
     this.children.list.filter((o: any) => o.getData && o.getData('ui')).forEach((o) => o.destroy());
     const ui: Phaser.GameObjects.GameObject[] = [];
-    ui.push(pill(this, 40, 34, 150, 'ic_sapphire', G.meta.sapphires));
-    ui.push(button(this, 640, 32, 230, 46, t('hub.name').toUpperCase(), () => {}, 'orange', { id: 'hubTitle', size: 20 }));
-    ui.push(button(this, 1236, 36, 60, 56, '', () => this.open('Settings'), 'wood', { icon: 'btn_pause', id: 'settings' }));
-    ui.push(button(this, 1236, 140, 70, 70, '', () => this.open('Journal'), 'purple', { icon: 'node_artifact', id: 'journalBtn' }));
-    ui.push(txt(this, 1236, 182, t('hub.journal'), 13).setOrigin(0.5));
-    ui.push(button(this, 1236, 250, 70, 70, '', () => { G.meta.sapphires += 3000; G.saveMeta(); G.logEvent('testPackHub', {}); this.buildUi(); }, 'green', { icon: 'ic_sapphire', id: 'testSapphire' }));
-    ui.push(txt(this, 1236, 292, '+3000 Ngọc', 13).setOrigin(0.5));
+    // v2 layout: corner chrome anchored to the safe rect (MARGIN from each edge); right column on a 104-px rhythm
+    const ins = safeInsets(); const L = MARGIN + ins.l, Rx = 1280 - MARGIN - ins.r - 35, T = MARGIN + ins.t, B = 720 - ins.b;
+    ui.push(pill(this, L + 28, T + 22, 150, 'ic_sapphire', G.meta.sapphires));
+    ui.push(button(this, 640, T + 20, 230, 46, t('hub.name').toUpperCase(), () => {}, 'orange', { id: 'hubTitle', size: 20 }));
+    ui.push(button(this, Rx, T + 28, 64, 56, '', () => this.open('Settings'), 'wood', { icon: 'btn_pause', id: 'settings' }));
+    ui.push(button(this, Rx, T + 124, 70, 70, '', () => this.open('Journal'), 'purple', { icon: 'node_artifact', id: 'journalBtn' }));
+    ui.push(txt(this, Rx, T + 166, t('hub.journal'), 14).setOrigin(0.5));
+    ui.push(button(this, Rx, T + 228, 70, 70, '', () => { G.meta.sapphires += 3000; G.saveMeta(); G.logEvent('testPackHub', {}); this.buildUi(); }, 'green', { icon: 'ic_sapphire', id: 'testSapphire' }));
+    ui.push(txt(this, Rx, T + 270, '+3000 Ngọc', 14).setOrigin(0.5));
     const bx = [306, 424, 542, 660, 778];
     const items: Array<[string, string, string, () => void]> = [['btn_attack', t('hub.training'), 'trainBtn', () => startTraining(this, G.meta.weapon)], ['wic_swordshield', t('hub.weapons'), 'weaponsBtn', () => this.open('Weapons')], ['st_critChance', t('hub.talents'), 'talentsBtn', () => this.open('Talents')], ['combo_companion', t('hub.costumes'), 'costumesBtn', () => this.open('Costumes')], ['node_levelup', t('hub.destinyShort'), 'destinyBtn', () => this.open('Destiny')]];
-    const bar = this.add.graphics().setDepth(7000); bar.fillStyle(PAL.pill, 0.85).fillRoundedRect(240, 606, 800, 108, 18).lineStyle(3, PAL.outline, 1).strokeRoundedRect(240, 606, 800, 108, 18); ui.push(bar);
-    items.forEach(([ic, l, id, fn], i) => { const b = button(this, bx[i], 660, 104, 92, '', fn, 'orange', { icon: ic, id }); b.label.setText(l).setFontSize(14).setY(28); ui.push(b); });
+    const by = B - MARGIN - 50; // bottom bar centre row (660 at zero insets)
+    const bar = this.add.graphics().setDepth(7000); bar.fillStyle(PAL.pill, 0.85).fillRoundedRect(240, by - 52, 800, 104, 18).lineStyle(3, PAL.outline, 1).strokeRoundedRect(240, by - 52, 800, 104, 18); ui.push(bar);
+    items.forEach(([ic, l, id, fn], i) => { const b = button(this, bx[i], by, 108, 90, '', fn, 'orange', { icon: ic, id }); fitText(b.label.setText(l).setFontSize(14).setY(28), 100, 11); ui.push(b); });
     const has = G.store.hasRun();
-    const go = button(this, 935, 660, 180, 92, has ? t('menu.continue') : 'BẮT ĐẦU', () => this.startRun(), 'green', { id: 'startRun', size: 24 }); ui.push(go);
-    if (has) ui.push(button(this, 935, 590, 180, 40, t('menu.newRun'), () => { G.clearRun(); this.startRun(); }, 'orange', { id: 'newRun', size: 16 }));
-    if (G.meta.hardMode) ui.push(txt(this, 935, 715, t('hub.hard'), 13, '#ff7a66').setOrigin(0.5, 1));
+    const go = button(this, 935, by, 180, 90, has ? t('menu.continue') : 'BẮT ĐẦU', () => this.startRun(), 'green', { id: 'startRun', size: 24 }); ui.push(go);
+    if (has) ui.push(button(this, 935, by - 72, 180, 40, t('menu.newRun'), () => { G.clearRun(); this.startRun(); }, 'orange', { id: 'newRun', size: 16 }));
+    if (G.meta.hardMode) ui.push(txt(this, 1150, by + 40, t('hub.hard'), 14, '#ff7a66').setOrigin(0.5, 1));
     for (const o of ui) { (o as any).setData?.('ui', true); (o as any).setDepth?.(7001); }
+  }
+  /** Station name plate: dark pill + cream text; tap / click uses the station. */
+  plate(x: number, y: number, st: Station) {
+    const tx = txt(this, 0, 0, st.label, 14, '#fff4dc').setOrigin(0.5); const w = tx.width + 18, h = 24;
+    const g = this.add.graphics(); g.fillStyle(PAL.pill, 0.8).fillRoundedRect(-w / 2, -h / 2, w, h, 12).lineStyle(2, PAL.outline, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, 12);
+    const c = this.add.container(x, y, [g, tx]).setDepth(5500).setSize(w, h).setInteractive({ useHandCursor: true }); padHit(c, w, 44);
+    c.on('pointerup', () => { G.logEvent('station', { id: st.id, plate: true }); st.open(); }); c.setData('plate', st.id); this.labels.push(tx);
+    return c;
   }
   refreshUi() { this.buildUi(); }
   open(key: string) { sfx('ui'); openOverlay(this, key, { onClose: () => this.scene.restart() }); }
@@ -105,7 +124,7 @@ export class HubScene extends Phaser.Scene {
     playAnim(this.hero, this.heroKey, moving ? 'run' : 'idle'); if (Math.abs(mx) > 0.1) face(this.hero, this.heroKey, mx < 0);
     this.hero.setPosition(this.px, this.py).setDepth(this.py);
     let near: Station | null = null; for (const s of this.stations) if (Math.hypot(s.x - this.px, s.y - this.py) < s.r) { near = s; break; }
-    this.prompt.setText(near ? `${near.label} — ${t('hub.interact')}` : '').setPosition(this.px, this.py - 70);
+    this.near = near; this.prompt.setText(near ? `${near.label} — ${t('hub.interact')}` : '').setPosition(Phaser.Math.Clamp(this.px, 170, 1110), this.py - 70); // clamped: never under the right button column
     if (near && this.ctl.consume('interact')) { G.logEvent('station', { id: near.id }); near.open(); }
   }
 }

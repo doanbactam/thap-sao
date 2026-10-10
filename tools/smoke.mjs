@@ -44,13 +44,21 @@ async function btn(id, timeout = 8000) {
 const toPage = (x, y) => ev(([x, y]) => window.__TS.toPage(x, y), [x, y]);
 const KEYS = { up: 'w', down: 's', left: 'a', right: 'd' };
 async function hold(keys, ms) { for (const k of keys) await page.keyboard.down(k); await sleep(ms); for (const k of keys) await page.keyboard.up(k); }
+/** v2 rooms: movement keys toward (x, y) — straight when the line is walkable, otherwise along the room nav flow field
+ *  (`__TS.navStep`), so the bot paths around cover instead of pushing into a rock. */
+async function steerKeys(x, y, tol = 20) {
+  const st = await S(); if (!st.room) return null; const dx = x - st.room.px, dy = y - st.room.py; const d = Math.hypot(dx, dy);
+  const n = await ev(([x, y]) => window.__TS.navStep(x, y), [x, y]);
+  const ks = [];
+  if (!n || n.straight) { if (dx > tol / 2) ks.push(KEYS.right); if (dx < -tol / 2) ks.push(KEYS.left); if (dy > tol / 2) ks.push(KEYS.down); if (dy < -tol / 2) ks.push(KEYS.up); }
+  else { const c = Math.cos(n.a), s2 = Math.sin(n.a); if (c > 0.38) ks.push(KEYS.right); if (c < -0.38) ks.push(KEYS.left); if (s2 > 0.38) ks.push(KEYS.down); if (s2 < -0.38) ks.push(KEYS.up); }
+  return { ks, d, straight: !n || n.straight, st };
+}
 async function walkTo(x, y, tol = 20, timeout = 25000) {
   const t = Date.now();
   while (Date.now() - t < timeout) {
-    const st = await S(); if (!st.room) return false;
-    const dx = x - st.room.px, dy = y - st.room.py; if (Math.hypot(dx, dy) < tol) return true;
-    const ks = []; if (dx > tol / 2) ks.push(KEYS.right); if (dx < -tol / 2) ks.push(KEYS.left); if (dy > tol / 2) ks.push(KEYS.down); if (dy < -tol / 2) ks.push(KEYS.up);
-    await hold(ks, Math.min(300, 40 + Math.hypot(dx, dy) * 1.2));
+    const k = await steerKeys(x, y, tol); if (!k) return false; if (k.d < tol) return true;
+    await hold(k.ks, k.straight ? Math.min(300, 40 + k.d * 1.2) : 110); // short steps while routing around cover
   }
   return false;
 }
@@ -64,7 +72,7 @@ async function fight(timeout = 60000, stopWhen) {
     const e = en.sort((a, b) => Math.hypot(a.x - st.room.px, a.y - st.room.py) - Math.hypot(b.x - st.room.px, b.y - st.room.py))[0];
     const d = Math.hypot(e.x - st.room.px, e.y - st.room.py);
     const pp = await toPage(e.x, e.y - 14); await page.mouse.move(pp.x, pp.y);
-    if (d > (e.boss ? 72 : 55)) { const ks = []; if (e.x - st.room.px > 20) ks.push('d'); if (e.x - st.room.px < -20) ks.push('a'); if (e.y - st.room.py > 20) ks.push('s'); if (e.y - st.room.py < -20) ks.push('w'); for (const k of ks) await page.keyboard.down(k); await page.mouse.down(); await sleep(140); await page.mouse.up(); for (const k of ks) await page.keyboard.up(k); }
+    if (d > (e.boss ? 72 : 55)) { const ks = (await steerKeys(e.x, e.y, 40))?.ks ?? []; for (const k of ks) await page.keyboard.down(k); await page.mouse.down(); await sleep(140); await page.mouse.up(); for (const k of ks) await page.keyboard.up(k); }
     else { await page.mouse.down(); await sleep(160); await page.mouse.up(); }
     attacks++; if (attacks % 25 === 0) await ev(() => window.__TS.heal());
   }
@@ -334,6 +342,45 @@ try {
   ok('C103_font_vn', await ev(() => document.fonts.check('800 20px "Baloo 2"')));
   await page.keyboard.press('m'); ok('map_overlay', await waitScene('Map')); await shot('map'); await btn('close'); await sleep(400);
 
+  // ---------- V2 layout + floor map (docs/V2_MAP.md, docs/V2_HUD_LAYOUT.md): mini-map collapse / expand / tap → full map ----------
+  { await closeOverlays(); await sleep(400);
+    const mini = () => ev(() => { const h = window.__game.scene.getScene('Hud'); const m = h.mini; return m ? { collapsed: m.collapsed, rect: m.rect(), lay: h.lay.minimap, pref: localStorage.getItem('thapsao.minimapCollapsed') } : null; });
+    const tap = async (x, y) => { const q = await toPage(x, y); await page.mouse.click(q.x, q.y); await sleep(450); };
+    let m = await mini(); if (m?.collapsed) { await tap(m.rect.x + m.rect.w / 2, m.rect.y + m.rect.h / 2); m = await mini(); }
+    ok('V2_minimap_visible', !!m?.rect && !m.collapsed && m.rect.w === 206 && m.rect.x === m.lay.x && m.rect.y === m.lay.y, JSON.stringify(m));
+    await tap(m.rect.x + m.rect.w - 17, m.rect.y + 15); // corner toggle → collapse
+    const mc = await mini(); ok('V2_minimap_collapse', !!mc?.collapsed && mc.rect?.w === 64 && mc.pref === '1', JSON.stringify(mc));
+    await shot('v2_minimap_collapsed');
+    await tap(mc.rect.x + mc.rect.w / 2, mc.rect.y + mc.rect.h / 2); // chip → expand
+    const me = await mini(); ok('V2_minimap_expand', !!me && !me.collapsed && me.rect?.w === 206 && me.pref === '0', JSON.stringify(me));
+    await sleep(300); await tap(me.rect.x + 70, me.rect.y + 90); // panel body → full-screen map
+    const opened = await waitScene('Map', 4000); await sleep(500);
+    const legend = opened && await ev(() => { const walk = (l) => l.some((x) => (typeof x.text === 'string' && /Chú giải/.test(x.text)) || (x.list && walk(x.list))); return walk(window.__game.scene.getScene('Map').children.list); });
+    ok('V2_minimap_tap_opens_map', opened && legend, `opened ${opened} legend ${legend}`);
+    await shot('v2_fullmap');
+    await page.keyboard.press('Escape'); await sleep(500); if ((await ev(() => window.__TS.scenes())).includes('Map')) await btn('close');
+    ok('V2_fullmap_closes', !(await ev(() => window.__TS.scenes())).includes('Map')); }
+
+  // ---------- V2 rooms (docs/V2_ROOMS.md): 3 distinct combat layouts, spawns never inside cover ----------
+  { const seed0 = await ev(() => window.__TS.G.run.floorData.seed); const nN = await ev(() => window.__TS.G.run.floorData.nodes.length);
+    const seen = new Map(); let bad = []; let tries = 0;
+    for (let k = 0; k < 16 && seen.size < 3; k++) {
+      tries++; await closeOverlays();
+      await ev(([s0, b]) => { window.__TS.G.run.floorData.seed = (s0 + b * 7919) >>> 0; }, [seed0, Math.floor(k / nN)]);
+      await gotoForced(k % nN, { type: 'levelup', modifier: 'none', event: null });
+      await waitFor(() => (window.__TS.getState().room?.enemies.length ?? 0) > 0, 8000); await sleep(1400);
+      const st2 = await S(); const L = st2.room?.layout;
+      if (L && L.kind === 'combat' && L.obstacles > 0 && st2.room.enemies.length && ![...seen.values()].some((v) => v.template === L.template || v.hash === L.hash)) {
+        const inCover = await ev(() => { const rs = window.__game.scene.getScene('Run'); const out = rs.enemies.filter((e) => !e.dead && !rs.nav.walkable(e.agent.x, e.agent.y)).map((e) => e.id); if (!rs.nav.walkable(rs.px, rs.py)) out.push('hero'); return out; });
+        bad = bad.concat(inCover); seen.set(L.template, L);
+        await shot(`v2_room_${seen.size}`); log('room layout', L.template, 'trim', L.trim, 'obstacles', L.obstacles, 'enemies', st2.room.enemies.length);
+      }
+      for (let j = 0; j < 4 && !(await S()).run.cleared; j++) { await ev(() => window.__TS.clearRoom()); await sleep(400); }
+    }
+    await ev((s0) => { window.__TS.G.run.floorData.seed = s0; }, seed0);
+    ok('V2_rooms_3_distinct_layouts', seen.size >= 3, `${[...seen.keys()].join(', ')} in ${tries} rooms`);
+    ok('V2_rooms_spawns_clear_of_cover', bad.length === 0, JSON.stringify(bad)); }
+
   // ---------- save between rooms → quit → continue ----------
   st = await S(); const posBefore = st.run.pos, chBefore = st.run.chapter;
   await page.keyboard.press('Escape'); await waitScene('Pause'); await shot('pause'); await btn('quit'); ok('quit_to_hub', await waitScene('Hub', 20000)); await sleep(800);
@@ -479,8 +526,9 @@ try {
   await pt('touchEnd', 0, 0);
   const p1 = await tp.evaluate(() => window.__TS.getState().room.px);
   ok('C104_touch_joystick', p1 > p0 + 10, `${p0}→${p1}`);
-  const ab = await tp.evaluate(() => window.__TS.toPage(1170, 600)); await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ab.x, y: ab.y, id: 2 }] }); await tp.waitForTimeout(400); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  { const sb = await tp.evaluate(() => window.__TS.toPage(1065, 530)); const n0 = await tp.evaluate(() => window.__TS.log('skillCancel').length);
+  const tpos = await tp.evaluate(() => window.__game.scene.getScene('Run').ctl.touchPositions()); // v2 layout: positions from hudLayout.touchLayout
+  const ab = await tp.evaluate(([x, y]) => window.__TS.toPage(x, y), [tpos.attack.x, tpos.attack.y]); await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ab.x, y: ab.y, id: 2 }] }); await tp.waitForTimeout(400); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  { const sb = await tp.evaluate(([x, y]) => window.__TS.toPage(x, y), [tpos.special.x, tpos.special.y]); const n0 = await tp.evaluate(() => window.__TS.log('skillCancel').length);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: sb.x, y: sb.y, id: 3 }] }); await tp.waitForTimeout(300);
     for (let i = 1; i <= 8; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: sb.x - i * 25, y: sb.y, id: 3 }] }); await tp.waitForTimeout(40); }
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await tp.waitForTimeout(300);
@@ -490,6 +538,36 @@ try {
   ok('C106_landscape_fit', Math.abs(vp.w / vp.h - 16 / 9) < 0.02, JSON.stringify(vp));
   await tp.context().close();
 } catch (e) { errors.push('touch exception: ' + (e.stack || e)); }
+
+// ---------- V2 phone HUD: 2400×1080 landscape touch phone (800×360 CSS @3x), FIT letterbox, plus a simulated cutout ----------
+try {
+  const phoneShot = (p, name) => { const f = path.join(OUT, `${String(shots.length + 1).padStart(2, '0')}_${name}.png`); shots.push(f); log('shot', path.basename(f)); return p.screenshot({ path: f }); };
+  const phoneRun = async (query) => {
+    const pp = await newPage({ viewport: { width: 800, height: 360 }, deviceScaleFactor: 3, hasTouch: true }, query);
+    await pp.evaluate(() => window.__TS.startRun(11)); await pp.waitForFunction(() => window.__TS.getState().room, null, { timeout: 30000 }); await pp.waitForTimeout(600);
+    await pp.evaluate(() => { window.__TS.godMode(true); const n = window.__TS.G.run.floorData.nodes[0]; Object.assign(n, { type: 'levelup', modifier: 'none', event: null }); window.__TS.G.run.roomCleared = true; window.__TS.gotoNode(0); });
+    await pp.waitForFunction(() => (window.__TS.getState().room?.enemies.length ?? 0) > 0 && window.__game.scene.getScene('Hud')?.mini?.rect(), null, { timeout: 30000 }); await pp.waitForTimeout(1500);
+    return pp;
+  };
+  const geo = (pp) => pp.evaluate(() => { const h = window.__game.scene.getScene('Hud'); const rs = window.__game.scene.getScene('Run'); const c = window.__game.canvas.getBoundingClientRect();
+    return { canvas: { l: c.left, w: c.width, h: c.height }, ins: window.__TSLayout?.insets(), dp48: window.__TSLayout?.dp(48), mini: h.mini.rect(), lay: { minimap: h.lay.minimap, pause: h.lay.pause, music: h.lay.music, bag: h.lay.bag }, touch: rs.ctl.touchPositions(), touchUi: h.touchUi, doors: rs.doors.map((d) => d.x) }; });
+  const ovl = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const circ = (c, r, b) => { const nx = Math.max(b.x, Math.min(c.x, b.x + b.w)), ny = Math.max(b.y, Math.min(c.y, b.y + b.h)); return Math.hypot(c.x - nx, c.y - ny) < r; };
+  const pp = await phoneRun('&touch=1'); const g = await geo(pp);
+  await phoneShot(pp, 'v2_phone_hud');
+  ok('V2_phone_fit_letterbox', Math.abs(g.canvas.w / g.canvas.h - 16 / 9) < 0.02 && g.canvas.l > 50 && g.touchUi, JSON.stringify(g.canvas));
+  ok('V2_phone_touch_target_48dp', g.dp48 > 0 && g.dp48 <= 96 + 0.5, `48 dp = ${g.dp48} logical px (touch hit ≥ 96 px, tests/hudLayout.test.ts)`);
+  const clash = []; for (const [id, c] of Object.entries(g.touch)) { if (circ(c, 48, g.mini)) clash.push(`mini×${id}`); for (const k of ['pause', 'music', 'bag']) if (circ(c, 48, g.lay[k])) clash.push(`${k}×${id}`); }
+  for (const k of ['pause', 'music', 'bag']) if (ovl(g.mini, g.lay[k])) clash.push(`mini×${k}`);
+  for (const dx of g.doors) if (ovl(g.mini, { x: dx - 50, y: 52, w: 100, h: 96 })) clash.push(`mini×door${dx}`);
+  ok('V2_phone_hud_no_overlap', clash.length === 0 && g.mini.x === g.lay.minimap.x && g.mini.y === g.lay.minimap.y, clash.join(', ') || JSON.stringify(g.mini));
+  await pp.context().close();
+  // simulated cutout: top 24 CSS px (reaches into the canvas) + right 100 CSS px (80 px absorbed by the letterbox) → mini-map follows the safe rect
+  const ps = await phoneRun('&touch=1&safe=0,24,100,0'); const gs = await geo(ps);
+  await phoneShot(ps, 'v2_phone_safe_area');
+  ok('V2_minimap_safe_inset', gs.ins && gs.ins.t > 0 && gs.ins.r > 0 && gs.mini.x === 1062 - gs.ins.r && gs.mini.y === 8 + gs.ins.t && gs.mini.x === gs.lay.minimap.x && gs.mini.y === gs.lay.minimap.y && !ovl(gs.mini, gs.lay.pause) && !ovl(gs.mini, gs.lay.music) && !ovl(gs.mini, gs.lay.bag), JSON.stringify({ ins: gs.ins, mini: gs.mini, lay: gs.lay }));
+  await ps.context().close();
+} catch (e) { errors.push('phone exception: ' + (e.stack || e)); }
 
 // ---------- single-file build (docs/ThapSao.html) loads with real art and no errors ----------
 try {

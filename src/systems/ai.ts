@@ -12,6 +12,7 @@
 import type { AiKind, BossDef, BossAttack } from '../data/types';
 import type { Rng } from './rng';
 import { tuneFor, windupFor, RANGED_RECOVERY_MUL, type ChapterTune } from './difficulty';
+import type { NavGrid } from './roomgen'; // v2 rooms: obstacle-aware steering (docs/V2_ROOMS.md)
 
 export type AiAction =
   | { type: 'shoot'; angle: number; speed: number; count: number; spread: number; kind?: string }
@@ -57,6 +58,8 @@ export interface Agent {
   strafe: number; strafeT: number;
   /** cooldown multiplier (elite 'swift') */
   cdMul: number;
+  /** v2 rooms nav state: forced path-follow time, stuck detector (only used when the world has a NavGrid) */
+  navT?: number; stuckT?: number; lastX?: number; lastY?: number;
 }
 export function newAgent(ai: AiKind, x: number, y: number, speed: number, hp: number, params: Record<string, number> = {}): Agent {
   return {
@@ -86,6 +89,8 @@ export class AiWorld {
   tune: ChapterTune; time = 0; lastStart = -99; holders = new Set<Agent>(); agents: Agent[] = [];
   /** free world: tokens never run out (unit tests / legacy callers) */
   free: boolean;
+  /** room obstacles (v2 rooms). null = open arena (unit tests, training room) → legacy behaviour */
+  nav: NavGrid | null = null;
   constructor(public chapter = 1, public hard = false, public bounds: WorldBounds = DEFAULT_BOUNDS, free = false) { this.tune = tuneFor(chapter, hard); this.free = free; }
   /** call once per frame before thinking, with every live agent of the room */
   beginFrame(dt: number, entries: AiEntry[]) {
@@ -117,7 +122,38 @@ export class AiWorld {
     }
     const out = thinkAgent(this, a, p, dt, rng);
     if (a.state !== 'active' || !MELEE_KINDS.includes(a.ai)) this.separate(a);
+    if (this.nav) this.navSteer(a, p, dt);
     return out;
+  }
+  /** v2 rooms: path around obstacles. No line (sight for ranged, a walkable line for melee) → follow the BFS flow
+   *  field toward the player; otherwise probe ahead and rotate the heading to slide along cover; a stuck detector
+   *  forces path-following for a moment. Only touches free movement (idle state). */
+  navSteer(a: Agent, p: { x: number; y: number }, dt: number) {
+    const nav = this.nav!;
+    const moved = a.lastX === undefined ? 99 : Math.hypot(a.x - a.lastX, a.y - (a.lastY ?? a.y));
+    a.lastX = a.x; a.lastY = a.y;
+    if (a.state !== 'idle' || a.speed <= 0) { a.stuckT = 0; return; }
+    let sp = Math.hypot(a.vx, a.vy); if (sp < 1) { a.stuckT = 0; return; }
+    // stuck: wanted to move but barely did for 0.5 s
+    if (moved < sp * dt * 0.25) a.stuckT = (a.stuckT ?? 0) + dt; else a.stuckT = Math.max(0, (a.stuckT ?? 0) - dt * 2);
+    if ((a.stuckT ?? 0) > 0.5) { a.navT = 0.9; a.stuckT = 0; }
+    if (a.navT && a.navT > 0) a.navT = Math.max(0, a.navT - dt);
+    const r = Math.min(a.radius || 16, 22);
+    const blocked = a.role === 'ranged' || a.role === 'support' ? !nav.los(a.x, a.y - 14, p.x, p.y - 14) : !nav.clear(a.x, a.y, p.x, p.y, r * 0.6);
+    let heading = Math.atan2(a.vy, a.vx);
+    if (blocked || (a.navT ?? 0) > 0) {
+      const fd = nav.flowDir(a.x, a.y, p.x, p.y);
+      if (fd !== null) { heading = fd; sp = Math.max(sp, a.speed * 0.85); }
+    }
+    // probe ahead: rotate toward the free side (prefer the strafe side), slide along faces
+    const look = r + 16;
+    const free = (h: number) => nav.walkable(a.x + Math.cos(h) * look, a.y + Math.sin(h) * look) && nav.walkable(a.x + Math.cos(h) * look * 0.5, a.y + Math.sin(h) * look * 0.5);
+    if (!free(heading)) {
+      const s = a.strafe || 1; let found = false;
+      for (const d of [0.5, 1.0, 1.5, 2.0, 2.6]) { for (const sg of [s, -s]) { const h = heading + d * sg; if (free(h)) { heading = h; found = true; break; } } if (found) break; }
+      if (!found) heading += Math.PI;
+    }
+    a.vx = Math.cos(heading) * sp; a.vy = Math.sin(heading) * sp;
   }
   /** steering separation: push away from overlapping neighbours (no stacking) */
   separate(a: Agent) {
@@ -141,7 +177,14 @@ export class AiWorld {
     for (const o of others) { const diff = wrapAngle(my - Math.atan2(o.y - p.y, o.x - p.x)); if (Math.abs(diff) < minSep) push += (diff === 0 ? (a.strafe) : Math.sign(diff)) * (minSep - Math.abs(diff)); }
     return my + Math.max(-0.9, Math.min(0.9, push));
   }
-  inBounds(x: number, y: number, m = 40) { const b = this.bounds; return x > b.x0 + m && x < b.x1 - m && y > b.y0 + m && y < b.y1 - m; }
+  inBounds(x: number, y: number, m = 40) { const b = this.bounds; return x > b.x0 + m && x < b.x1 - m && y > b.y0 + m && y < b.y1 - m && (!this.nav || this.nav.walkable(x, y)); }
+  /** v2 rooms: can this agent's attack reach the player from here (sight for shots, a walkable line for lunges)? */
+  hasLine(a: Agent, p: { x: number; y: number }): boolean {
+    if (!this.nav) return true;
+    if (MELEE_KINDS.includes(a.ai)) return this.nav.clear(a.x, a.y, p.x, p.y, Math.min(a.radius || 16, 22) * 0.5);
+    if (a.ai === 'shooter' || a.ai === 'spread' || a.ai === 'turret') return this.nav.los(a.x, a.y - 14, p.x, p.y - 14);
+    return true; // lobbers arc over, rings / summons / heals are not aimed
+  }
 }
 const FREE_WORLD = new AiWorld(1, false, DEFAULT_BOUNDS, true);
 
@@ -222,7 +265,7 @@ function thinkAgent(w: AiWorld, a: Agent, p: { x: number; y: number }, dt: numbe
     case 'done': a.vx = a.vy = 0; return out;
   }
   // ---- idle: role movement + attack decision ----
-  const ready = a.cd <= 0 && d <= attackRange(a);
+  const ready = a.cd <= 0 && d <= attackRange(a) && w.hasLine(a, p);
   if (ready && (!needsToken(a) || w.acquire(a))) { startAttack(w, a, p, d, an, out, rng); return out; }
   if (ready) a.cd = 0.15; // waiting for a token: retry soon
   move(w, a, p, d, an, dt, rng);
@@ -297,6 +340,7 @@ function startAttack(w: AiWorld, a: Agent, p: { x: number; y: number }, d: numbe
     case 'teleporter': {
       const r = rng.range(110, 170), th = rng.next() * Math.PI * 2;
       P._tx = Math.max(w.bounds.x0 + 40, Math.min(w.bounds.x1 - 40, p.x + Math.cos(th) * r)); P._ty = Math.max(w.bounds.y0 + 40, Math.min(w.bounds.y1 - 30, p.y + Math.sin(th) * r));
+      if (w.nav && !w.nav.walkable(P._tx, P._ty)) { const f = w.nav.nearestFree(P._tx, P._ty); P._tx = f.x; P._ty = f.y; } // never emerge inside an obstacle
       a.state = 'blink'; a.activeDur = Math.max(0.5, a.windup);
       out.push({ type: 'telegraphCircle', x: P._tx, y: P._ty, radius: 22, time: a.activeDur }); break;
     }

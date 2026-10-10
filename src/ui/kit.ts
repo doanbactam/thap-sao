@@ -40,6 +40,7 @@ export function button(s: Phaser.Scene, x: number, y: number, w: number, h: numb
   let lx = 0;
   if (opts.icon) { const r = iconRef(s, opts.icon); const ic = s.add.image(label ? -w / 2 + h / 2 + 4 : 0, -2, r.tex, r.frame); ic.setDisplaySize(h * 0.62, h * 0.62); c.add(ic); if (label) lx = h * 0.3; }
   const t = txt(s, lx, -2, label, opts.size ?? Math.min(26, Math.round(h * 0.42))).setOrigin(0.5); c.add(t); c.label = t;
+  fitText(t, w - 16 - (opts.icon && label ? h * 0.6 : 0)); // v2 layout: a long label shrinks to fit its button instead of overflowing
   c.setSize(w, h); c.btnId = opts.id ?? label; c.enabled = true;
   c.setInteractive({ useHandCursor: true });
   c.on('pointerdown', () => { if (!c.enabled) return; unlockAudio(); if (!ns) drawBtnBg(g, w, h, color, true); t.y = 1; });
@@ -48,6 +49,18 @@ export function button(s: Phaser.Scene, x: number, y: number, w: number, h: numb
   c.setEnabled = (b: boolean) => { c.enabled = b; c.setAlpha(b ? 1 : 0.5); return c; };
   BUTTONS.add(c); c.once('destroy', () => BUTTONS.delete(c));
   return c;
+}
+/** Shrink a text's font size (down to `min` px) until it is at most `maxW` wide. */
+export function fitText(t: Phaser.GameObjects.Text, maxW: number, min = 10) {
+  let size = parseInt(String(t.style.fontSize), 10) || 16;
+  while (t.width > maxW && size > min) { size--; t.setFontSize(size); }
+  return t;
+}
+/** Grow an interactive object's hit area (centred) to at least w×h without changing its look (touch targets). */
+export function padHit(o: Phaser.GameObjects.Container | Phaser.GameObjects.Zone, w: number, h: number) {
+  const W = Math.max(w, o.width), H = Math.max(h, o.height); const ha = o.input?.hitArea as Phaser.Geom.Rectangle | undefined;
+  if (ha && 'setTo' in ha) ha.setTo((o.width - W) / 2, (o.height - H) / 2, W, H);
+  return o;
 }
 export function card(s: Phaser.Scene, x: number, y: number, w: number, h: number, origin: 'center' | 'topleft' = 'center') {
   const ox = origin === 'center' ? -w / 2 : 0, oy = origin === 'center' ? -h / 2 : 0;

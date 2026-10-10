@@ -2,12 +2,15 @@
 import Phaser from 'phaser';
 import { G } from '../game/state';
 import { PAL, iconRef } from '../game/assets';
-import { txt, bar, pill, button, darkPanel, type Bar, type Pill } from '../ui/kit';
+import { txt, bar, pill, button, darkPanel, padHit, type Bar, type Pill } from '../ui/kit';
+import { hudLayout, quickBar, type HudLayout } from '../ui/hudLayout';
+import { safeInsets, onSafeArea } from '../ui/safeArea';
+import { isTouchDevice } from '../game/input';
 import { t } from '../systems/i18n';
 import { getPotion, getMiracle, getCombo, getChapter, getArtifact } from '../systems/registry';
 import { resolve } from '../systems/inventory';
 import { xpToNext } from '../systems/stats';
-import { drawMap } from './overlays';
+import { Minimap } from '../ui/mapView';
 import type { RunScene } from './RunScene';
 import { openOverlay } from './Overlay';
 import { musicEnabled, setMusicEnabled } from '../game/audio';
@@ -31,16 +34,17 @@ export class HudScene extends Phaser.Scene {
   pots: Phaser.GameObjects.Image[] = []; potG!: Phaser.GameObjects.Graphics; spellG!: Phaser.GameObjects.Graphics; spellIcons: Phaser.GameObjects.Text[] = []; spellImgs: Phaser.GameObjects.Image[] = []; spellCost: Phaser.GameObjects.Text[] = []; spellCdTxt: Phaser.GameObjects.Text[] = []; spellZones: Phaser.GameObjects.Zone[] = []; mpFlash!: Phaser.GameObjects.Graphics; hoverKey: SkillKey | null = null; tip!: Phaser.GameObjects.Container; tipBg!: Phaser.GameObjects.Graphics; tipTxt!: Phaser.GameObjects.Text; tipKey = ''; skillView: Record<string, unknown> = {}; potKey!: Phaser.GameObjects.Text;
   bossBar!: Bar; bossName!: Phaser.GameObjects.Text; bossCont!: Phaser.GameObjects.Container; wpnTxt!: Phaser.GameObjects.Text;
   musicBtn: Phaser.GameObjects.Container | null = null; ck = { hp: '', mp: '', xp: '', dash: -1, pot: '', spell: '' }; // change keys: redraw HUD graphics only when values change (v2 perf)
-  mini: Phaser.GameObjects.Container | null = null; miniKey = ''; comboTxt!: Phaser.GameObjects.Text; miracleC!: Phaser.GameObjects.Container; miracleKey = ''; statusTxt!: Phaser.GameObjects.Text;
+  lay!: HudLayout; touchUi = false; // v2 layout: every position below comes from src/ui/hudLayout.ts (safe-area aware)
+  mini: Minimap | null = null; miniKey = ''; comboTxt!: Phaser.GameObjects.Text; miracleC!: Phaser.GameObjects.Container; miracleKey = ''; statusTxt!: Phaser.GameObjects.Text;
   create() {
-    const L = 16; this.ck = { hp: '', mp: '', xp: '', dash: -1, pot: '', spell: '' }; this.pots = []; this.spellIcons = []; this.spellImgs = []; this.spellCost = []; this.spellCdTxt = []; this.spellZones = []; this.hoverKey = null; this.tipKey = ''; this.mini = null; this.miniKey = ''; this.miracleKey = '';
-    const hr = iconRef(this, 'ic_hp'); this.add.image(30, 32, hr.tex, hr.frame).setDisplaySize(30, 30);
-    const mr = iconRef(this, 'ic_mp'); this.add.image(30, 66, mr.tex, mr.frame).setDisplaySize(28, 28);
-    this.hp = bar(this, 46, 20, 210, 24, PAL.hp, 0xff9a8a); this.mp = bar(this, 46, 54, 170, 20, PAL.mp, 0xa8dcff);
-    this.xp = bar(this, 46, 82, 170, 12, PAL.xp); this.lvl = txt(this, 224, 76, '', 15);
+    const ins = safeInsets(); this.touchUi = isTouchDevice(); const Y = hudLayout(ins, this.touchUi, G.run?.potions.length ?? 2); this.lay = Y; this.ck = { hp: '', mp: '', xp: '', dash: -1, pot: '', spell: '' }; this.pots = []; this.spellIcons = []; this.spellImgs = []; this.spellCost = []; this.spellCdTxt = []; this.spellZones = []; this.hoverKey = null; this.tipKey = ''; this.mini = null; this.miniKey = ''; this.miracleKey = '';
+    const hr = iconRef(this, 'ic_hp'); this.add.image(Y.hpIcon.x, Y.hpIcon.y, hr.tex, hr.frame).setDisplaySize(30, 30);
+    const mr = iconRef(this, 'ic_mp'); this.add.image(Y.mpIcon.x, Y.mpIcon.y, mr.tex, mr.frame).setDisplaySize(28, 28);
+    this.hp = bar(this, Y.hp.x, Y.hp.y, Y.hp.w, Y.hp.h, PAL.hp, 0xff9a8a); this.mp = bar(this, Y.mp.x, Y.mp.y, Y.mp.w, Y.mp.h, PAL.mp, 0xa8dcff);
+    this.xp = bar(this, Y.xp.x, Y.xp.y, Y.xp.w, Y.xp.h, PAL.xp); this.lvl = txt(this, Y.lvl.x, Y.lvl.y, '', 15);
     this.dashG = this.add.graphics();
-    this.money = pill(this, 290, 32, 120, 'ic_money', 0); this.saph = pill(this, 430, 32, 100, 'ic_sapphire', 0); this.dice = pill(this, 550, 32, 90, 'ic_dice', 0);
-    if (!G.training) darkPanel(this, 1040, 8, 230, 210, 0.85); // mini-map panel (no map in the training room)
+    const P = Y.pills; this.money = pill(this, P.money.x, P.money.y, P.money.w, 'ic_money', 0); this.saph = pill(this, P.saph.x, P.saph.y, P.saph.w, 'ic_sapphire', 0); this.dice = pill(this, P.dice.x, P.dice.y, P.dice.w, 'ic_dice', 0);
+    // mini-map panel: drawn by the v2 Minimap (src/ui/mapView.ts, rect src/ui/layout.ts MINIMAP), none in the training room
     this.potG = this.add.graphics(); this.spellG = this.add.graphics();
     for (let i = 0; i < 5; i++) this.pots.push(this.add.image(0, 0, iconRef(this, 'pot_heal').tex).setVisible(false));
     // skill slots: spell 1, spell 2, weapon special — icon, radial cooldown sweep, cost, key label, hover / long-press tooltip
@@ -54,16 +58,20 @@ export class HudScene extends Phaser.Scene {
     this.mpFlash = this.add.graphics();
     this.tip = this.add.container(0, 0).setDepth(50).setVisible(false); this.tipBg = this.add.graphics(); this.tipTxt = txt(this, 10, 8, '', 13, '#fff4dc', true, { lineSpacing: 2 }); this.tip.add([this.tipBg, this.tipTxt]);
     this.potKey = txt(this, 0, 0, 'R', 13).setOrigin(1, 1);
-    this.wpnTxt = txt(this, L, 620, '', 16);
-    this.statusTxt = txt(this, L, 122, '', 14, '#ffcb6b');
-    this.comboTxt = txt(this, 1270, 280, '', 14, '#ffffff', true, { align: 'right' }).setOrigin(1, 0);
+    this.wpnTxt = txt(this, Y.weaponLabel.x, Y.weaponLabel.y, '', 16);
+    this.statusTxt = txt(this, Y.status.x, Y.status.y, '', 14, '#ffcb6b');
+    this.comboTxt = txt(this, Y.combos.x, Y.combos.y, '', 14, '#ffffff', true, { align: Y.combos.align }).setOrigin(Y.combos.align === 'right' ? 1 : 0, 0);
     this.miracleC = this.add.container(0, 0);
-    this.bossCont = this.add.container(640, 190).setVisible(false);
-    this.bossName = txt(this, 0, -22, '', 22).setOrigin(0.5); this.bossBar = bar(this, -300, -6, 600, 22, PAL.red, 0xff9a8a);
+    this.bossCont = this.add.container(Y.boss.x, Y.boss.y).setVisible(false);
+    this.bossName = txt(this, 0, -22, '', 22).setOrigin(0.5); this.bossBar = bar(this, -Y.boss.w / 2, -6, Y.boss.w, 22, PAL.red, 0xff9a8a);
     this.bossCont.add([this.bossName, this.bossBar]);
-    button(this, 1000, 30, 54, 50, '', () => openOverlay(this.scene.get('Run'), 'Pause', {}), 'wood', { icon: 'btn_pause', id: 'hudPause' });
-    this.musicBtn = button(this, 940, 30, 54, 50, '♪', () => { setMusicEnabled(!musicEnabled()); this.musicBtn?.setAlpha(musicEnabled() ? 1 : 0.45); }, 'wood', { id: 'hudMusic' }); this.musicBtn.setAlpha(musicEnabled() ? 1 : 0.45);
-    button(this, 1234, 250, 58, 54, '', () => openOverlay(this.scene.get('Run'), 'Inventory', { onClose: () => { const rs = this.scene.get('Run') as RunScene; rs.refreshLoadout(false); G.saveRun(); } }), 'orange', { icon: 'btn_bag', id: 'hudBag' });
+    const cx = (r: { x: number; w: number }) => r.x + r.w / 2, cy = (r: { y: number; h: number }) => r.y + r.h / 2;
+    const pb = button(this, cx(Y.pause), cy(Y.pause), Y.pause.w, Y.pause.h, '', () => openOverlay(this.scene.get('Run'), 'Pause', {}), 'wood', { icon: 'btn_pause', id: 'hudPause' });
+    this.musicBtn = button(this, cx(Y.music), cy(Y.music), Y.music.w, Y.music.h, '♪', () => { setMusicEnabled(!musicEnabled()); this.musicBtn?.setAlpha(musicEnabled() ? 1 : 0.45); }, 'wood', { id: 'hudMusic' }); this.musicBtn.setAlpha(musicEnabled() ? 1 : 0.45);
+    const bagB = button(this, cx(Y.bag), cy(Y.bag), Y.bag.w, Y.bag.h, '', () => openOverlay(this.scene.get('Run'), 'Inventory', { onClose: () => { const rs = this.scene.get('Run') as RunScene; rs.refreshLoadout(false); G.saveRun(); } }), 'orange', { icon: 'btn_bag', id: 'hudBag' });
+    if (this.touchUi) { padHit(pb, 80, Y.pause.h + 8); padHit(this.musicBtn, 80, Y.music.h + 8); padHit(bagB, 96, 92); for (const z of this.spellZones) padHit(z, 58, 66); }
+    // re-anchor on a safe-area change (rotation / cutout): the HUD is stateless (reads G every frame), so a restart is enough
+    const un = onSafeArea(() => { if (this.scene.isActive()) this.scene.restart(); }); this.events.once('shutdown', un);
   }
   update() {
     const rs = this.scene.get('Run') as RunScene; const r = G.run; if (!r || !rs || !rs.ready || !rs.stats) return;
@@ -72,19 +80,19 @@ export class HudScene extends Phaser.Scene {
     if (hk !== this.ck.hp) { this.ck.hp = hk; this.hp.setValue(r.hp, s.maxHp, hpLabel); }
     const mk2 = `${Math.round(r.mp * 4)}|${s.maxMp}`; if (mk2 !== this.ck.mp) { this.ck.mp = mk2; this.mp.setValue(r.mp, s.maxMp); }
     const xk = `${r.xp}|${r.level}`; if (xk !== this.ck.xp) { this.ck.xp = xk; this.xp.setValue(r.xp, xpToNext(r.level), ''); this.lvl.setText(`${t('hud.level')} ${r.level}`); }
-    const dk = s.dashCount * 100 + rs.dashes; if (dk !== this.ck.dash) { this.ck.dash = dk; this.dashG.clear(); for (let i = 0; i < s.dashCount; i++) { const on = i < rs.dashes; this.dashG.fillStyle(on ? 0x8fe0ff : 0x3a2a20, 1).fillCircle(230 + i * 18, 64, 7).lineStyle(2, PAL.outline, 1).strokeCircle(230 + i * 18, 64, 7); } }
+    const dk = s.dashCount * 100 + rs.dashes; if (dk !== this.ck.dash) { this.ck.dash = dk; this.dashG.clear(); for (let i = 0; i < s.dashCount; i++) { const on = i < rs.dashes; const D = this.lay.dash; this.dashG.fillStyle(on ? 0x8fe0ff : 0x3a2a20, 1).fillCircle(D.x + i * D.step, D.y, 7).lineStyle(2, PAL.outline, 1).strokeCircle(D.x + i * D.step, D.y, 7); } }
     this.money.set(r.money); this.saph.set(G.meta.sapphires); this.dice.set(r.dice);
     // potions belt (bottom centre)
-    const n = r.potions.length; const bx = 46; const pk = `${r.potions.join(',')}|${r.mysteryKnown}`; const potDirty = pk !== this.ck.pot; this.ck.pot = pk;
-    if (potDirty) { this.potG.clear(); this.potG.fillStyle(PAL.pill, 0.8).fillRoundedRect(12, 642, 60 * n + 200, 70, 14).lineStyle(3, PAL.outline, 1).strokeRoundedRect(12, 642, 60 * n + 200, 70, 14);
+    const n = r.potions.length; const qb = quickBar(safeInsets(), n); const qr = qb.rect; rs.ctl.quickPots = n; const pk = `${r.potions.join(',')}|${r.mysteryKnown}|${qr.x},${qr.y}`; const potDirty = pk !== this.ck.pot; this.ck.pot = pk;
+    if (potDirty) { this.potG.clear(); this.potG.fillStyle(PAL.pill, 0.8).fillRoundedRect(qr.x, qr.y, qr.w, qr.h, 14).lineStyle(3, PAL.outline, 1).strokeRoundedRect(qr.x, qr.y, qr.w, qr.h, 14);
     r.potions.forEach((p, i) => {
-      const x = bx + i * 60, y = 676; this.potG.fillStyle(PAL.cream, 1).fillRoundedRect(x - 24, y - 24, 48, 48, 10).lineStyle(3, PAL.outline, 1).strokeRoundedRect(x - 24, y - 24, 48, 48, 10);
+      const x = qb.potX(i), y = qb.cy; this.potG.fillStyle(PAL.cream, 1).fillRoundedRect(x - 24, y - 24, 48, 48, 10).lineStyle(3, PAL.outline, 1).strokeRoundedRect(x - 24, y - 24, 48, 48, 10);
       const im = this.pots[i]; if (!im) return;
       if (p) { const def = getPotion(p); const ir = iconRef(this, def?.icon ?? 'pot_heal'); im.setTexture(ir.tex, ir.frame).setDisplaySize(38, 38).setPosition(x, y).setVisible(true); if (def?.action === 'mystery' && r.mysteryKnown) im.setTint(0xd8ffd8); else im.clearTint(); }
       else im.setVisible(false);
     });
     }
-    const fp = r.potions.findIndex((p) => p); this.potKey.setVisible(fp >= 0).setPosition(bx + Math.max(0, fp) * 60 + 22, 676 + 24);
+    const fp = r.potions.findIndex((p) => p); this.potKey.setVisible(fp >= 0 && !this.touchUi).setPosition(qb.potX(Math.max(0, fp)) + 22, qb.cy + 24);
     this.drawSkills(rs, n);
     // weapon state
     const w = rs.wcfg; const ws = rs.ws; let wl = `${w.def.name}`;
@@ -100,12 +108,14 @@ export class HudScene extends Phaser.Scene {
     if (b) { this.bossName.setText(`${b.boss!.name} — ${b.boss!.title}`); this.bossBar.setValue(Math.max(0, b.hp), b.maxHp, `${Math.ceil(Math.max(0, b.hp))}`); }
     // mini map (top right)
     const key = `${r.chapter}-${r.floor}-${r.pos}-${r.visited.length}-${G.training}`;
-    if (key !== this.miniKey) { this.miniKey = key; this.mini?.destroy(); if (!G.training) { this.mini = drawMap(this, r, 1155, 118, 0.5); this.mini.add(txt(this, 0, -100, `${getChapter(r.chapter).name.toUpperCase()} ${r.chapter}-${r.floor}`, 15).setOrigin(0.5)); } }
+    if (this.miniKey !== 'v2') { this.miniKey = 'v2'; this.mini = new Minimap(this, () => openOverlay(this.scene.get('Run'), 'Map', {}), safeInsets); } // v2 map (docs/V2_MAP.md)
+    this.mini!.update(r, G.training); void key;
     // combos & miracles
     if (this.game.getFrame() % 20 === 0) {
       const res = resolve(r.grid);
       this.comboTxt.setText(res.activeCombos.map((c) => `${getCombo(c.id)?.name ?? c.id} ★${c.tier}`).join('\n'));
-      const mk = r.miracles.join(','); if (mk !== this.miracleKey) { this.miracleKey = mk; this.miracleC.removeAll(true); r.miracles.forEach((id, i) => { const m = getMiracle(id); if (m) { const ir = iconRef(this, m.icon); this.miracleC.add(this.add.image(1250 - i * 36, 380, ir.tex, ir.frame).setDisplaySize(32, 32)); } }); }
+      const M = this.lay.miracles; const mk = r.miracles.join(','); if (mk !== this.miracleKey) { this.miracleKey = mk; this.miracleC.removeAll(true); r.miracles.forEach((id, i) => { const m = getMiracle(id); if (m) { const ir = iconRef(this, m.icon); this.miracleC.add(this.add.image(i * M.step, 0, ir.tex, ir.frame).setDisplaySize(32, 32)); } }); }
+      this.miracleC.setPosition(M.x, this.comboTxt.y + (this.comboTxt.text ? this.comboTxt.height + 22 : 16)); // miracle row follows the combo list
     }
     void getChapter;
   }
@@ -115,9 +125,9 @@ export class HudScene extends Phaser.Scene {
     let key = `${n}|${Math.floor(r.mp)}`; const view: Record<string, unknown> = {};
     for (let i = 0; i < 3; i++) { const k = SKILL_KEYS[i]; const s = cs.slots[k]; key += `|${k === 'special' ? rs.wcfg.id : rs.spells[i]?.source ?? '-'}:${Math.ceil(64 * cooldownFrac(s.cd, s.cdMax))}:${s.pulse > 0 ? Math.round(s.pulse * 30) : 0}:${s.deny > 0 ? Math.round(s.deny * 30) : 0}:${ctl.skillHeld[k] ? 1 : 0}:${s.cd > 0 ? s.cd.toFixed(1) : ''}`; }
     if (key !== this.ck.spell) {
-      this.ck.spell = key; const g = this.spellG; g.clear(); this.mpFlash.clear();
+      this.ck.spell = key; const g = this.spellG; g.clear(); this.mpFlash.clear(); const qb = quickBar(safeInsets(), n); const MP = this.lay.mp;
       for (let i = 0; i < 3; i++) {
-        const k = SKILL_KEYS[i]; const s = cs.slots[k]; const x = 46 + n * 60 + 10 + i * 60, y = 676; const special = k === 'special';
+        const k = SKILL_KEYS[i]; const s = cs.slots[k]; const x = qb.skillX(i), y = qb.cy; const special = k === 'special';
         const sl = special ? null : rs.spells[i]; const hasIt = special || !!sl; const cost = costOf(rs as any, k); const lowMp = hasIt && r.mp < cost; const frac = cooldownFrac(s.cd, s.cdMax);
         g.fillStyle(!hasIt ? PAL.pill : special ? PAL.orangeLo : PAL.purple, 0.9).fillRoundedRect(x - 24, y - 24, 48, 48, 10).lineStyle(3, ctl.skillHeld[k] && hasIt ? 0xfff3b0 : PAL.outline, 1).strokeRoundedRect(x - 24, y - 24, 48, 48, 10);
         const im = this.spellImgs[i]; const src = special ? null : sl ? getArtifact(sl.source.split('<')[0]) : undefined;
@@ -128,7 +138,7 @@ export class HudScene extends Phaser.Scene {
         if (lowMp) g.fillStyle(0x2a5a9a, 0.35).fillRoundedRect(x - 24, y - 24, 48, 48, 10);
         if (s.deny > 0) g.lineStyle(5, 0xff4a4a, Math.min(1, s.deny / 0.2)).strokeRoundedRect(x - 27, y - 27, 54, 54, 12);
         if (s.pulse > 0) { const q = 1 - s.pulse / 0.35; g.lineStyle(4, 0xffffff, 1 - q).strokeRoundedRect(x - 24 - q * 10, y - 24 - q * 10, 48 + q * 20, 48 + q * 20, 12); }
-        if (s.deny > 0 && s.denyReason === 'mp') this.mpFlash.lineStyle(4, 0xff4a4a, Math.min(1, s.deny / 0.2)).strokeRoundedRect(42, 50, 178, 28, 10);
+        if (s.deny > 0 && s.denyReason === 'mp') this.mpFlash.lineStyle(4, 0xff4a4a, Math.min(1, s.deny / 0.2)).strokeRoundedRect(MP.x - 4, MP.y - 4, MP.w + 8, MP.h + 8, 10);
         this.spellIcons[i].setPosition(x + 22, y + 24).setText(ctl.touch ? '' : SKILL_LABEL[k]);
         this.spellCost[i].setPosition(x - 22, y - 23).setText(hasIt && cost > 0 ? `${cost}` : '').setColor(lowMp ? '#ff8a7a' : '#8fd0ff');
         this.spellCdTxt[i].setPosition(x, y).setText(s.cd > 0 ? (s.cd >= 10 ? `${Math.ceil(s.cd)}` : s.cd.toFixed(1)) : '');
@@ -150,8 +160,8 @@ export class HudScene extends Phaser.Scene {
         if (tkey !== this.tipKey) { this.tipKey = tkey; this.tipTxt.setText(lines); const w = Math.max(180, this.tipTxt.width + 20), h = this.tipTxt.height + 16; this.tipBg.clear().fillStyle(PAL.pill, 0.95).fillRoundedRect(0, 0, w, h, 10).lineStyle(3, PAL.outline, 1).strokeRoundedRect(0, 0, w, h, 10); this.tipTxt.setColor('#fff4dc'); (this.tip as any).tw = w; (this.tip as any).th = h; }
         const b = ctl.touch ? ctl.skillButtons[tk] : undefined;
         if (b && ctl.skillHeld[tk]) { tx = b.c.x - (this.tip as any).tw / 2; ty = b.c.y - b.r - 14 - (this.tip as any).th; }
-        else { tx = 46 + n * 60 + 10 + i * 60 - 24; ty = 676 - 34 - (this.tip as any).th; }
-        this.tip.setPosition(Phaser.Math.Clamp(tx, 4, 1276 - (this.tip as any).tw), Math.max(4, ty)).setVisible(true);
+        else { const qb = quickBar(safeInsets(), n); tx = qb.skillX(i) - 24; ty = qb.rect.y - 8 - (this.tip as any).th; }
+        const T0 = this.lay.tooltipMin, T1 = this.lay.tooltipMax; this.tip.setPosition(Phaser.Math.Clamp(tx, T0.x, T1.x - (this.tip as any).tw), Math.max(T0.y, ty)).setVisible(true);
         (this.skillView as any).tip = { key: tk, lines };
       } else this.tip.setVisible(false);
     } else { this.tip.setVisible(false); (this.skillView as any).tip = null; }

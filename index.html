@@ -8,7 +8,7 @@
 <style>
 @font-face { font-family: "Baloo 2"; src: url("assets/fonts/Baloo2.ttf") format("truetype"); font-weight: 400 800; font-display: block; }
 html, body { margin: 0; height: 100%; background: #1d120b; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
-#game { width: 100vw; height: 100vh; }
+#game { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; height: 100dvh; } /* dvh: Android URL bar must not push the canvas bottom (HUD) off screen */
 #fontwarm { position: absolute; left: -999px; font-family: "Baloo 2"; font-weight: 800; }
 </style>
 </head>

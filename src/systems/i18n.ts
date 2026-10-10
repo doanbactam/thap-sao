@@ -16,6 +16,11 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'shop.title': 'Cửa Hàng', 'shop.buy': 'Mua', 'shop.sold': 'Đã bán', 'shop.reroll': 'Đổi hàng', 'shop.sellHint': 'Kéo đồ vào ô Bán để bán',
   'enchant.title': 'Bàn Thờ Cường Hóa', 'enchant.hint': 'Chọn cổ vật để tăng cấp', 'enchant.left': 'Lượt còn lại',
   'map.title': 'Bản Đồ Tầng', 'map.start': 'Khởi đầu', 'map.gate': 'Cửa Ải', 'map.boss': 'Trùm',
+  // v2 map overlay / mini-map (docs/V2_MAP.md)
+  'map.legend': 'Chú giải', 'map.you': 'Bạn ở đây', 'map.cleared': 'Đã dọn', 'map.reachable': 'Đi tiếp được', 'map.ahead': 'Phía trước',
+  'map.skipped': 'Không còn tới được', 'map.elite': 'Tinh Anh (rủi ro cao, thưởng hiếm)', 'map.derange': 'Hỗn Loạn (quái mạnh hơn)',
+  'map.path': 'Đường đã đi', 'map.rooms': 'Loại phòng', 'map.closeHint': 'M / Esc / chạm để đóng', 'map.chapterBoss': 'Trùm chương (tầng 3)',
+  'map.tapHint': 'Chạm: bản đồ', 'map.collapse': 'Thu gọn', 'map.expand': 'Mở rộng',
   'node.levelup': 'Lên Cấp', 'node.artifact': 'Cổ Vật', 'node.enchant': 'Cường Hóa', 'node.tablet': 'Phiến Đá', 'node.money': 'Rương Tiền',
   'node.heart': 'Tim Xanh', 'node.anvil': 'Đe Rèn', 'node.dice': 'Xúc Xắc', 'node.shop': 'Cửa Hàng', 'node.roots': 'Rễ Cây Cổ',
   'mod.derangement': 'Hỗn Loạn', 'mod.miniboss': 'Trùm Nhỏ', 'mod.none': '',

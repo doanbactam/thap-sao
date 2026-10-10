@@ -14,6 +14,8 @@ import { comboLine } from '../systems/inventory';
 import { resolve } from '../systems/inventory';
 import { sellPrice } from '../systems/stats';
 import type { RunState } from '../systems/run';
+import { drawFloorMap, drawLegend } from '../ui/mapView';
+import { FULLMAP } from '../ui/layout';
 
 const run = (): RunState => G.run!;
 const statsNow = () => runStats(run(), G.meta);
@@ -137,12 +139,12 @@ export class ShopScene extends Overlay {
     });
     // V2 services: reroll (die, or escalating gold when out of dice), bandage heal (once), enchant an artifact (gold)
     const gold = shopRerollGold(r); const useDie = r.dice > 0;
-    const rr = button(this, 1110, 652, 210, 50, useDie ? `${t('shop.reroll')} (1 xúc xắc · còn ${r.dice})` : `${t('shop.reroll')} (${gold} HD)`, () => { const s = statsNow(); if (rerollShop(r, G.meta, s.luck, s.barter)) { sfx('magic'); G.logEvent('shopReroll', { gold: !useDie }); this.refresh(); } else { sfx('deny'); toast(this, 'Không đủ Hạt Dẻ', '#ff7a66'); } }, 'purple', { id: 'shopReroll', size: 18 });
+    const rr = button(this, 1108, 652, 220, 50, useDie ? `${t('shop.reroll')} (1 xúc xắc · còn ${r.dice})` : `${t('shop.reroll')} (${gold} HD)`, () => { const s = statsNow(); if (rerollShop(r, G.meta, s.luck, s.barter)) { sfx('magic'); G.logEvent('shopReroll', { gold: !useDie }); this.refresh(); } else { sfx('deny'); toast(this, 'Không đủ Hạt Dẻ', '#ff7a66'); } }, 'purple', { id: 'shopReroll', size: 18 });
     rr.setEnabled(useDie || r.money >= gold); this.list.add(rr);
     const s0 = statsNow(); const hc = shopHealCost(r);
-    const hb = button(this, 650, 652, 210, 50, shop.healed ? 'Đã băng bó' : `Băng bó +${Math.round(ECON.healPct * 100)}% HP (${hc})`, () => { if (shopHeal(r, statsNow().maxHp)) { sfx('levelup'); G.logEvent('shopHeal', { cost: hc }); this.refresh(); } else { sfx('deny'); toast(this, r.hp >= s0.maxHp ? 'HP đã đầy' : 'Không đủ Hạt Dẻ', '#ff7a66'); } }, 'green', { id: 'shopHeal', size: 16 });
+    const hb = button(this, 640, 652, 220, 50, shop.healed ? 'Đã băng bó' : `Băng bó +${Math.round(ECON.healPct * 100)}% HP (${hc})`, () => { if (shopHeal(r, statsNow().maxHp)) { sfx('levelup'); G.logEvent('shopHeal', { cost: hc }); this.refresh(); } else { sfx('deny'); toast(this, r.hp >= s0.maxHp ? 'HP đã đầy' : 'Không đủ Hạt Dẻ', '#ff7a66'); } }, 'green', { id: 'shopHeal', size: 16 });
     hb.setEnabled(!shop.healed && r.hp < s0.maxHp && r.money >= hc); this.list.add(hb);
-    const eb = button(this, 880, 652, 210, 50, this.enchantMode ? 'Chọn cổ vật…' : 'Cường hóa +1 cấp', () => { this.enchantMode = !this.enchantMode; this.view.o.selectMode = this.enchantMode ? (p) => this.doEnchant(p) : undefined; this.refresh(); }, this.enchantMode ? 'orange' : 'wood', { id: 'shopEnchant', size: 17 });
+    const eb = button(this, 874, 652, 220, 50, this.enchantMode ? 'Chọn cổ vật…' : 'Cường hóa +1 cấp', () => { this.enchantMode = !this.enchantMode; this.view.o.selectMode = this.enchantMode ? (p) => this.doEnchant(p) : undefined; this.refresh(); }, this.enchantMode ? 'orange' : 'wood', { id: 'shopEnchant', size: 17 });
     this.list.add(eb);
     this.list.add(darkTxt(this, 560, 600, this.enchantMode ? 'Bấm một cổ vật trong túi để cường hóa (giá hiện khi rê chuột).' : shop.discount ? `Giảm ${Math.round(shop.discount * 100)}%!` : `${t('shop.sellHint')} · HP ${Math.ceil(r.hp)}/${s0.maxHp}`, 14));
   }
@@ -171,12 +173,25 @@ export class EnchantScene extends Overlay {
 
 export class MapScene extends Overlay {
   constructor() { super('Map'); }
+  private openedAt = 0; private closed = false; private tw: Phaser.Tweens.Tween | null = null;
+  /** v2 full-screen floor map (docs/V2_MAP.md): legend, walked path + next choices highlighted, boss foreshadow.
+   *  Closes with M / Esc / any tap (a 250 ms guard ignores the press that opened it). */
   create() {
-    this.frame(`${t('map.title')} — ${t('chapter')} ${run().chapter}: ${getChapter(run().chapter).name} · ${t('floor')} ${run().floor}`);
-    drawMap(this, run(), 640, 380, 1.4);
+    this.openedAt = this.time.now; this.closed = false; const r = run();
+    this.frame(`${t('map.title')} — ${t('chapter')} ${r.chapter}: ${getChapter(r.chapter).name} · ${t('floor')} ${r.floor}`);
+    const { pulse } = drawFloorMap(this, r, 'full');
+    if (pulse) this.tw = this.tweens.add({ targets: pulse, scale: 1.18, alpha: 0.2, duration: 750, yoyo: true, repeat: -1 });
+    drawLegend(this, FULLMAP.legendX, FULLMAP.legendY);
+    darkTxt(this, FULLMAP.legendX + 151, 672, t('map.closeHint'), 14, { color: '#7A4A24' }).setOrigin(0.5);
+    const ready = () => this.time.now - this.openedAt > 250;
+    this.input.keyboard?.on('keydown-M', () => { if (ready()) this.close(); });
+    this.input.keyboard?.on('keydown-ESC', () => { if (ready()) this.close(); });
+    this.input.on('pointerup', () => { if (ready()) this.close(); });
+    this.events.once('shutdown', () => { this.tw?.remove(); this.tw = null; });
   }
+  close(result?: any) { if (this.closed) return; this.closed = true; super.close(result); }
 }
-/** Node map drawing (shared by Map overlay and HUD mini map). */
+/** Legacy v1 node map drawing (kept for callers not yet on src/ui/mapView.ts; the v2 map uses drawFloorMap). */
 export function drawMap(s: Phaser.Scene, r: RunState, cx: number, cy: number, scale = 1): Phaser.GameObjects.Container {
   const c = s.add.container(cx, cy); const f = r.floorData; const g = s.add.graphics(); c.add(g);
   const P = (col: number, depth: number) => ({ x: (col - 1) * 90 * scale, y: (1 - depth) * 70 * scale });
@@ -197,14 +212,20 @@ export function drawMap(s: Phaser.Scene, r: RunState, cx: number, cy: number, sc
 export class PauseScene extends Overlay {
   constructor() { super('Pause'); }
   create() {
-    dim(this, 0.6); card(this, 640, 390, 460, 540); title(this, t('menu.pause'), 160);
-    button(this, 640, 250, 320, 60, t('menu.resume'), () => this.close(), 'green', { id: 'resume' });
-    button(this, 640, 330, 320, 60, t('map.title'), () => { if (G.training) return; this.scene.stop(); this.scene.launch('Map', { from: this.data0.from }); }, 'wood', { id: 'map' });
-    button(this, 640, 410, 320, 60, G.meta.settings.mute ? t('settings.unmute') : t('settings.mute'), () => { G.meta.settings.mute = !G.meta.settings.mute; G.saveMeta(); this.scene.restart(this.data0); }, 'purple', { id: 'mute' });
-    button(this, 640, 490, 320, 60, G.training ? t('menu.back') : t('menu.quit'), () => { G.saveRun(); this.toHub(); }, 'orange', { id: 'quit' });
-    if (!G.training) button(this, 640, 570, 320, 56, t('menu.abandon'), () => { const rs = this.scene.get('Run') as any; this.scene.stop(); this.scene.resume('Run'); if (rs && G.run) { G.run.hp = 0; G.run.dead = true; rs.dieRun(); } }, 'red', { id: 'abandon' });
+    // v2 layout: one centred column on an 8-px rhythm (56 px buttons, 14 px gaps); the card is sized to its rows so it
+    // fits the 1280×720 FIT frame at every aspect and the test pack never touches the card edge
+    const rows: Array<[string, () => void, 'green' | 'wood' | 'purple' | 'orange' | 'red', string]> = [
+      [t('menu.resume'), () => this.close(), 'green', 'resume'],
+      [t('map.title'), () => { if (G.training) return; this.scene.stop(); this.scene.launch('Map', { from: this.data0.from }); }, 'wood', 'map'],
+      [G.meta.settings.mute ? t('settings.unmute') : t('settings.mute'), () => { G.meta.settings.mute = !G.meta.settings.mute; G.saveMeta(); this.scene.restart(this.data0); }, 'purple', 'mute'],
+      [G.training ? t('menu.back') : t('menu.quit'), () => { G.saveRun(); this.toHub(); }, 'orange', 'quit'],
+    ];
+    if (!G.training) rows.push([t('menu.abandon'), () => { const rs = this.scene.get('Run') as any; this.scene.stop(); this.scene.resume('Run'); if (rs && G.run) { G.run.hp = 0; G.run.dead = true; rs.dieRun(); } }, 'red', 'abandon']);
+    const BH = 56, STEP = 70, TEST_H = 46; const H = 80 + rows.length * STEP + 16 + TEST_H + 30; const top = 360 - H / 2;
+    dim(this, 0.6); card(this, 640, 360, 460, H); title(this, t('menu.pause'), top + 4);
+    rows.forEach(([label, fn, col, id], i) => button(this, 640, top + 80 + BH / 2 + i * STEP, 320, BH, label, fn, col, { id }));
     // Test pack: quick resources for playtesting (v2 test build)
-    button(this, 640, 632, 320, 46, 'Gói Test: +500 HD, +5 xúc xắc, hồi đầy', () => { const r = G.run; if (!r) return; r.money += 500; r.dice += 5; r.hp = runStats(r, G.meta).maxHp; r.mp = 999; G.saveRun(); sfx('levelup'); G.logEvent('testPack', {}); toast(this, '+500 Hạt Dẻ · +5 xúc xắc · hồi đầy', '#9be37a', 110); }, 'purple', { id: 'testPack', size: 15 });
+    button(this, 640, top + 80 + rows.length * STEP + 16 + TEST_H / 2 - (STEP - BH), 340, TEST_H, 'Gói Test: +500 HD, +5 xúc xắc, hồi đầy', () => { const r = G.run; if (!r) return; r.money += 500; r.dice += 5; r.hp = runStats(r, G.meta).maxHp; r.mp = 999; G.saveRun(); sfx('levelup'); G.logEvent('testPack', {}); toast(this, '+500 Hạt Dẻ · +5 xúc xắc · hồi đầy', '#9be37a', top - 30 > 60 ? top - 30 : 80); }, 'purple', { id: 'testPack', size: 15 });
     this.input.keyboard?.on('keydown-ESC', () => this.close());
   }
   toHub() { G.logEvent('quitToHub', {}); this.scene.stop('Run'); this.scene.stop('Hud'); this.scene.stop(); G.run = null; G.training = false; this.scene.start('Hub'); }

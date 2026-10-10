@@ -22,11 +22,13 @@ import { newCasts, CAST_MOVE_MUL, type CastState } from '../systems/skills';
 import { newAgent, shieldBlocks, newBrain, bossThink, contactMult, AiWorld, type Agent, type BossBrain, type AiAction, type BossAction } from '../systems/ai';
 import { eliteMods, SPLIT_HP, type Affix } from '../systems/director'; // v2 AI: encounter director + elites
 import { planWaves, enemyScale, choicesFrom, type MapNode } from '../systems/floorgen';
+import { buildRoom, roomKindFor, blockRects, resolveCircle, shotBlocked, safeSpawn, nearestFree as roomFree, walkable as roomWalkable, RoomNav, COLS as RCOLS, CellK, type RoomLayout } from '../systems/roomgen'; // v2 rooms (docs/V2_ROOMS.md)
 import { runStats, runBundle, gainXp, enterNode, applyNodeReward, bossDefeated, endRun, drinkPotion, onLethal, tickBuffs, makeShop, resolveEvent, batReward, enchantTimes, makeChoice, type RunState } from '../systems/run';
 import { getEnemy, getBoss, getChapter, getPotion, enemies as ENEMIES } from '../systems/registry';
 import { discover, completeTraining } from '../systems/meta';
 import type { BossDef, EnemyDef, Element, StatusId } from '../data/types';
 import { openOverlay } from './Overlay';
+import { DOOR_X } from '../ui/layout'; // v2 map: door slot per map column
 import { HeroRig, playDash, playHurt, playCast, playAttack } from '../game/heroAnim';
 import { syncEnemyPose, enemyPoseClear } from '../game/enemyAnim'; // v2 anim (docs/V2_ANIM.md)
 import { fxAt as poolFx, floatText as poolText, acquireImage, releaseImage, EnemyBar } from '../game/fxPool'; // v2 perf pools (docs/V2_PERF.md)
@@ -69,12 +71,13 @@ export class RunScene extends Phaser.Scene {
   waveElites: Array<Array<Affix | null>> = []; aiw: AiWorld | null = null; // v2 AI (src/systems/ai.ts, director.ts)
   periodicTimers: Record<string, number> = {}; statsT = 0; hitStop = 0; bossRef: Enemy | null = null; dmgDealtLog = 0; time0 = 0; trainingHits = 0;
   ready = false; blocks: Array<{ x0: number; y0: number; x1: number; y1: number }> = [];
+  layout: RoomLayout | null = null; nav: RoomNav | null = null; // v2 rooms: obstacles (src/systems/roomgen.ts)
   layer!: Phaser.GameObjects.Layer; fxLayer!: Phaser.GameObjects.Layer; banner: Phaser.GameObjects.Text | null = null; bossDmgTime = 0; trainingDone = false;
 
   passedRun: RunState | null = null;
   init(d: RunData) {
     this.passedRun = d?.run ?? null;
-    this.ready = false; this.blocks = []; (this as any).hero = undefined; (this as any).wpn = undefined; this.rig = null; this.bossRef = null;
+    this.ready = false; this.blocks = []; this.layout = null; this.nav = null; (this as any).hero = undefined; (this as any).wpn = undefined; this.rig = null; this.bossRef = null;
     this.mode = d?.mode ?? 'run';
     this.enemies = []; this.projs = []; this.hazards = []; this.pickups = []; this.interacts = []; this.doors = []; this.comps = [];
     this.aiw = null; this.waveElites = [];
@@ -142,17 +145,34 @@ export class RunScene extends Phaser.Scene {
       else if (west) put(col, row, 17); else if (east) put(col, row, 18);
       else { put(col, row, r.int(0, 7)); if (r.chance(0.1)) put(col, row, 8 + r.int(0, 7)); }
     }
-    // liquid pool (chapter liquid: swamp, lava, sky, water, steam, void) — blocks walking like a wall
-    if (this.mode === 'run' && this.run.pos !== 'start' && this.run.pos !== 'gate' && r.chance(0.6)) {
-      const c0 = 19, c1 = 23, r0 = 9, r1 = 12;
-      for (let row = r0; row <= r1; row++) for (let col = c0; col <= c1; col++) put(col, row, row === r0 ? 26 : row === r1 ? 27 : 24 + ((col + row) % 2));
-      this.blocks.push({ x0: c0 * 48 - 6, y0: r0 * 48 + 10, x1: (c1 + 1) * 48 + 6, y1: (r1 + 1) * 48 + 4 });
+    // v2 rooms: obstacle layout (rocks / pillars / bushes / low walls block movement + shots, liquid blocks movement)
+    if (this.mode === 'run') {
+      const pos = this.run.pos; const node = typeof pos === 'number' ? this.run.floorData.nodes[pos] : null;
+      const seed = (this.run.floorData.seed ^ Math.imul(typeof pos === 'number' ? pos + 1 : pos === 'start' ? 97 : 98, 0x9e3779b1)) >>> 0;
+      const L = buildRoom({ kind: roomKindFor(pos, node), chapter: this.run.chapter, seed, miniBoss: node?.modifier === 'miniboss', event: node?.event ?? null });
+      this.layout = L; this.nav = new RoomNav(L);
+      const k = (c: number, rr: number) => L.grid[rr * RCOLS + c];
+      for (let row = 3; row <= 13; row++) for (let col = 1; col <= 25; col++) {
+        const v = k(col, row);
+        if (v === CellK.Liquid) put(col, row, k(col, row - 1) !== CellK.Liquid ? 26 : k(col, row + 1) !== CellK.Liquid ? 27 : 24 + ((col + row) % 2));
+        else if (v === CellK.Wall) put(col, row, 22 + ((col + row) % 2));
+        else if (v === CellK.Edge) put(col, row, k(col + 1, row) !== CellK.Edge ? 17 : k(col - 1, row) !== CellK.Edge ? 18 : 16);
+      }
+      this.blocks = blockRects(L, { x: 12, top: 6, bottom: 4 }); // hero feet vs obstacle cells
     }
     this.layer.add(bakeTiles(this, T, cells, 1296, 720, 0));
     // decorative props (no collision), kept away from the centre/doors
     const props = Object.keys(MANIFEST).filter((k) => k.startsWith(`prop_ch${this.run.chapter}_`) && !k.endsWith('breakable'));
     const spots: Array<[number, number]> = [[120, 250], [1160, 310], [140, 560], [1140, 600], [330, 640], [930, 650], [260, 200], [790, 215], [100, 410], [1185, 450]]; // kept clear of doors and the mini-map panel
-    if (this.mode !== 'training' && props.length) for (const [x, y] of spots) { if (r.chance(0.25) || this.blocked(x, y) || this.blocked(x, y - 30)) continue; const k = r.pick(props); const im = this.add.image(x + r.int(-20, 20), y + r.int(-10, 10), tex(this, k, 'prop').tex); applyEntry(im, k, 64, [0.5, 1]); im.setDepth(im.y); this.layer.add(im); }
+    if (this.layout) for (const o of this.layout.obstacles) { // colliding props (one per obstacle cell)
+      if (!o.key || !MANIFEST[o.key]) continue;
+      const x = o.c * 48 + 24 + r.int(-3, 3), y = o.r * 48 + 46;
+      const sh = this.add.ellipse(x, y - 4, 46, 16, 0x281808, 0.22).setDepth(1); this.layer.add(sh);
+      const im = this.add.image(x, y, tex(this, o.key, 'prop').tex); applyEntry(im, o.key, 64, [0.5, 1]);
+      const w = im.width || 100; im.setScale(Math.min(0.5, (o.kind === 'pillar' ? 54 : 60) / w)); if (r.chance(0.5)) im.setFlipX(true);
+      im.setDepth(y); this.layer.add(im);
+    }
+    else if (this.mode !== 'training' && props.length) for (const [x, y] of spots) { if (r.chance(0.25) || this.blocked(x, y) || this.blocked(x, y - 30)) continue; const k = r.pick(props); const im = this.add.image(x + r.int(-20, 20), y + r.int(-10, 10), tex(this, k, 'prop').tex); applyEntry(im, k, 64, [0.5, 1]); im.setDepth(im.y); this.layer.add(im); }
     if (this.mode === 'training') for (const [k, x, y] of [['hub_tree_a', 120, 300], ['hub_tree_b', 1160, 320], ['prop_fence', 400, 640], ['prop_fence', 880, 640], ['hub_flowers', 300, 250], ['hub_mushrooms', 990, 230]] as Array<[string, number, number]>) { const im = this.add.image(x, y, tex(this, k, 'prop').tex); applyEntry(im, k, 64, [0.5, 1]); im.setDepth(y); this.layer.add(im); }
   }
   spawnHero() {
@@ -211,8 +231,8 @@ export class RunScene extends Phaser.Scene {
     const ch = choicesFrom(this.run.floorData, this.run.pos === 'gate' ? 'start' : this.run.pos as any);
     if (this.run.pos === 'gate') return;
     if (ch === 'gate') { this.addDoor(640, ROOM.y0 - 40, 'gate', this.run.floor === 3 ? 'node_boss' : 'node_boss', open, true); return; }
-    const xs = ch.length === 1 ? [640] : ch.length === 2 ? [460, 820] : [340, 640, 940];
-    ch.forEach((id, i) => { const n = this.run.floorData.nodes[id]; this.addDoor(xs[i] ?? 640, ROOM.y0 - 40, id, `node_${n.type}`, open, false, n.modifier !== 'none' ? `mod_${n.modifier}` : undefined); });
+    // v2 map: each door sits in its map column's slot (left lane = left door), matching the mini-map (docs/V2_MAP.md)
+    ch.forEach((id) => { const n = this.run.floorData.nodes[id]; this.addDoor(DOOR_X[n.col] ?? 640, ROOM.y0 - 40, id, `node_${n.type}`, open, false, n.modifier !== 'none' ? `mod_${n.modifier}` : undefined); });
   }
   addDoor(x: number, y: number, target: Door['target'], icon: string, open = true, boss = false, mod?: string) {
     const k = boss ? 'door_boss' : open ? 'door_open' : 'door_closed';
@@ -309,6 +329,7 @@ export class RunScene extends Phaser.Scene {
 
   // ---------------- enemies ----------------
   makeEnemy(key: string, x: number, y: number, def: EnemyDef | null, boss: BossDef | null, hp?: number, dmg?: number, speed?: number, radius?: number): Enemy {
+    if (this.layout && !roomWalkable(this.layout, x, y)) ({ x, y } = roomFree(this.layout, x, y)); // never inside an obstacle
     const sk = def?.sprite ?? boss?.sprite ?? key; tex(this, sk, boss ? 'boss' : 'enemy');
     const scale = enemyScale(this.run.chapter, this.run.floor, this.run.hard);
     const H = hp ?? (boss ? boss.hp * (this.run.hard ? 1.4 : 1) : Math.round((def?.hp ?? 40) * scale.hp));
@@ -328,12 +349,14 @@ export class RunScene extends Phaser.Scene {
     if (this.waveIdx >= this.waves.length) return;
     const ids = this.waves[this.waveIdx]; this.waveIdx++;
     toast(this, `${t('room.wave')} ${this.waveIdx}/${this.waves.length}`, '#ffffff', 200);
+    const used: Array<{ x: number; y: number }> = [];
     ids.forEach((id, i) => {
       const def = getEnemy(id); if (!def) return;
       const n = def.params?.swarmSize ? Math.max(1, Math.round(def.params.swarmSize)) : 1;
       for (let k = 0; k < n; k++) {
         const a = (i / ids.length) * Math.PI * 2 + k * 0.3; const x = Phaser.Math.Clamp(640 + Math.cos(a) * 380 + k * 14, ROOM.x0 + 30, ROOM.x1 - 30), y = Phaser.Math.Clamp(400 + Math.sin(a) * 180, ROOM.y0 + 30, ROOM.y1 - 30);
         let sx = x, sy = y; if (Math.hypot(sx - this.px, sy - this.py) < 220) { sx = this.px < 640 ? ROOM.x1 - 120 - k * 20 : ROOM.x0 + 120 + k * 20; sy = ROOM.y0 + 80 + (i * 53) % 300; }
+        if (this.layout) { const q = k === 0 || !used.length ? safeSpawn(this.layout, { x: sx, y: sy }, { x: this.px, y: this.py }, 220, used) : used[used.length - 1]; if (k === 0) used.push(q); sx = q.x + k * 6; sy = q.y + (k % 2) * 6; } // v2 rooms: free, reachable, away from the hero
         const e = this.makeEnemy(id, sx, sy, def, null);
         for (const d of this.derange) { if (d === 'haste') e.agent.speed *= 1.4; if (d === 'armor') e.armor = 30; if (d === 'explode') e.explodeOnDeath = true; }
         if (this.derange.length) e.sprite.setTint(0xffb0a0);
@@ -711,7 +734,7 @@ export class RunScene extends Phaser.Scene {
   // ---------------- enemies update ----------------
   updateEnemies(dt: number) {
     const P = { x: this.px, y: this.py };
-    if (!this.aiw) this.aiw = new AiWorld(this.run.chapter, this.run.hard, ROOM);
+    if (!this.aiw) { this.aiw = new AiWorld(this.run.chapter, this.run.hard, ROOM); this.aiw.nav = this.nav; }
     const aiw = this.aiw; aiw.beginFrame(dt, this.enemies.filter((e) => !e.dead && !e.dummy).map((e) => ({ agent: e.agent, radius: e.radius })));
     for (const e of this.enemies) {
       if (e.dead) continue;
@@ -734,7 +757,7 @@ export class RunScene extends Phaser.Scene {
       const bounced = e.agent.x < ROOM.x0 + e.radius || e.agent.x > ROOM.x1 - e.radius || e.agent.y < ROOM.y0 + e.radius * 0.5 || e.agent.y > ROOM.y1 - 4;
       e.agent.x = Phaser.Math.Clamp(e.agent.x, ROOM.x0 + e.radius, ROOM.x1 - e.radius); e.agent.y = Phaser.Math.Clamp(e.agent.y, ROOM.y0 + e.radius * 0.5, ROOM.y1 - 4);
       if (bounced && e.chargeT > 0) e.chargeT = 0;
-      for (const b of this.blocks) if (e.agent.x > b.x0 && e.agent.x < b.x1 && e.agent.y > b.y0 && e.agent.y < b.y1 && e.agent.ai !== 'teleporter') { const dl = e.agent.x - b.x0, dr = b.x1 - e.agent.x, du = e.agent.y - b.y0, dd = b.y1 - e.agent.y; const m = Math.min(dl, dr, du, dd); if (m === dl) e.agent.x = b.x0; else if (m === dr) e.agent.x = b.x1; else if (m === du) e.agent.y = b.y0; else e.agent.y = b.y1; if (e.chargeT > 0) e.chargeT = 0; }
+      if (this.layout) { const rc = resolveCircle(this.layout, e.agent.x, e.agent.y, Math.min(e.radius * 0.7, 20)); if (rc.hit) { e.agent.x = rc.x; e.agent.y = rc.y; if (e.chargeT > 0) e.chargeT = 0; } } // v2 rooms: slide along obstacles
       // separation
       for (const o of this.enemies) if (o !== e && !o.dead && !o.dummy) { const dx = e.agent.x - o.agent.x, dy = e.agent.y - o.agent.y; const d = Math.hypot(dx, dy) || 1; const m = e.radius + o.radius; if (d < m * 0.9) { e.agent.x += dx / d * (m * 0.9 - d) * 0.5; e.agent.y += dy / d * (m * 0.9 - d) * 0.5; } }
       // contact
@@ -771,7 +794,7 @@ export class RunScene extends Phaser.Scene {
       case 'lob': { this.addCircleHazard(a.x, a.y, a.radius, a.delay, dmg); const b = this.add.image(ex, ey, tex(this, 'pj_bomb', 'proj').tex).setDisplaySize(20, 20).setDepth(3100); this.tweens.add({ targets: b, x: a.x, y: a.y, duration: a.delay * 1000, ease: 'Quad.easeIn', onComplete: () => b.destroy() }); break; }
       case 'summon': { const ids = a.ids?.length ? a.ids : [getChapter(this.run.chapter).enemies.find((id) => ['chaser', 'exploder'].includes(getEnemy(id)?.ai ?? '')) ?? getChapter(this.run.chapter).enemies[0]]; for (let i = 0; i < a.count; i++) this.spawnMinion(ids[i % ids.length], ex + Math.cos(i * 2.1) * 60, ey + 40 + Math.sin(i * 2.1) * 40); break; }
       case 'heal': for (const o of this.enemies) if (!o.dead && o !== e && !o.dummy && Math.hypot(o.agent.x - e.agent.x, o.agent.y - e.agent.y) < a.radius) { o.hp = Math.min(o.maxHp, o.hp + (a.amount ?? o.maxHp * a.pct)); this.fxAt('fx_heal', o.agent.x, o.agent.y - 20, 40); } break;
-      case 'teleport': this.fxAt('fx_spawn', e.agent.x, e.agent.y - 20, 50); e.agent.x = Phaser.Math.Clamp(a.x, ROOM.x0 + 30, ROOM.x1 - 30); e.agent.y = Phaser.Math.Clamp(a.y, ROOM.y0 + 30, ROOM.y1 - 20); this.fxAt('fx_spawn', e.agent.x, e.agent.y - 20, 50); break;
+      case 'teleport': this.fxAt('fx_spawn', e.agent.x, e.agent.y - 20, 50); e.agent.x = Phaser.Math.Clamp(a.x, ROOM.x0 + 30, ROOM.x1 - 30); e.agent.y = Phaser.Math.Clamp(a.y, ROOM.y0 + 30, ROOM.y1 - 20); if (this.layout && !roomWalkable(this.layout, e.agent.x, e.agent.y)) { const f = roomFree(this.layout, e.agent.x, e.agent.y); e.agent.x = f.x; e.agent.y = f.y; } this.fxAt('fx_spawn', e.agent.x, e.agent.y - 20, 50); break;
       case 'explode': this.fxAt('fx_explosion', e.agent.x, e.agent.y - 10, a.radius * 2); sfx('explode'); if (Math.hypot(this.px - e.agent.x, this.py - e.agent.y) < a.radius) this.hurtPlayer(dmg * 1.5, e.agent.x, e.agent.y, e); e.agent.state = 'done'; break;
       case 'charge': e.chargeT = a.duration; e.chargeA = a.angle; e.chargeSpd = a.speed; playAnim(e.sprite, e.key, 'attack', false); break;
       case 'hazard': this.addCircleHazard(a.x, a.y, a.radius, a.delay, dmg); break;
@@ -814,6 +837,7 @@ export class RunScene extends Phaser.Scene {
       if (p.homing > 0 && p.from === 'player') { const n = this.nearestEnemy(p.x, p.y, 400, p.hit); if (n) { const want = Math.atan2(n.agent.y - 14 - p.y, n.agent.x - p.x); const cur = Math.atan2(p.vy, p.vx); const sp = Math.hypot(p.vx, p.vy); const na = cur + Phaser.Math.Angle.Wrap(want - cur) * Math.min(1, p.homing * 4 * dt); p.vx = Math.cos(na) * sp; p.vy = Math.sin(na) * sp; p.sprite.setRotation(na); } }
       p.x += p.vx * dt; p.y += p.vy * dt; p.sprite.setPosition(p.x, p.y);
       if (p.x < ROOM.x0 - 20 || p.x > ROOM.x1 + 20 || p.y < ROOM.y0 - 40 || p.y > ROOM.y1 + 20) { p.life = 0; continue; }
+      if (this.layout && shotBlocked(this.layout, p.x, p.y + 18)) { p.life = 0; this.fxAt('fx_hit', p.x, p.y, 26); continue; } // v2 rooms: cover stops shots (liquid does not)
       if (p.from === 'enemy') {
         if (Math.hypot(p.x - this.px, p.y - (this.py - 16)) < p.r + 12) {
           if (this.ws.guarding && this.wcfg.hasGuard) { const g = guardBlock(this.ws, this.wcfg, this.facing, Math.atan2(p.y - this.py, p.x - this.px), this.run.mp); if (g.blocked) { this.spendMp(g.mpCost); sfx('guard'); p.life = 0; G.logEvent('guard', { perfect: g.perfect, proj: true }); if (g.perfect) { this.floatText(this.px, this.py - 60, 'Đỡ hoàn hảo!', '#ffcb6b'); CFX.reflect(this as any, p); } continue; } }
