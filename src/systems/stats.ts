@@ -59,9 +59,11 @@ export function levelMods(level: number): StatMod[] {
   return [{ stat: 'maxHp', value: LEVEL_HP * n }, ...(['physical', 'fire', 'ice', 'lightning', 'magic'] as StatKey[]).map((stat) => ({ stat, value: LEVEL_DMG * n }))];
 }
 
-/** Rarity weights with luck: each tier above common weighted ×(1+0.0116·luck)^tier. Chapter shifts upward. */
-export function rarityWeights(luck: number, chapter = 1): number[] {
-  const base = [62 - chapter * 3, 27 + chapter, 9 + chapter * 1.4, 2 + chapter * 0.6];
+/** Rarity weights with luck: each tier above common weighted ×(1+0.0116·luck)^tier. Progress (chapter + floor) shifts
+ *  upward smoothly: V2 scales per floor (floor 1 of a chapter = the v1 chapter value, floors 2/3 interpolate). */
+export function rarityWeights(luck: number, chapter = 1, floor = 1): number[] {
+  const c = chapter + (Math.max(1, Math.min(3, floor)) - 1) / 3;
+  const base = [62 - c * 3.4, 27 + c, 9 + c * 1.6, 2 + c * 0.7];
   const m = 1 + LUCK_PER_POINT * Math.max(-50, luck);
   return base.map((w, t) => Math.max(0.01, w * Math.pow(m, t)));
 }

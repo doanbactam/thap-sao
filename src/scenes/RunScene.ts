@@ -10,17 +10,23 @@ import { Rng } from '../systems/rng';
 import type { Stats } from '../systems/stats';
 import { moveSpeedPx, dashRechargeTime, regenMp, tickDash, DASH_TIME, DASH_DIST } from '../systems/stats';
 import { computeDamage, spellDamage, incomingDamage, lifestealHeal } from '../systems/damage';
-import { newStatus, applyStatus, tickStatus, isDisabled, takenMult, woundBonus, chainTargets, type StatusState } from '../systems/status';
+import { newStatus, applyStatus, tickStatus, isDisabled, expose, takenMult, woundBonus, chainTargets, type StatusState } from '../systems/status';
 import { fireOnHit, fireOnKill, fireOnDash, fireOnHurt, tickPeriodic, quickSpells, castSpell, type Bundle, type Ctx, type SpellSlot } from '../systems/effects';
-import { getSpecials, hitMultiplier, chainCount, isBehind, splitManaShield, doomMark, phoenix, spellCritChance, spellEchoes, companionSlots, companionMods, guardCounterDamage, galeDashDamage, type Specials } from '../systems/specials';
-import { buildWeapon, newWeaponState, tickWeapon, tryAttack, addFury, trySpecial, iaidoRelease, guardBlock, manualReload, type WeaponConfig, type WeaponState } from '../systems/weapons';
-import { newAgent, think, shieldBlocks, newBrain, bossThink, type Agent, type BossBrain, type AiAction, type BossAction } from '../systems/ai';
+import { getSpecials, hitMultiplier, chainCount, isBehind, splitManaShield, doomMark, phoenix, spellCritChance, spellEchoes, companionSlots, companionMods, guardCounterDamage, galeDashDamage, procDamage, type Specials } from '../systems/specials';
+import { buildWeapon, newWeaponState, tickWeapon, tryAttack, addFury, trySpecial, iaidoRelease, guardBlock, manualReload, chargedFor, PERFECT_GUARD, type WeaponConfig, type WeaponState } from '../systems/weapons';
+import { newCombat, tickReal, timeScale, takeDash, onDash, onHurt, moveMul, beginMove, guardOpen, guardClose, consumeBonus, type CombatState, type Pending } from '../systems/combat';
+import * as CFX from '../systems/combatFx';
+import { newAgent, shieldBlocks, newBrain, bossThink, contactMult, AiWorld, type Agent, type BossBrain, type AiAction, type BossAction } from '../systems/ai';
+import { eliteMods, SPLIT_HP, type Affix } from '../systems/director'; // v2 AI: encounter director + elites
 import { planWaves, enemyScale, choicesFrom, type MapNode } from '../systems/floorgen';
 import { runStats, runBundle, gainXp, enterNode, applyNodeReward, bossDefeated, endRun, drinkPotion, onLethal, tickBuffs, makeShop, resolveEvent, batReward, enchantTimes, makeChoice, type RunState } from '../systems/run';
 import { getEnemy, getBoss, getChapter, getPotion, enemies as ENEMIES } from '../systems/registry';
 import { discover, completeTraining } from '../systems/meta';
 import type { BossDef, EnemyDef, Element, StatusId } from '../data/types';
 import { openOverlay } from './Overlay';
+import { HeroRig, playDash, playHurt, playCast, playAttack } from '../game/heroAnim';
+import { syncEnemyPose, enemyPoseClear } from '../game/enemyAnim'; // v2 anim (docs/V2_ANIM.md)
+import { fxAt as poolFx, floatText as poolText, acquireImage, releaseImage, EnemyBar } from '../game/fxPool'; // v2 perf pools (docs/V2_PERF.md)
 
 export const ROOM = { x0: 62, x1: 1234, y0: 154, y1: 664, w: 1280, h: 720 };
 const ELEMENT_STATUS: Record<Element, StatusId | null> = { physical: null, fire: 'burn', ice: 'frostbite', lightning: 'shock' };
@@ -30,7 +36,8 @@ interface Enemy {
   id: string; def: EnemyDef | null; boss: BossDef | null; agent: Agent; brain: BossBrain | null; sprite: Phaser.GameObjects.Sprite; key: string;
   hp: number; maxHp: number; dmg: number; radius: number; status: StatusState; kvx: number; kvy: number; flash: number; contactCd: number;
   armor: number; explodeOnDeath: boolean; dead: boolean; dummy?: boolean; bat?: boolean; minion?: boolean; chargeT: number; chargeA: number; chargeSpd: number;
-  bar?: Phaser.GameObjects.Graphics; hits: number; mark?: Phaser.GameObjects.Image; facing: number; decoy?: boolean;
+  bar?: EnemyBar; hits: number; mark?: Phaser.GameObjects.Image; facing: number; decoy?: boolean;
+  elite?: Affix; eliteG?: Phaser.GameObjects.Graphics; eliteLabel?: Phaser.GameObjects.Text;
 }
 interface Proj { x: number; y: number; vx: number; vy: number; r: number; dmg: number; from: 'player' | 'enemy'; sprite: Phaser.GameObjects.Image; life: number; pierce: number; hit: Set<Enemy>; homing: number; element: Element; status?: StatusId; coef?: number; spell?: boolean; explode?: number; magicShare?: number; crit?: boolean }
 interface Hazard { x: number; y: number; r: number; t: number; delay: number; dmg: number; g: Phaser.GameObjects.Graphics; kind: 'circle' | 'line' | 'laser' | 'mine' | 'trail' | 'tornado'; angle?: number; len?: number; width?: number; sweep?: number; dur?: number; beams?: number; life?: number; armed?: boolean; fromPlayer?: boolean; done?: boolean; tick?: number; status?: StatusId; follow?: Enemy; art?: Phaser.GameObjects.Sprite }
@@ -48,11 +55,14 @@ export class RunScene extends Phaser.Scene {
   wcfg!: WeaponConfig; ws!: WeaponState; spells: SpellSlot[] = []; spellCd = [0, 0];
   // player
   px = 640; py = 560; pvx = 0; pvy = 0; facing = -Math.PI / 2; hero!: Phaser.GameObjects.Sprite; heroKey = 'hero_bong'; wpn!: Phaser.GameObjects.Image; shadow!: Phaser.GameObjects.Ellipse;
+  rig: HeroRig | null = null; // v2 hero animation rig (src/game/heroAnim.ts)
+  cs: CombatState = newCombat(); strikeCtx: CFX.StrikeCtx | null = null; // v2 combat feel (src/systems/combat.ts)
   dashes = 2; dashTimer = 0; dashT = 0; dashA = 0; iframes = 0; hurtT = 0; sinceSpend = 99; shield = 0; shieldT = 0; afterDash = 0; dashHit = new Set<Enemy>();
   specialHold = 0; spinT = 0; spinTick = 0; lastAttackHeld = false; lastSpecialHeld = false; lastGuardHeld = false; doomCounter = 0; novaCd = 0; secondWindUsed = false; companionShareCd = 0;
   // world
   enemies: Enemy[] = []; projs: Proj[] = []; hazards: Hazard[] = []; pickups: Pickup[] = []; interacts: Interact[] = []; doors: Door[] = []; comps: Companion[] = [];
   node: MapNode | null = null; isGate = false; waves: string[][] = []; waveIdx = 0; fighting = false; derange: string[] = []; miniBoss: string | undefined; pendingMiniDrop = false;
+  waveElites: Array<Array<Affix | null>> = []; aiw: AiWorld | null = null; // v2 AI (src/systems/ai.ts, director.ts)
   periodicTimers: Record<string, number> = {}; statsT = 0; hitStop = 0; bossRef: Enemy | null = null; dmgDealtLog = 0; time0 = 0; trainingHits = 0;
   ready = false; blocks: Array<{ x0: number; y0: number; x1: number; y1: number }> = [];
   layer!: Phaser.GameObjects.Layer; fxLayer!: Phaser.GameObjects.Layer; banner: Phaser.GameObjects.Text | null = null; bossDmgTime = 0; trainingDone = false;
@@ -60,10 +70,11 @@ export class RunScene extends Phaser.Scene {
   passedRun: RunState | null = null;
   init(d: RunData) {
     this.passedRun = d?.run ?? null;
-    this.ready = false; this.blocks = []; (this as any).hero = undefined; (this as any).wpn = undefined; this.bossRef = null;
+    this.ready = false; this.blocks = []; (this as any).hero = undefined; (this as any).wpn = undefined; this.rig = null; this.bossRef = null;
     this.mode = d?.mode ?? 'run';
     this.enemies = []; this.projs = []; this.hazards = []; this.pickups = []; this.interacts = []; this.doors = []; this.comps = [];
-    this.waveIdx = 0; this.fighting = false; this.bossRef = null; this.hitStop = 0; this.trainingHits = 0; this.trainingDone = false; this.pendingMiniDrop = false;
+    this.aiw = null; this.waveElites = [];
+    this.waveIdx = 0; this.fighting = false; this.bossRef = null; this.hitStop = 0; this.cs = newCombat(); this.strikeCtx = null; this.trainingHits = 0; this.trainingDone = false; this.pendingMiniDrop = false;
     this.periodicTimers = {}; this.secondWindUsed = false; this.shield = 0; this.iframes = 0; this.dashT = 0; this.spinT = 0; this.specialHold = 0;
   }
   create() {
@@ -102,7 +113,7 @@ export class RunScene extends Phaser.Scene {
     this.recalcStats();
     if (fresh) this.dashes = this.stats.dashCount;
     if (this.hero) this.spawnCompanions();
-    if (this.wpn) this.wpn.setTexture(tex(this, this.wcfg.def.sprite, 'weapon').tex);
+    if (this.rig) this.rig.setWeapon(this.wcfg.def.sprite, this.wcfg.id); else if (this.wpn) this.wpn.setTexture(tex(this, this.wcfg.def.sprite, 'weapon').tex);
   }
   recalcStats() {
     const s0 = this.stats;
@@ -146,8 +157,7 @@ export class RunScene extends Phaser.Scene {
     tex(this, ck, 'char');
     this.shadow = this.add.ellipse(this.px, this.py, 30, 10, 0x281808, 0.35);
     this.hero = this.add.sprite(this.px, this.py, ck); applyEntry(this.hero, ck, 46, [0.5, 0.92]); playAnim(this.hero, ck, 'idle');
-    this.wpn = this.add.image(this.px, this.py, tex(this, this.wcfg.def.sprite, 'weapon').tex).setOrigin(0.1, 0.5);
-    applyEntry(this.wpn, this.wcfg.def.sprite, 14, [0.1, 0.5]);
+    this.rig = new HeroRig(this, this.hero, ck, this.wcfg.def.sprite, this.wcfg.id); this.wpn = this.rig.wpn; // weapon on a hand pivot
     this.spawnCompanions();
   }
   costumeSprite(id: string) { return require_costume(id) ?? 'hero_bong'; }
@@ -170,8 +180,8 @@ export class RunScene extends Phaser.Scene {
     if (run.roomCleared) { this.spawnReward(); this.openDoors(); return; }
     if (n.type === 'shop' || n.type === 'roots') { run.roomCleared = true; this.spawnReward(); this.openDoors(); return; }
     const seed = (run.floorData.seed + n.id * 977) >>> 0;
-    const plan = planWaves(seed, run.chapter, run.floor, n.depth, n.modifier, n.event);
-    this.waves = plan.waves; this.derange = plan.derangement ?? []; this.miniBoss = plan.miniBoss; this.pendingMiniDrop = !!plan.miniBoss;
+    const plan = planWaves(seed, run.chapter, run.floor, n.depth, n.modifier, n.event, run.hard);
+    this.waves = plan.waves; this.waveElites = plan.elites ?? []; this.derange = plan.derangement ?? []; this.miniBoss = plan.miniBoss; this.pendingMiniDrop = !!plan.miniBoss;
     if (n.event === 'arena') toast(this, t('ev.arena'), '#ffcb6b', 260);
     if (n.event === 'secret') this.spawnSecretWall();
     if (n.modifier === 'derangement') toast(this, t('mod.derangement'), '#ff7a66', 300);
@@ -280,7 +290,7 @@ export class RunScene extends Phaser.Scene {
           done(); this.consumeInteract(it); this.refreshLoadout(false); G.saveMeta();
           if (res.choice) this.openChoice();
           else if (res.shop) this.openShop();
-          else if (res.fight === 'waves') { this.waves = planWaves(this.rng.int(1, 1e9), run.chapter, run.floor, 2, 'none', null).waves.slice(0, 2); this.waveIdx = 0; this.fighting = true; this.lockDoors(); this.spawnWave(); }
+          else if (res.fight === 'waves') { this.waveElites = []; this.waves = planWaves(this.rng.int(1, 1e9), run.chapter, run.floor, 2, 'none', null).waves.slice(0, 2); this.waveIdx = 0; this.fighting = true; this.lockDoors(); this.spawnWave(); }
           else if (res.fight === 'bat') { const b = this.makeEnemy('cmp_bat', 640, 300, { ...(ENEMIES[0]), id: 'bat', ai: 'chaser', hp: 60 + run.chapter * 30, speed: 110 } as EnemyDef, null); b.bat = true; this.fighting = true; this.waves = []; this.waveIdx = 0; this.lockDoors(); }
           else toast(this, t(`ev.${ev}`) + ' ✓', '#a6e070');
           G.saveRun();
@@ -304,7 +314,7 @@ export class RunScene extends Phaser.Scene {
     const s = this.add.sprite(x, y, sk); applyEntry(s, sk, boss ? (boss.mini ? 110 : 190) : (def?.elite ? 64 : 46), [0.5, 0.9]); playAnim(s, sk, 'idle');
     const agent = newAgent(def?.ai ?? 'chaser', x, y, sp, H, { ...(def?.params ?? {}) });
     const e: Enemy = { id: def?.id ?? boss?.id ?? key, def, boss, agent, brain: boss ? newBrain() : null, sprite: s, key: sk, hp: H, maxHp: H, dmg: D, radius: rad, status: newStatus(), kvx: 0, kvy: 0, flash: 0, contactCd: 0, armor: 0, explodeOnDeath: false, dead: false, chargeT: 0, chargeA: 0, chargeSpd: 0, hits: 0, facing: Math.PI / 2 };
-    if (!boss) { e.bar = this.add.graphics().setDepth(3500); }
+    if (!boss) { e.bar = new EnemyBar(this); }
     this.enemies.push(e);
     const fx = this.add.image(x, y - 20, tex(this, 'fx_spawn', 'fx').tex).setDisplaySize(60, 60).setAlpha(0.8); this.tweens.add({ targets: fx, alpha: 0, scale: fx.scale * 1.5, duration: 400, onComplete: () => fx.destroy() });
     if (def) { discover(G.meta, 'enemies', def.id); }
@@ -323,9 +333,24 @@ export class RunScene extends Phaser.Scene {
         const e = this.makeEnemy(id, sx, sy, def, null);
         for (const d of this.derange) { if (d === 'haste') e.agent.speed *= 1.4; if (d === 'armor') e.armor = 30; if (d === 'explode') e.explodeOnDeath = true; }
         if (this.derange.length) e.sprite.setTint(0xffb0a0);
+        const af = this.waveElites[this.waveIdx - 1]?.[i]; if (af && k === 0) this.makeElite(e, af);
       }
     });
     if (this.waveIdx === this.waves.length && this.miniBoss) { const b = getBoss(this.miniBoss); if (b) { const e = this.makeEnemy(b.id, 640, 300, null, b); e.hp = e.maxHp = Math.round(b.hp * 0.6 * (this.run.hard ? 1.4 : 1)); this.bossRef = e; sfx('boss'); } }
+  }
+  /** v2 elite promotion (director.ts affix) with a visible marker: pulsing coloured ring + label */
+  makeElite(e: Enemy, af: Affix) {
+    const m = eliteMods(af); e.elite = af;
+    e.hp = e.maxHp = Math.round(e.maxHp * m.hpMul); e.dmg *= m.dmgMul; e.agent.speed *= m.speedMul; e.agent.cdMul = m.cdMul; e.armor = Math.max(e.armor, m.armor); if (m.explodeOnDeath) e.explodeOnDeath = true;
+    e.sprite.setScale(e.sprite.scaleX * m.scale, e.sprite.scaleY * m.scale); e.radius = Math.round(e.radius * 1.1);
+    e.eliteG = this.add.graphics().setDepth(2);
+    e.eliteLabel = txt(this, e.agent.x, e.agent.y, m.label, 13, '#' + m.color.toString(16).padStart(6, '0')).setOrigin(0.5).setDepth(3600);
+    G.logEvent('elite', { id: e.id, affix: af });
+  }
+  drawElite(e: Enemy) {
+    const m = eliteMods(e.elite!); const g = e.eliteG!; g.clear(); const a = 0.55 + 0.35 * Math.sin(this.time.now / 160);
+    g.fillStyle(m.color, 0.18).fillEllipse(e.agent.x, e.agent.y, e.radius * 2.8, e.radius * 1.4).lineStyle(3, m.color, a).strokeEllipse(e.agent.x, e.agent.y, e.radius * 2.8, e.radius * 1.4);
+    e.eliteLabel?.setPosition(e.agent.x, e.agent.y - (e.sprite.displayHeight || 50) - 24);
   }
   startBoss() {
     const f = this.run.floorData; const b = getBoss(f.bossId) ?? getBoss(getChapter(this.run.chapter).boss);
@@ -343,9 +368,10 @@ export class RunScene extends Phaser.Scene {
   // ---------------- main loop ----------------
   update(_t: number, dms: number) {
     if (!this.ready) return;
-    const dt = Math.min(0.05, dms / 1000);
+    let dt = Math.min(0.05, dms / 1000);
     this.ctl.update(this.px, this.py - 20);
     if (this.hitStop > 0) { this.hitStop -= dt; return; }
+    tickReal(this.cs, dt); dt *= timeScale(this.cs); // perfect-dodge slow-mo
     if (this.run.dead) return;
     this.handleGlobalInput();
     if (!this.scene.isActive()) return;
@@ -382,10 +408,11 @@ export class RunScene extends Phaser.Scene {
     this.iframes = Math.max(0, this.iframes - dt); this.hurtT = Math.max(0, this.hurtT - dt); this.afterDash = Math.max(0, this.afterDash - dt);
     this.sinceSpend += dt; this.novaCd = Math.max(0, this.novaCd - dt); this.companionShareCd = Math.max(0, this.companionShareCd - dt);
     if (this.shieldT > 0) { this.shieldT -= dt; if (this.shieldT <= 0) this.shield = 0; }
-    this.spellCd = this.spellCd.map((v) => Math.max(0, v - dt));
+    for (let i = 0; i < this.spellCd.length; i++) this.spellCd[i] = Math.max(0, this.spellCd[i] - dt); // in place (no per-frame array)
     run.mp = regenMp(run.mp, s.maxMp, s.mpRegen, this.sinceSpend, dt);
     const dd = tickDash(this.dashes, this.dashTimer, s.dashCount, dashRechargeTime(s), dt); this.dashes = dd.charges; this.dashTimer = dd.timer;
     tickWeapon(this.ws, this.wcfg, dt);
+    CFX.frame(this as any, dt);
     tickBuffs(run, dt);
     this.statsT -= dt; if (this.statsT <= 0) { this.statsT = 0.25; this.recalcStats(); }
     if (c.aimSet) this.facing = c.aim;
@@ -398,31 +425,31 @@ export class RunScene extends Phaser.Scene {
       this.moveBy(Math.cos(this.dashA) * v * dt, Math.sin(this.dashA) * v * dt);
       if (this.wcfg.dashAttack || this.sp.dashStrike) for (const e of this.enemies) if (!e.dead && !this.dashHit.has(e) && this.dist(e.agent, { x: this.px, y: this.py }) < e.radius + 22) { this.dashHit.add(e); this.hitEnemy(e, { coef: this.wcfg.dashAttackCoef, isDash: true, knock: this.dashA }); }
       if (this.dashT <= 0) this.endDash();
-    } else if (c.consume('dash') && this.dashes > 0 && !this.ws.charging) {
+    } else if (!this.ws.charging && takeDash(this.cs, this.dashes > 0)) {
       this.startDash(Math.hypot(c.moveX, c.moveY) > 0.1 ? Math.atan2(c.moveY, c.moveX) : this.facing);
     } else {
       // guard
       const guarding = this.wcfg.hasGuard && c.guard;
-      if (guarding && !this.ws.guarding) { this.ws.guarding = true; this.ws.guardT = 0; }
-      if (!guarding) this.ws.guarding = false;
+      if (guarding && !this.ws.guarding) { this.ws.guarding = true; this.ws.guardT = guardOpen(this.cs, PERFECT_GUARD); }
+      if (!guarding && this.ws.guarding) { this.ws.guarding = false; guardClose(this.cs); }
       // special
       this.updateSpecial(dt, c.special);
       // move
-      let spd = moveSpeedPx(s) * (this.ws.guarding ? 0.45 : 1) * (this.ws.charging || this.spinT > 0 ? 0.5 : 1);
+      let spd = moveSpeedPx(s) * (this.ws.guarding ? 0.45 : 1) * (this.ws.charging || this.spinT > 0 ? 0.5 : 1) * moveMul(this.cs, chargedFor(this.wcfg).moveMul);
       this.moveBy(c.moveX * spd * dt, c.moveY * spd * dt);
       // attack
-      if (c.attack) this.doAttack();
+      CFX.attackInput(this as any, dt); // tap = light (buffered), hold = charged attack
     }
     this.lastAttackHeld = c.attack;
     // visuals
     const moving = Math.hypot(c.moveX, c.moveY) > 0.1;
     if (this.dashT > 0) playAnim(this.hero, this.heroKey, 'dash'); else if (this.hurtT > 0.15) playAnim(this.hero, this.heroKey, 'hurt'); else if (!this.hero.anims.isPlaying || ['idle', 'run'].some((a) => this.hero.anims.currentAnim?.key.endsWith(':' + a))) playAnim(this.hero, this.heroKey, moving ? 'run' : 'idle');
-    face(this.hero, this.heroKey, Math.cos(this.facing) < 0);
-    this.hero.setPosition(this.px, this.py); this.shadow.setPosition(this.px, this.py);
-    this.hero.setAlpha(this.iframes > 0 && this.dashT <= 0 ? (Math.floor(this.iframes * 20) % 2 ? 0.5 : 1) : 1);
-    this.wpn.setPosition(this.px + Math.cos(this.facing) * 8, this.py - 18 + Math.sin(this.facing) * 4);
-    if (!(this.wpn as any).swinging) this.wpn.setRotation(this.facing + (this.ws.guarding ? 0 : 0.0));
-    this.wpn.setDepth(Math.sin(this.facing) < 0 ? this.py - 1 : this.py + 1);
+    this.shadow.setPosition(this.px, this.py);
+    const heroAlpha = this.iframes > 0 && this.dashT <= 0 ? (Math.floor(this.iframes * 20) % 2 ? 0.5 : 1) : 1; this.hero.setAlpha(heroAlpha);
+    if (this.rig) { // facing, squash/stretch, lean and the weapon hand pivot (src/game/heroAnim.ts)
+      this.rig.update(dt, { x: this.px, y: this.py, facing: this.facing, moving, guarding: this.ws.guarding, charge: this.ws.charging ? this.ws.charge : (this.cs.charging ? this.cs.charge : -1), spinning: this.spinT > 0, dashing: this.dashT > 0, combat: this.cs as any, weapon: this.wcfg.id, arc: this.wcfg.arc || 60 });
+      this.rig.setAlpha(heroAlpha);
+    } else { face(this.hero, this.heroKey, Math.cos(this.facing) < 0); this.hero.setPosition(this.px, this.py); }
   }
   blocked(x: number, y: number) { return this.blocks.some((b) => x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1); }
   moveBy(dx: number, dy: number) {
@@ -431,8 +458,8 @@ export class RunScene extends Phaser.Scene {
     for (const d of this.doors) if (this.run.roomCleared && Math.abs(this.px - d.x) < 34 && this.py < ROOM.y0 + 24) { this.useDoor(d); return; }
   }
   startDash(a: number) {
-    this.dashes--; this.dashT = DASH_TIME; this.dashA = a; this.iframes = Math.max(this.iframes, DASH_TIME + 0.05); this.dashHit.clear(); this.ws.guarding = false;
-    sfx('dash'); this.fxAt('fx_dash_dust', this.px, this.py, 50);
+    onDash(this.cs); this.dashes--; this.dashT = DASH_TIME; this.dashA = a; this.iframes = Math.max(this.iframes, DASH_TIME + 0.05); this.dashHit.clear(); this.ws.guarding = false;
+    sfx('dash'); this.fxAt('fx_dash_dust', this.px, this.py, 50); playDash(this, a, DASH_TIME * 1000);
     for (const act of fireOnDash(this.bundle, this.ctx)) this.doAction('dash:' + act.action, act.amount, act.source);
     if (this.sp.galeDash) this.addTornado(this.px, this.py, galeDashDamage(this.sp));
     G.logEvent('dash', {});
@@ -446,11 +473,22 @@ export class RunScene extends Phaser.Scene {
     if (!h) return;
     G.logEvent('attack', { hit: h.hit, weapon: this.wcfg.id });
     playAnim(this.hero, this.heroKey, 'attack', false);
-    const coef = h.coef * (dashAtk ? this.wcfg.dashAttackCoef : 1);
+    const pend: Pending = { kind: 'light', hit: h.hit, coef: h.coef, last: h.last, lunge: h.lunge, angle: this.facing, power: 0, dash: dashAtk };
+    if (beginMove(this.cs, h.move, h.scale, pend)) this.strike(pend); // startup > 0: CFX.frame performs it later
+  }
+  /** Perform a light/charged strike (frame data in src/systems/combat.ts; lunge, arc and range per hit). */
+  strike(p: Pending) {
+    const m = this.cs.move; if (!m) return;
+    if (m.feint === false) this.facing = p.angle; // committed moves keep the angle they were started with
+    const dashAtk = !!p.dash; const coef = p.coef * (dashAtk ? this.wcfg.dashAttackCoef : 1);
     if (this.wcfg.arc > 0) {
-      if (h.lunge) this.moveBy(Math.cos(this.facing) * 50, Math.sin(this.facing) * 50);
-      this.swingFx(this.wcfg.range, this.wcfg.arc, h.last || this.wcfg.id === 'greatsword');
-      this.meleeHit(this.facing, this.wcfg.range, this.wcfg.arc, coef, { isDash: dashAtk });
+      const R = this.wcfg.range * m.range, A = Math.min(360, this.wcfg.arc * m.arc);
+      if (m.lunge) this.moveBy(Math.cos(this.facing) * m.lunge, Math.sin(this.facing) * m.lunge);
+      this.swingFx(R, A, m.finisher || this.wcfg.id === 'greatsword', m.sweep);
+      this.strikeCtx = CFX.strikeCtx(this as any, m, p);
+      this.meleeHit(this.facing, R, A, coef, { isDash: dashAtk });
+      if (this.strikeCtx.bonusPct || this.strikeCtx.forceCrit) consumeBonus(this.cs);
+      this.strikeCtx = null;
     } else {
       sfx('shoot');
       const n = 1 + this.wcfg.multishot;
@@ -478,16 +516,15 @@ export class RunScene extends Phaser.Scene {
       it.hp = (it.hp ?? 3) - 1; this.cameras.main.shake(80, 0.004); sfx('hit');
       if (it.hp <= 0) { this.consumeInteract(it); const r = resolveEvent(this.run, G.meta, 'secret', ''); G.logEvent('event', { ev: 'secret', res: r.text }); toast(this, t('ev.secret'), '#ffcb6b'); this.openChoice(); }
     }
-    if (any) { this.hitStop = 0.045; }
+    void any; // hit-stop is per hit now (CFX.impact)
   }
-  swingFx(range: number, arc: number, big: boolean) {
+  swingFx(range: number, arc: number, big: boolean, sweep: 1 | -1 = 1) {
     const k = big ? 'fx_slash_big' : 'fx_slash_small';
     const s = this.add.sprite(this.px + Math.cos(this.facing) * range * 0.5, this.py - 16 + Math.sin(this.facing) * range * 0.5, tex(this, k, 'fx').tex);
-    s.setRotation(this.facing).setDisplaySize(range * 1.3, range * (arc / 100)).setDepth(3000).setAlpha(0.9);
+    s.setRotation(this.facing).setDisplaySize(range * 1.3, range * (Math.min(arc, 200) / 100)).setDepth(3000).setAlpha(0.9).setFlipY(sweep < 0);
     if (this.anims.exists(`${k}:play`)) s.play(`${k}:play`); else if (entry(k)?.anims) { const first = Object.keys(entry(k)!.anims!)[0]; playAnim(s, k, first); }
     this.tweens.add({ targets: s, alpha: 0, duration: 160, onComplete: () => s.destroy() });
-    (this.wpn as any).swinging = true;
-    this.tweens.add({ targets: this.wpn, rotation: { from: this.facing - 1.2, to: this.facing + 1.2 }, duration: 110, onComplete: () => ((this.wpn as any).swinging = false) });
+    void sweep; // the weapon swing itself is animated by the hero rig (src/game/heroAnim.ts)
   }
   // ---- specials ----
   updateSpecial(dt: number, held: boolean) {
@@ -505,6 +542,7 @@ export class RunScene extends Phaser.Scene {
         if (w === 'greatsword') { this.ws.charging = false; this.spinT = this.wcfg.spinDuration * Math.min(1.5, 0.6 + this.ws.charge); this.ws.charge = 0; this.spinTick = 0; sfx('magic'); G.logEvent('special', { w }); }
         else {
           const ir = iaidoRelease(this.ws, this.wcfg); const len = 220; const a = this.facing;
+          playAttack(this, 'thrust', 20, 260, { reach: 22, power: 1.6, angle: a }); // iaido draw pose
           const x0 = this.px, y0 = this.py; this.moveBy(Math.cos(a) * len, Math.sin(a) * len); this.iframes = Math.max(this.iframes, 0.25);
           const g = this.add.graphics().setDepth(3000); g.lineStyle(10, 0xffffff, 0.9).lineBetween(x0, y0 - 16, this.px, this.py - 16); this.tweens.add({ targets: g, alpha: 0, duration: 250, onComplete: () => g.destroy() });
           for (const e of this.enemies) if (!e.dead && this.segDist(e.agent.x, e.agent.y - 10, x0, y0 - 16, this.px, this.py - 16) < e.radius + 24) this.hitEnemy(e, { coef: 2.2 * ir.power, forceCrit: ir.perfect, knock: a });
@@ -519,7 +557,7 @@ export class RunScene extends Phaser.Scene {
     this.spendMp(this.run.mp - r.mp); G.logEvent('special', { w });
     switch (w) {
       case 'swordshield': { // shield bash dash
-        const a = this.facing; this.iframes = Math.max(this.iframes, 0.3);
+        const a = this.facing; this.iframes = Math.max(this.iframes, 0.3); playAttack(this, 'bash', 0, 260, { power: 1.4, angle: a }); // shield bash pose
         const x0 = this.px, y0 = this.py; this.moveBy(Math.cos(a) * 160, Math.sin(a) * 160);
         for (const e of this.enemies) if (!e.dead && this.segDist(e.agent.x, e.agent.y, x0, y0, this.px, this.py) < e.radius + 30) { this.hitEnemy(e, { coef: 1.5, knock: a, knockMul: 2 }); applyStatus(e.status, 'stun', 1, 0, 1); }
         this.fxAt('fx_dash_dust', this.px, this.py, 60); sfx('guard'); break;
@@ -532,8 +570,9 @@ export class RunScene extends Phaser.Scene {
         this.fxAt('fx_dash_dust', this.px, this.py, 60); this.iframes = Math.max(this.iframes, 0.3);
         this.hitEnemy(n, { coef: this.wcfg.coefs[this.wcfg.coefs.length - 1] * this.wcfg.backstabMult, forceCrit: true, knock: this.facing }); sfx('crit'); break;
       }
-      case 'crossbow': this.spawnProj('pj_bolt', this.px, this.py - 20, this.facing, 760, 12, 3, { pierce: 99 }); sfx('shoot'); break;
+      case 'crossbow': playAttack(this, 'shoot', 0, 220, { power: 1.5 }); this.spawnProj('pj_bolt', this.px, this.py - 20, this.facing, 760, 12, 3, { pierce: 99 }); sfx('shoot'); break;
       case 'staff': {
+        playCast(this, 300); // staff nova pose
         const R = this.wcfg.novaRadius; const g = this.add.graphics().setDepth(3000); const col = this.wcfg.element === 'ice' ? 0x9be4ff : this.wcfg.element === 'lightning' ? 0xfff07a : this.wcfg.element === 'fire' ? 0xff8a3a : 0xffffff;
         g.fillStyle(col, 0.35).fillCircle(this.px, this.py - 10, R).lineStyle(4, col, 1).strokeCircle(this.px, this.py - 10, R); this.tweens.add({ targets: g, alpha: 0, duration: 350, onComplete: () => g.destroy() });
         for (const e of this.enemies) if (!e.dead && this.dist(e.agent, { x: this.px, y: this.py }) < R + e.radius) { this.hitEnemy(e, { coef: 2.5, knock: Math.atan2(e.agent.y - this.py, e.agent.x - this.px) }); const st = ELEMENT_STATUS[this.wcfg.element]; if (st) applyStatus(e.status, st, 2, this.stats[this.wcfg.element] * 0.15); }
@@ -547,7 +586,7 @@ export class RunScene extends Phaser.Scene {
     const sl = this.spells[i]; if (!sl) { sfx('deny'); return; }
     const cd = sl.cooldown * (1 - this.stats.cooldownPct / 100);
     const r = castSpell(sl, this.run.mp, this.spellCd[i]); if (!r.ok) { sfx('deny'); return; }
-    this.spendMp(this.run.mp - r.mp); this.spellCd[i] = cd; playAnim(this.hero, this.heroKey, 'cast', false);
+    this.spendMp(this.run.mp - r.mp); this.spellCd[i] = cd; playAnim(this.hero, this.heroKey, 'cast', false); playCast(this);
     this.doSpell(sl); if (spellEchoes(this.sp, Math.random())) this.time.delayedCall(250, () => this.doSpell(sl));
     G.logEvent('spell', { spell: sl.spell });
   }
@@ -573,7 +612,8 @@ export class RunScene extends Phaser.Scene {
     let amt: number; let crit = false;
     if (o.flat !== undefined) amt = Math.round(o.flat * (1 + takenMult(e.status)) * mult);
     else {
-      const r = computeDamage({ stats: { ...this.stats, critChance: this.stats.critChance + this.wcfg.critBonus }, element: el, coef: o.coef ?? 1, bonusPct: this.wcfg.damagePct, magicShare: o.magicShare ?? this.wcfg.magicShare, targetDefense: e.armor, targetTakenPct: takenMult(e.status), forceCrit: o.forceCrit });
+      const sk = o.melee ? this.strikeCtx : null;
+      const r = computeDamage({ stats: { ...this.stats, critChance: this.stats.critChance + this.wcfg.critBonus + (sk?.critBonus ?? 0) }, element: el, coef: o.coef ?? 1, bonusPct: this.wcfg.damagePct + (sk?.bonusPct ?? 0), magicShare: o.magicShare ?? this.wcfg.magicShare, targetDefense: e.armor, targetTakenPct: takenMult(e.status), forceCrit: o.forceCrit || sk?.forceCrit });
       amt = Math.round(r.amount * mult); crit = r.crit;
     }
     amt += woundBonus(e.status, amt);
@@ -584,9 +624,8 @@ export class RunScene extends Phaser.Scene {
     e.hp -= amt; e.flash = 0.08; this.dmgDealtLog += amt; if (e.boss) this.bossDmgTime = this.time.now;
     if (e.dummy) { e.hp = e.maxHp; this.trainingHits++; this.checkTraining(); }
     this.floatText(e.agent.x + Phaser.Math.Between(-10, 10), e.agent.y - 44, String(amt), crit ? '#ffcb3a' : '#ffffff', crit ? 26 : 20);
-    this.fxAt(crit ? 'fx_crit' : 'fx_hit', e.agent.x, e.agent.y - 20, crit ? 60 : 44);
-    sfx(crit ? 'crit' : 'hit'); if (crit) this.cameras.main.shake(90, 0.004);
-    if (o.knock !== undefined && !e.boss && !e.dummy && e.agent.ai !== 'turret') { const k = this.wcfg.knockback * (o.knockMul ?? 1) * (e.def?.elite ? 0.4 : 1); e.kvx += Math.cos(o.knock) * k; e.kvy += Math.sin(o.knock) * k; }
+    sfx(crit ? 'crit' : 'hit');
+    CFX.impact(this as any, e, o, amt, crit, o.melee ? this.strikeCtx : null); // spark, hit-stop, shake tier, poise/weight knockback
     if (this.stats.lifesteal > 0) this.healPlayer(lifestealHeal(amt, this.stats.lifesteal), false);
     if (!o.noTrigger) {
       if (o.status) applyStatus(e.status, o.status, 1, this.stats[ELEMENT_FROM[o.status] ?? 'fire'] * 0.15);
@@ -607,13 +646,14 @@ export class RunScene extends Phaser.Scene {
     if (st === 'poison') this.fxAt('fx_poison', e.agent.x, e.agent.y - 20, 40);
   }
   killEnemy(e: Enemy) {
-    if (e.dead) return; e.dead = true; e.bar?.destroy(); e.mark?.destroy();
+    if (e.dead) return; e.dead = true; enemyPoseClear(e.sprite); e.bar?.destroy(); e.mark?.destroy(); e.eliteG?.destroy(); e.eliteLabel?.destroy();
     playAnim(e.sprite, e.key, 'die', false);
     this.tweens.add({ targets: e.sprite, alpha: 0, duration: 450, delay: 150, onComplete: () => e.sprite.destroy() });
     this.fxAt('fx_explosion', e.agent.x, e.agent.y - 16, e.boss ? 160 : 50);
     this.run.kills++;
     G.logEvent('kill', { id: e.id, boss: !!e.boss, mini: e.boss?.mini });
     if (e.explodeOnDeath) this.addCircleHazard(e.agent.x, e.agent.y, 60, 0.6, e.dmg, false);
+    if (e.elite === 'splitting' && e.def) for (let k = 0; k < eliteMods('splitting').split; k++) { const c = this.makeEnemy(e.def.id, e.agent.x + (k ? 26 : -26), e.agent.y + 8, e.def, null); c.hp = c.maxHp = Math.max(1, Math.round(e.maxHp * SPLIT_HP)); c.sprite.setScale(c.sprite.scaleX * 0.8, c.sprite.scaleY * 0.8); c.radius = Math.round(c.radius * 0.85); c.agent.cd = 0.8; }
     if (e.bat) { const p = batReward(this.run); toast(this, p ? `+ ${getPotion(p)?.name}` : t('inv.full'), '#a6e070'); }
     if (!e.dummy) {
       const money = e.def ? Phaser.Math.Between(e.def.money[0], e.def.money[1]) : 0;
@@ -661,13 +701,13 @@ export class RunScene extends Phaser.Scene {
 
   // ---------------- player damage ----------------
   hurtPlayer(raw: number, fromX: number, fromY: number, src?: Enemy) {
-    if (this.iframes > 0 || this.dashT > 0 || this.run.dead) return;
+    if (this.iframes > 0 || this.dashT > 0 || this.run.dead) { if (!this.run.dead) CFX.dodged(this as any, src); return; }
     if (G.god) return;
     const g = guardBlock(this.ws, this.wcfg, this.facing, Math.atan2(fromY - this.py, fromX - this.px), this.run.mp);
     if (g.blocked) {
       this.spendMp(g.mpCost); sfx('guard'); this.fxAt('fx_hit', this.px + Math.cos(this.facing) * 20, this.py - 20, 40);
       G.logEvent('guard', { perfect: g.perfect });
-      if (g.perfect) { this.floatText(this.px, this.py - 60, 'Đỡ hoàn hảo!', '#ffcb6b'); if (src && !src.boss) applyStatus(src.status, 'stun', 1, 0, 1.2); if (this.sp.guardCounter) for (const e of this.enemies) if (!e.dead && this.dist(e.agent, { x: this.px, y: this.py }) < 90) this.hitEnemy(e, { flat: guardCounterDamage(this.sp), forceCrit: this.wcfg.critOnPerfect }); }
+      if (g.perfect) { this.floatText(this.px, this.py - 60, 'Đỡ hoàn hảo!', '#ffcb6b'); CFX.parried(this as any, src); if (this.sp.guardCounter) for (const e of this.enemies) if (!e.dead && this.dist(e.agent, { x: this.px, y: this.py }) < 90) this.hitEnemy(e, { flat: guardCounterDamage(this.sp), forceCrit: this.wcfg.critOnPerfect }); }
       return;
     }
     const r = incomingDamage(raw, this.stats);
@@ -676,8 +716,9 @@ export class RunScene extends Phaser.Scene {
     if (this.shield > 0) { const a = Math.min(this.shield, dmg); this.shield -= a; dmg -= a; }
     const ms = splitManaShield(this.sp, dmg, this.run.mp); if (ms.mp) this.spendMp(ms.mp); dmg = ms.hp;
     if (dmg <= 0) return;
-    this.run.hp -= dmg; this.iframes = 0.6; this.hurtT = 0.3; sfx('hurt'); this.cameras.main.shake(120, 0.006);
+    this.run.hp -= dmg; this.iframes = 0.6; this.hurtT = 0.3; onHurt(this.cs, this.wcfg.superArmor); sfx('hurt'); this.cameras.main.shake(120, 0.006);
     this.floatText(this.px, this.py - 56, `-${dmg}`, '#ff6a5a', 22);
+    playHurt(this, Math.atan2(fromY - this.py, fromX - this.px));
     this.hero.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL); this.time.delayedCall(90, () => { this.hero.setTint(0xff9090).setTintMode(Phaser.TintModes.MULTIPLY); this.time.delayedCall(120, () => this.hero.clearTint()); });
     G.logEvent('hurt', { dmg, hp: this.run.hp });
     for (const act of fireOnHurt(this.bundle, this.ctx)) this.doAction('hurt:' + act.action, act.amount, act.source, src?.agent.x, src?.agent.y, src);
@@ -693,8 +734,7 @@ export class RunScene extends Phaser.Scene {
 
   // ---------------- effect actions ----------------
   doAction(kind: string, v: number, source: string, x = this.px, y = this.py, src?: Enemy) {
-    const fam = source.startsWith('combo:') ? source.slice(6) : '';
-    const el: Element = FAMILY_ELEMENT[fam] ?? 'physical';
+    const pd = procDamage(kind, v, source, this.stats, this.run.level); v = pd.v; const el: Element = pd.el; // V2: elemental procs scale with element stat
     switch (kind) {
       case 'kill:heal': case 'dash:heal': this.healPlayer(v); break;
       case 'kill:mp': case 'hurt:mp': this.run.mp = Math.min(this.stats.maxMp, this.run.mp + v); break;
@@ -729,6 +769,8 @@ export class RunScene extends Phaser.Scene {
   // ---------------- enemies update ----------------
   updateEnemies(dt: number) {
     const P = { x: this.px, y: this.py };
+    if (!this.aiw) this.aiw = new AiWorld(this.run.chapter, this.run.hard, ROOM);
+    const aiw = this.aiw; aiw.beginFrame(dt, this.enemies.filter((e) => !e.dead && !e.dummy).map((e) => ({ agent: e.agent, radius: e.radius })));
     for (const e of this.enemies) {
       if (e.dead) continue;
       const dot = tickStatus(e.status, dt);
@@ -738,9 +780,10 @@ export class RunScene extends Phaser.Scene {
       let acts: Array<AiAction | BossAction> = [];
       if (!isDisabled(e.status)) {
         if (e.chargeT > 0) { e.chargeT -= dt; e.agent.vx = Math.cos(e.chargeA) * e.chargeSpd; e.agent.vy = Math.sin(e.chargeA) * e.chargeSpd; }
-        else if (e.boss && e.brain) acts = bossThink(e.brain, e.boss, e.hp / e.maxHp, e.agent, P, { w: ROOM.w, h: ROOM.h }, dt, this.rng);
-        else acts = think(e.agent, P, dt, this.rng);
-      } else { e.agent.vx = 0; e.agent.vy = 0; }
+        else if (e.boss && e.brain) acts = bossThink(e.brain, e.boss, e.hp / e.maxHp, e.agent, P, { w: ROOM.w, h: ROOM.h }, dt, this.rng, aiw);
+        else acts = aiw.think(e.agent, P, dt, this.rng);
+      } else if (!e.boss) aiw.think(e.agent, P, dt, this.rng, true); else { e.agent.vx = 0; e.agent.vy = 0; }
+      if (e.agent.exposedT > 0) expose(e.status, e.agent.exposedT); // recovery / stagger punish window
       for (const a of acts) this.execAction(e, a);
       if (e.dead) continue;
       const slow = e.status.frost.stacks > 0 ? 1 - e.status.frost.stacks * 0.08 : 1;
@@ -753,23 +796,28 @@ export class RunScene extends Phaser.Scene {
       // separation
       for (const o of this.enemies) if (o !== e && !o.dead && !o.dummy) { const dx = e.agent.x - o.agent.x, dy = e.agent.y - o.agent.y; const d = Math.hypot(dx, dy) || 1; const m = e.radius + o.radius; if (d < m * 0.9) { e.agent.x += dx / d * (m * 0.9 - d) * 0.5; e.agent.y += dy / d * (m * 0.9 - d) * 0.5; } }
       // contact
-      const dP = Math.hypot(e.agent.x - this.px, (e.agent.y - this.py)); if (dP < e.radius + 14 && e.contactCd <= 0 && e.dmg > 0) { e.contactCd = e.def?.params?.contactCooldown ?? 0.8; this.hurtPlayer(e.dmg * (e.chargeT > 0 ? 1.4 : 1), e.agent.x, e.agent.y, e); }
+      const dP = Math.hypot(e.agent.x - this.px, (e.agent.y - this.py)); const cm = contactMult(e.agent, !!e.boss, e.chargeT > 0); if (cm > 0 && dP < e.radius + 14 && e.contactCd <= 0 && e.dmg > 0) { e.contactCd = e.def?.params?.contactCooldown ?? 0.8; this.hurtPlayer(e.dmg * cm, e.agent.x, e.agent.y, e); }
       // visuals
       const s = e.sprite; s.setPosition(e.agent.x, e.agent.y);
       face(s, e.key, this.px < e.agent.x);
       const moving = Math.hypot(e.agent.vx, e.agent.vy) > 5; if (!s.anims.isPlaying || s.anims.currentAnim?.key.match(/:(idle|run)$/)) playAnim(s, e.key, moving ? 'run' : 'idle');
       if (e.flash > 0) s.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL); else if (e.status.frozenT > 0) s.setTint(0x9be4ff).setTintMode(Phaser.TintModes.MULTIPLY); else if (e.status.burn.stacks) s.setTint(0xffb080).setTintMode(Phaser.TintModes.MULTIPLY); else if (this.derange.length && !e.boss) s.setTint(0xffb0a0).setTintMode(Phaser.TintModes.MULTIPLY); else s.clearTint();
       if (e.brain && e.brain.shieldT > 0) s.setTint(0x9be4ff).setTintMode(Phaser.TintModes.MULTIPLY);
+      if (e.flash <= 0 && !e.status.frozenT) { if (e.agent.state === 'blink') s.setTint(Math.sin(this.time.now / 45) > 0 ? 0xff8070 : 0xffffff).setTintMode(Phaser.TintModes.MULTIPLY); else if (e.status.exposedT > 0) s.setTint(0xffe9a0).setTintMode(Phaser.TintModes.MULTIPLY); } // v2: windup flash / exposed
+      syncEnemyPose(s, e.agent, isDisabled(e.status), e.boss ? 0.6 : e.elite ? 1.3 : 1); // wind-up / recovery pose (src/game/enemyAnim.ts)
+      if (e.eliteG) this.drawElite(e);
       this.drawEnemyBar(e);
       if (e.agent.ai === 'exploder' && e.agent.state === 'done') this.killEnemy(e);
     }
     this.enemies = this.enemies.filter((e) => !e.dead || e.sprite.active);
   }
   drawEnemyBar(e: Enemy) {
-    if (!e.bar) return; e.bar.clear(); if (e.dummy) return; if (e.hp >= e.maxHp && !e.status.shockT) return;
-    const w = 36, x = e.agent.x - w / 2, y = e.agent.y - (e.sprite.displayHeight || 40) - 8;
-    e.bar.fillStyle(PAL.track, 1).fillRoundedRect(x, y, w, 6, 3).fillStyle(PAL.hp, 1).fillRoundedRect(x + 1, y + 1, Math.max(0, (w - 2) * e.hp / e.maxHp), 4, 2);
-    let ix = x; for (const [on, col] of [[e.status.burn.stacks > 0, 0xff8a3a], [e.status.frost.stacks > 0 || e.status.frozenT > 0, 0x9be4ff], [e.status.shockT > 0, 0xfff07a], [e.status.poison.stacks > 0, 0x8fd14e], [e.status.wound.stacks > 0, 0xc2352d], [e.status.stunT > 0, 0xffffff]] as Array<[boolean, number]>) if (on) { e.bar.fillStyle(col, 1).fillCircle(ix + 3, y - 6, 3); ix += 8; }
+    const b = e.bar; if (!b) return; if (e.dummy || (e.hp >= e.maxHp && !e.status.shockT)) { b.clear(); return; }
+    const w = 36, x = e.agent.x - w / 2, y = e.agent.y - (e.sprite.displayHeight || 40) - 8; const st = e.status;
+    b.begin(x, y, e.hp / e.maxHp); // image quads, no per-frame tessellation / arrays (src/game/fxPool.ts EnemyBar)
+    if (st.burn.stacks > 0) b.dot(0xff8a3a); if (st.frost.stacks > 0 || st.frozenT > 0) b.dot(0x9be4ff); if (st.shockT > 0) b.dot(0xfff07a); if (st.poison.stacks > 0) b.dot(0x8fd14e);
+    if (st.wound.stacks > 0) b.dot(0xc2352d); if (st.stunT > 0) b.dot(0xffffff); if ((st as any).exposedT > 0) b.dot(0xffcb3a);
+    b.end();
   }
   execAction(e: Enemy, a: AiAction | BossAction) {
     const ex = e.agent.x, ey = e.agent.y - (e.boss ? 40 : 14); const dmg = e.dmg;
@@ -785,7 +833,8 @@ export class RunScene extends Phaser.Scene {
       case 'explode': this.fxAt('fx_explosion', e.agent.x, e.agent.y - 10, a.radius * 2); sfx('explode'); if (Math.hypot(this.px - e.agent.x, this.py - e.agent.y) < a.radius) this.hurtPlayer(dmg * 1.5, e.agent.x, e.agent.y, e); e.agent.state = 'done'; break;
       case 'charge': e.chargeT = a.duration; e.chargeA = a.angle; e.chargeSpd = a.speed; playAnim(e.sprite, e.key, 'attack', false); break;
       case 'hazard': this.addCircleHazard(a.x, a.y, a.radius, a.delay, dmg); break;
-      case 'phase': this.onBossPhase(e, a.index, a.onEnter, a.summon); break;
+      case 'phase': this.onBossPhase(e, a.index, a.onEnter, a.summon); this.floatText(e.agent.x, e.agent.y - 130, 'Choáng!', '#ffcb3a', 24); break;
+      case 'enrage': toast(this, 'Cuồng nộ!', '#ff5a3a', 220); this.cameras.main.shake(220, 0.006); G.logEvent('bossEnrage', { id: e.id }); break;
       case 'laser': { const g = this.add.graphics().setDepth(3); this.hazards.push({ x: e.agent.x, y: e.agent.y - 40, r: 0, t: 0, delay: a.telegraph, dmg, g, kind: 'laser', angle: a.angle, sweep: a.sweep, dur: a.duration, width: a.width, beams: a.beams, len: 1400, follow: e, tick: 0 }); playAnim(e.sprite, e.key, 'attack2', false); break; }
       case 'mine': { const g = this.add.graphics().setDepth(3); this.hazards.push({ x: a.x, y: a.y, r: a.radius, t: 0, delay: a.arm, dmg, g, kind: 'mine', life: a.life }); break; }
       case 'shield': this.floatText(e.agent.x, e.agent.y - 120, 'Khiên!', '#9be4ff', 26); (e as any).reflect = a.reflect; this.time.delayedCall(a.duration * 1000, () => ((e as any).reflect = false)); break;
@@ -808,11 +857,11 @@ export class RunScene extends Phaser.Scene {
   }
   spawnEnemyProj(x: number, y: number, a: number, speed: number, dmg: number, key = 'pj_enemy_orb') {
     if (this.projs.length > 500) return;
-    const s = this.add.image(x, y, tex(this, key, 'proj').tex).setDepth(3100); applyEntry(s, key, 18, [0.5, 0.5]); s.setRotation(a);
-    this.projs.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r: 8, dmg, from: 'enemy', sprite: s, life: 5, pierce: 0, hit: new Set(), homing: 0, element: 'physical' });
+    const s = acquireImage(this, key, 18, x, y, a); // pooled
+    this.projs.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r: 8, dmg, from: 'enemy', sprite: s, life: 5, pierce: 0, hit: NO_HITS, homing: 0, element: 'physical' });
   }
   spawnProj(key: string, x: number, y: number, a: number, speed: number, r: number, coef: number, o: { pierce?: number; homing?: number; flat?: number; status?: StatusId; spell?: boolean; explode?: number; element?: Element; magicShare?: number } = {}) {
-    const s = this.add.image(x, y, tex(this, key, 'proj').tex).setDepth(3100); applyEntry(s, key, r * 2.4, [0.5, 0.5]); s.setRotation(a);
+    const s = acquireImage(this, key, r * 2.4, x, y, a); // pooled
     const p: Proj = { x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r, dmg: o.flat ?? 0, coef, from: 'player', sprite: s, life: 1.8, pierce: o.pierce ?? 0, hit: new Set(), homing: o.homing ?? 0, element: o.element ?? this.wcfg.element, status: o.status, spell: o.spell, explode: o.explode, magicShare: o.magicShare };
     this.projs.push(p); return p;
   }
@@ -825,8 +874,8 @@ export class RunScene extends Phaser.Scene {
       if (p.x < ROOM.x0 - 20 || p.x > ROOM.x1 + 20 || p.y < ROOM.y0 - 40 || p.y > ROOM.y1 + 20) { p.life = 0; continue; }
       if (p.from === 'enemy') {
         if (Math.hypot(p.x - this.px, p.y - (this.py - 16)) < p.r + 12) {
-          if (this.ws.guarding && this.wcfg.hasGuard) { const g = guardBlock(this.ws, this.wcfg, this.facing, Math.atan2(p.y - this.py, p.x - this.px), this.run.mp); if (g.blocked) { this.spendMp(g.mpCost); sfx('guard'); p.life = 0; G.logEvent('guard', { perfect: g.perfect, proj: true }); if (g.perfect) this.floatText(this.px, this.py - 60, 'Đỡ hoàn hảo!', '#ffcb6b'); continue; } }
-          if (this.iframes <= 0 && this.dashT <= 0) { this.hurtPlayer(p.dmg, p.x - p.vx * 0.05, p.y - p.vy * 0.05); p.life = 0; }
+          if (this.ws.guarding && this.wcfg.hasGuard) { const g = guardBlock(this.ws, this.wcfg, this.facing, Math.atan2(p.y - this.py, p.x - this.px), this.run.mp); if (g.blocked) { this.spendMp(g.mpCost); sfx('guard'); p.life = 0; G.logEvent('guard', { perfect: g.perfect, proj: true }); if (g.perfect) { this.floatText(this.px, this.py - 60, 'Đỡ hoàn hảo!', '#ffcb6b'); CFX.reflect(this as any, p); } continue; } }
+          if (this.iframes <= 0 && this.dashT <= 0) { this.hurtPlayer(p.dmg, p.x - p.vx * 0.05, p.y - p.vy * 0.05); p.life = 0; } else if (this.dashT > 0) CFX.dodged(this as any);
         }
       } else {
         for (const e of this.enemies) {
@@ -841,8 +890,7 @@ export class RunScene extends Phaser.Scene {
         }
       }
     }
-    for (const p of this.projs) if (p.life <= 0 && p.sprite.active) p.sprite.destroy();
-    this.projs = this.projs.filter((p) => p.life > 0);
+    let n = 0; for (const p of this.projs) { if (p.life > 0) this.projs[n++] = p; else if (p.sprite.active) releaseImage(p.sprite); } this.projs.length = n; // in-place, pooled
   }
   updateHazards(dt: number) {
     for (const h of this.hazards) {
@@ -974,6 +1022,9 @@ export class RunScene extends Phaser.Scene {
     const alive = this.enemies.filter((e) => !e.dead && !e.dummy && !e.decoy).length;
     if (alive > 0) return;
     if (this.isGate) return;
+    // integration fix: wave 1 is spawned by the 500 ms delayed call in room setup; spawning it here as well made
+    // waves 1 and 2 arrive together (v2 rooms always have 2+ waves)
+    if (this.waveIdx === 0 && this.waves.length > 0) return;
     if (this.waveIdx < this.waves.length) { this.spawnWave(); return; }
     this.fighting = false; this.run.roomCleared = true; this.bossRef = null;
     for (const e of this.enemies) if (e.decoy && !e.dead) this.killEnemy(e);
@@ -995,20 +1046,18 @@ export class RunScene extends Phaser.Scene {
   dist(a: { x: number; y: number }, b: { x: number; y: number }) { return Math.hypot(a.x - b.x, a.y - b.y); }
   segDist(px: number, py: number, x1: number, y1: number, x2: number, y2: number) { const dx = x2 - x1, dy = y2 - y1; const l = dx * dx + dy * dy || 1; const tt = Phaser.Math.Clamp(((px - x1) * dx + (py - y1) * dy) / l, 0, 1); return Math.hypot(px - (x1 + tt * dx), py - (y1 + tt * dy)); }
   fxAt(key: string, x: number, y: number, size: number) {
-    const s = this.add.sprite(x, y, tex(this, key, 'fx').tex).setDepth(3200); s.setDisplaySize(size, size);
-    const e = entry(key); if (e?.anims) { const first = Object.keys(e.anims)[0]; playAnim(s, key, first, false); s.once('animationcomplete', () => s.destroy()); this.time.delayedCall(1500, () => s.active && s.destroy()); }
-    else this.tweens.add({ targets: s, alpha: 0, scale: s.scale * 1.3, duration: 300, onComplete: () => s.destroy() });
+    poolFx(this, key, x, y, size); // pooled + capped (src/game/fxPool.ts)
   }
   zap(x1: number, y1: number, x2: number, y2: number) { const g = this.add.graphics().setDepth(3200); g.lineStyle(3, 0xfff07a, 1); let px = x1, py = y1; for (let i = 1; i <= 5; i++) { const nx = x1 + (x2 - x1) * i / 5 + (i < 5 ? Phaser.Math.Between(-10, 10) : 0), ny = y1 + (y2 - y1) * i / 5 + (i < 5 ? Phaser.Math.Between(-10, 10) : 0); g.lineBetween(px, py, nx, ny); px = nx; py = ny; } this.tweens.add({ targets: g, alpha: 0, duration: 180, onComplete: () => g.destroy() }); }
   floatText(x: number, y: number, s: string, color: string, size = 20) {
-    if (!G.meta.settings.showDamage && /^\d+$/.test(s)) return;
-    const tt = txt(this, x, y, s, size, color).setOrigin(0.5).setDepth(4500);
-    this.tweens.add({ targets: tt, y: y - 34, alpha: 0, duration: 700, ease: 'Cubic.easeOut', onComplete: () => tt.destroy() });
+    poolText(this, x, y, s, color, size); // pooled; digits use a runtime bitmap font (src/game/fxPool.ts)
   }
   // debug helpers
   debugClear() { for (const e of this.enemies) if (!e.dead && !e.dummy) this.killEnemy(e); this.waveIdx = this.waves.length; }
   debugKillBoss(): boolean { const b = this.enemies.find((e) => e.boss && !e.dead); if (!b) return false; b.hp = 0; this.killEnemy(b); return true; }
 }
+/** shared empty hit-set for enemy projectiles (only player projectiles record hits) — avoids a Set per bullet */
+const NO_HITS: Set<any> = new Set();
 const ELEMENT_FROM: Partial<Record<StatusId, Element>> = { burn: 'fire', frostbite: 'ice', shock: 'lightning', poison: 'physical', wound: 'physical' };
 import { getCostume } from '../systems/registry';
 function require_costume(id: string): string | null { return getCostume(id)?.sprite ?? null; }

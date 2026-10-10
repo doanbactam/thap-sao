@@ -3,6 +3,7 @@
 import type { WeaponDef, WeaponId, Element, WeaponUpgradeDef } from '../data/types';
 import { getWeapon, getUpgrade, weaponUpgrades } from './registry';
 import type { Rng } from './rng';
+import { moveFor, lightCooldown, CHARGED, type MoveData, type ChargedData } from './combat';
 
 export interface WeaponConfig {
   id: WeaponId; def: WeaponDef; element: Element; coefs: number[]; range: number; arc: number; interval: number;
@@ -62,7 +63,10 @@ export function tickWeapon(s: WeaponState, c: WeaponConfig, dt: number) {
 /** Attack speed multiplier from stat% and fury (+50%). */
 export const attackRate = (s: WeaponState, attackSpeed: number) => (attackSpeed / 100) * (s.furyT > 0 ? 1.5 : 1);
 /** Try a basic attack. Returns the hit descriptor or null if on cooldown / reloading. */
-export function tryAttack(s: WeaponState, c: WeaponConfig, attackSpeed = 100): { hit: number; coef: number; last: boolean; lunge: boolean } | null {
+export interface AttackHit { hit: number; coef: number; last: boolean; lunge: boolean; move: MoveData; scale: number }
+/** Time scale for frame data: Anvil attack-speed mods (interval vs def) × attack speed stat × fury. */
+export const moveScale = (s: WeaponState, c: WeaponConfig, attackSpeed = 100) => (c.interval / c.def.attackInterval) / attackRate(s, attackSpeed);
+export function tryAttack(s: WeaponState, c: WeaponConfig, attackSpeed = 100): AttackHit | null {
   if (s.cooldown > 0 || s.guarding) return null;
   if (c.magazine > 0) {
     if (s.reloading > 0) return null;
@@ -72,8 +76,23 @@ export function tryAttack(s: WeaponState, c: WeaponConfig, attackSpeed = 100): {
   const hit = s.combo % c.coefs.length;
   const last = hit === c.coefs.length - 1;
   s.combo = hit + 1; s.sinceAttack = 0;
-  s.cooldown = c.interval / attackRate(s, attackSpeed) * (last ? 1.6 : 1);
-  return { hit, coef: c.coefs[hit], last, lunge: c.id === 'katana' && last };
+  const move = moveFor(c.id, hit, c.coefs.length); const scale = moveScale(s, c, attackSpeed);
+  // melee: frame data (startup + chain window); ranged keeps the v1 cadence
+  s.cooldown = c.arc > 0 ? lightCooldown(move, scale) : c.interval / attackRate(s, attackSpeed) * (last ? 1.6 : 1);
+  return { hit, coef: c.coefs[hit], last, lunge: c.id === 'katana' && last, move, scale };
+}
+/** Charged data for a weapon (Anvil `chargeSpeedPct` shortens the charge). */
+export function chargedFor(c: WeaponConfig): ChargedData { const d = CHARGED[c.id] ?? CHARGED.swordshield; return { ...d, chargeTime: d.chargeTime / Math.max(0.2, c.chargeSpeed) }; }
+/** Can a held (charged) attack start now? Ranged needs ammo; never while guarding or reloading. */
+export const canCharge = (s: WeaponState, c: WeaponConfig) => !s.guarding && !s.charging && (c.magazine <= 0 || (s.reloading <= 0 && s.ammo > 0));
+/** Release a charged attack: spends 1 ammo (crossbow), resets the chain, sets cooldown to its recovery. */
+export function tryCharged(s: WeaponState, c: WeaponConfig, power: number, attackSpeed = 100): { coef: number; data: ChargedData; scale: number } | null {
+  if (s.guarding) return null;
+  if (c.magazine > 0) { if (s.reloading > 0 || s.ammo <= 0) return null; s.ammo--; if (s.ammo <= 0) s.reloading = c.reload; }
+  const data = chargedFor(c); const scale = moveScale(s, c, attackSpeed);
+  const p = Math.max(0, Math.min(1, power));
+  s.combo = 0; s.sinceAttack = 0; s.cooldown = (data.startup + data.recovery) * scale;
+  return { coef: data.coef * (0.6 + 0.4 * p), data, scale };
 }
 export function manualReload(s: WeaponState, c: WeaponConfig) { if (c.magazine > 0 && s.reloading <= 0 && s.ammo < c.magazine) s.reloading = c.reload; }
 /** Fury: hits fill the meter; at 100 fury triggers (attack speed +50%) for furyDuration. Dagger only. */

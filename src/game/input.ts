@@ -18,18 +18,21 @@ export class Controls {
   private touchHeld = { attack: false, special: false, guard: false };
   private touchUi: Phaser.GameObjects.Container | null = null; private joyG: Phaser.GameObjects.Graphics | null = null;
   touch = isTouchDevice();
+  /** Attack press latch (performance.now of the last press edge). Survives hit-stop frames; read with takeAttackPress(). */
+  private atkPress = 0; private prevAttack = false;
   constructor(public scene: Phaser.Scene, public opts: { touchButtons?: boolean } = {}) {
     const kb = scene.input.keyboard!;
     this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,SHIFT,F,E,R,Q,TAB,I,ONE,TWO,M,ESC,K,J,L,P') as any;
     kb.addCapture('TAB,SPACE,UP,DOWN,LEFT,RIGHT');
     const map: Array<[string, Act]> = [['SPACE', 'dash'], ['SHIFT', 'dash'], ['R', 'potion'], ['TAB', 'inventory'], ['I', 'inventory'], ['ONE', 'spell1'], ['TWO', 'spell2'], ['E', 'interact'], ['ESC', 'pause'], ['P', 'pause'], ['M', 'map'], ['Q', 'reload']];
     for (const [k, a] of map) this.keys[k].on('down', () => { this.pressed.add(a); unlockAudio(); });
+    this.keys.J.on('down', () => this.latchAttack());
     scene.input.mouse?.disableContextMenu();
     scene.input.on('pointerdown', (p: Phaser.Input.Pointer, over: any[]) => {
       unlockAudio();
       if (over && over.length) return;
       if (this.touch && p.wasTouch) { if (p.x < 640 && !this.joy) this.joy = { id: p.id, bx: p.x, by: p.y, dx: 0, dy: 0 }; return; }
-      if (p.rightButtonDown()) this.mouseGuard = true; else this.mouseAttack = true;
+      if (p.rightButtonDown()) this.mouseGuard = true; else { this.mouseAttack = true; this.latchAttack(); }
     });
     scene.input.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (this.joy && this.joy.id === p.id) { this.joy = null; }
@@ -52,7 +55,7 @@ export class Controls {
       b.on('pointerdown', () => { unlockAudio(); down(); }); b.on('pointerup', () => up?.()); b.on('pointerout', () => up?.());
       c.add(b); return b;
     };
-    mk(1170, 600, 58, 'btn_attack', 'Đánh', () => (this.touchHeld.attack = true), () => (this.touchHeld.attack = false));
+    mk(1170, 600, 58, 'btn_attack', 'Đánh', () => { this.touchHeld.attack = true; this.latchAttack(); }, () => (this.touchHeld.attack = false));
     mk(1050, 650, 42, 'btn_dash', 'Lướt', () => this.pressed.add('dash'));
     mk(1065, 530, 40, 'btn_special', 'Kỹ năng', () => (this.touchHeld.special = true), () => (this.touchHeld.special = false));
     mk(1190, 470, 34, 'btn_potion', 'Bình', () => this.pressed.add('potion'));
@@ -62,7 +65,10 @@ export class Controls {
   }
   setTouchVisible(v: boolean) { this.touchUi?.setVisible(v); }
   consume(a: Act): boolean { if (SIM.queue.includes(a)) { SIM.queue.splice(SIM.queue.indexOf(a), 1); return true; } if (this.pressed.has(a)) { this.pressed.delete(a); return true; } return false; }
-  clearPressed() { this.pressed.clear(); }
+  clearPressed() { this.pressed.clear(); this.atkPress = 0; }
+  private latchAttack() { this.atkPress = performance.now(); }
+  /** True once per attack press (mouse, J, touch button or simulated edge) if it happened within the last `maxAgeMs`. */
+  takeAttackPress(maxAgeMs = 1000): boolean { const ok = this.atkPress > 0 && performance.now() - this.atkPress <= maxAgeMs; this.atkPress = 0; return ok; }
   /** Call every frame with player's screen position for mouse aiming. */
   update(px: number, py: number) {
     const k = this.keys; let x = 0, y = 0;
@@ -86,6 +92,8 @@ export class Controls {
         if (sim.attack) this.attack = true; if (sim.special) this.special = true; if (sim.guard) this.guard = true;
       }
     }
+    if (this.attack && !this.prevAttack && !this.atkPress) this.latchAttack();
+    this.prevAttack = this.attack;
     if (this.joyG) {
       this.joyG.clear();
       if (this.joy) { this.joyG.fillStyle(0x000000, 0.18).fillCircle(this.joy.bx, this.joy.by, 60).lineStyle(3, PAL.outline, 0.7).strokeCircle(this.joy.bx, this.joy.by, 60); const d = Math.min(60, Math.hypot(this.joy.dx, this.joy.dy)); const a = Math.atan2(this.joy.dy, this.joy.dx); this.joyG.fillStyle(PAL.cream, 0.9).fillCircle(this.joy.bx + Math.cos(a) * d, this.joy.by + Math.sin(a) * d, 26).lineStyle(3, PAL.outline, 1).strokeCircle(this.joy.bx + Math.cos(a) * d, this.joy.by + Math.sin(a) * d, 26); }

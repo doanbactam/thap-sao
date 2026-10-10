@@ -26,14 +26,14 @@ const special = (id: string, base: number, perLevel: number): Effect => ({ kind:
 
 const ART: Omit<ArtifactDef, 'icon'>[] = [
   // ───────────── Băng Hà (glacier) ─────────────
-  { id: 'g_frost_shard', name: 'Mảnh Sương Giá', desc: 'Sát thương Băng +{v}.', rarity: 'common', maxLevel: 3, shape: S1,
-    tags: ['glacier'], effects: [stat('ice', 3, 2)], price: 70, unlockedByDefault: true },
+  { id: 'g_frost_shard', name: 'Mảnh Sương Giá', desc: 'Sát thương Băng +{v}. Đòn đánh có 8% cơ hội gây Tê Cóng.', rarity: 'common', maxLevel: 3, shape: S1,
+    tags: ['glacier'], effects: [stat('ice', 3, 2), onHit('frostbite', 8, 2)], price: 70, unlockedByDefault: true },
   { id: 'g_snow_charm', name: 'Bùa Bông Tuyết', desc: 'Đòn đánh có {v}% cơ hội gây Tê Cóng.', rarity: 'common', maxLevel: 3, shape: H2,
     tags: ['glacier'], effects: [onHit('frostbite', 15, 5)], price: 90, unlockedByDefault: true },
   { id: 'g_ice_lantern', name: 'Đèn Băng Lam', desc: 'Mỗi 6 giây phát ra vòng băng gây {v} sát thương Băng.', rarity: 'common', maxLevel: 3, shape: V2,
     tags: ['glacier'], effects: [{ kind: 'periodic', every: 6, action: 'frostRing', base: 15, perLevel: 6 }], price: 110, unlockedByDefault: true },
-  { id: 'g_cold_mittens', name: 'Găng Tay Lạnh', desc: 'Sát thương Băng +{v}%. Đòn đánh có 10% cơ hội gây Tê Cóng.', rarity: 'rare', maxLevel: 4, shape: SQ,
-    tags: ['glacier'], effects: [stat('ice', 10, 4, true), onHit('frostbite', 10, 2)], price: 180 },
+  { id: 'g_cold_mittens', name: 'Găng Tay Lạnh', desc: 'Sát thương Băng +{v}%. Đòn đánh có 15% cơ hội gây Tê Cóng.', rarity: 'rare', maxLevel: 4, shape: SQ,
+    tags: ['glacier'], effects: [stat('ice', 10, 4, true), onHit('frostbite', 15, 4)], price: 180 },
   { id: 'g_glacier_heart', name: 'Tim Sông Băng', desc: 'Kẻ địch bị Đóng Băng nhận thêm {v}% sát thương. Trong phòng trùm: Băng +20%.', rarity: 'epic', maxLevel: 4, shape: T4,
     tags: ['glacier'], effects: [special('freezeShatter', 30, 10), { kind: 'conditional', when: 'bossRoom', inner: stat('ice', 20, 8, true) }], price: 380 },
   { id: 'g_icicle_spear', name: 'Giáo Nhũ Băng', desc: 'Chí mạng +{v}%. Đòn đánh có 20% cơ hội gây Tê Cóng. Phải chạm mép dưới túi.', rarity: 'rare', maxLevel: 3, shape: V3,
@@ -45,8 +45,8 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
     tags: ['glacier', 'lake'], effects: [stat('maxMp', 12, 6), { kind: 'onKill', action: 'mp', base: 3, perLevel: 1 }], constraint: { kind: 'cornerOnly' }, price: 320 },
 
   // ───────────── Than Hồng (ember) ─────────────
-  { id: 'e_ember_coal', name: 'Hòn Than Ấm', desc: 'Sát thương Lửa +{v}.', rarity: 'common', maxLevel: 3, shape: S1,
-    tags: ['ember'], effects: [stat('fire', 3, 2)], price: 70, unlockedByDefault: true },
+  { id: 'e_ember_coal', name: 'Hòn Than Ấm', desc: 'Sát thương Lửa +{v}. Đòn đánh có 8% cơ hội gây Bỏng.', rarity: 'common', maxLevel: 3, shape: S1,
+    tags: ['ember'], effects: [stat('fire', 3, 2), onHit('burn', 8, 2)], price: 70, unlockedByDefault: true },
   { id: 'e_matchbox', name: 'Hộp Diêm Nhỏ', desc: 'Đòn đánh có {v}% cơ hội gây Bỏng.', rarity: 'common', maxLevel: 3, shape: H2,
     tags: ['ember'], effects: [onHit('burn', 15, 5)], price: 90, unlockedByDefault: true },
   { id: 'e_pepper_pouch', name: 'Túi Ớt Cay', desc: 'Tốc đánh +{v}%. Lửa +2.', rarity: 'common', maxLevel: 3, shape: V2,
@@ -64,8 +64,8 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
     tags: ['ember', 'guardian'], effects: [stat('defense', 2, 1), { kind: 'onHurt', action: 'thorns', base: 6, perLevel: 3 }], price: 70 },
 
   // ───────────── Mây Giông (storm) ─────────────
-  { id: 's_spark_bead', name: 'Hạt Tia Điện', desc: 'Sát thương Sét +{v}.', rarity: 'common', maxLevel: 3, shape: S1,
-    tags: ['storm'], effects: [stat('lightning', 3, 2)], price: 70, unlockedByDefault: true },
+  { id: 's_spark_bead', name: 'Hạt Tia Điện', desc: 'Sát thương Sét +{v}. Đòn đánh có 5% cơ hội gây Giật.', rarity: 'common', maxLevel: 3, shape: S1,
+    tags: ['storm'], effects: [stat('lightning', 3, 2), onHit('shock', 5, 1)], price: 70, unlockedByDefault: true },
   { id: 's_copper_coil', name: 'Cuộn Dây Đồng', desc: 'Đòn đánh có {v}% cơ hội gây Giật.', rarity: 'common', maxLevel: 3, shape: H2,
     tags: ['storm'], effects: [onHit('shock', 12, 4)], price: 90, unlockedByDefault: true },
   { id: 's_thunder_drum', name: 'Trống Sấm', desc: 'Mỗi 4 giây sét đánh một kẻ địch ngẫu nhiên, gây {v} sát thương Sét.', rarity: 'rare', maxLevel: 4, shape: SQ,
@@ -74,8 +74,8 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
     tags: ['storm', 'windsong'], effects: [{ kind: 'onDash', action: 'shockwave', base: 15, perLevel: 6 }], price: 190 },
   { id: 's_lightning_rod', name: 'Cột Thu Lôi', desc: 'Giật lan thêm 1 mục tiêu và gây thêm {v}% sát thương. Sét +15%. Ô phía trên phải trống.', rarity: 'epic', maxLevel: 4, shape: V2,
     tags: ['storm'], effects: [special('lightningRod', 25, 10), stat('lightning', 15, 5, true)], constraint: { kind: 'emptyNeighbor', dir: 'up' }, price: 360 },
-  { id: 's_static_sock', name: 'Tất Tĩnh Điện', desc: 'Tốc chạy +{v}%. Đòn đánh có 5% gây Giật.', rarity: 'common', maxLevel: 3, shape: S1,
-    tags: ['storm'], effects: [stat('moveSpeed', 4, 2, true), onHit('shock', 5, 3)], price: 70, unlockedByDefault: true },
+  { id: 's_static_sock', name: 'Tất Tĩnh Điện', desc: 'Tốc chạy +{v}%. Đòn đánh có 4% gây Giật.', rarity: 'common', maxLevel: 3, shape: S1,
+    tags: ['storm'], effects: [stat('moveSpeed', 4, 2, true), onHit('shock', 4, 2)], price: 70, unlockedByDefault: true },
   { id: 's_tempest_eye', name: 'Mắt Bão Tố', desc: 'Mỗi 2,5 giây sét đánh gây {v} sát thương. Chí mạng +5%.', rarity: 'legendary', maxLevel: 5, shape: T4,
     tags: ['storm'], effects: [{ kind: 'periodic', every: 2.5, action: 'lightning', base: 30, perLevel: 10 }, stat('critChance', 5, 2)], price: 880 },
   { id: 's_battery_jar', name: 'Bình Ắc Quy', desc: 'Hồi MP +{v}%. Hạ gục hồi 5 MP.', rarity: 'epic', maxLevel: 3, shape: L3,
@@ -98,13 +98,13 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
   { id: 'gd_oath_banner', name: 'Cờ Lời Thề', desc: 'Đỡ hoàn hảo phản đòn gây {v} sát thương. Phòng thủ +5%.', rarity: 'legendary', maxLevel: 5, shape: T4,
     tags: ['guardian'], effects: [special('guardCounter', 40, 15), stat('defense', 5, 2)], price: 800, weaponBias: ['swordshield'] },
   { id: 'gd_stone_amulet', name: 'Bùa Đá Cuội', desc: 'Khi bị đánh, phóng sóng đẩy lùi gây {v} sát thương (hồi 3 giây).', rarity: 'common', maxLevel: 2, shape: S1,
-    tags: ['guardian'], effects: [{ kind: 'onHurt', action: 'nova', base: 20, perLevel: 10 }], price: 110 },
+    tags: ['guardian'], effects: [{ kind: 'onHurt', action: 'nova', base: 16, perLevel: 8 }], price: 110 },
 
   // ───────────── Bóng Đêm (shadow) ─────────────
   { id: 'sh_cat_bell', name: 'Chuông Mèo Mun', desc: 'Né tránh +{v}%.', rarity: 'common', maxLevel: 3, shape: S1,
     tags: ['shadow'], effects: [stat('evasion', 3, 2)], price: 80, unlockedByDefault: true },
-  { id: 'sh_smoke_pellet', name: 'Viên Khói Mù', desc: 'Hồi lượt lướt nhanh hơn {v}%.', rarity: 'common', maxLevel: 3, shape: H2,
-    tags: ['shadow'], effects: [stat('dashRecovery', 10, 5, true)], price: 90, unlockedByDefault: true },
+  { id: 'sh_smoke_pellet', name: 'Viên Khói Mù', desc: 'Hồi lượt lướt nhanh hơn {v}%. Khi hết lượt lướt: né tránh +10%.', rarity: 'common', maxLevel: 3, shape: H2,
+    tags: ['shadow'], effects: [stat('dashRecovery', 8, 4, true), { kind: 'conditional', when: 'noDashLeft', inner: stat('evasion', 10, 4) }], price: 90, unlockedByDefault: true },
   { id: 'sh_moon_dagger', name: 'Dao Trăng Khuyết', desc: 'Chí mạng +{v}%.', rarity: 'rare', maxLevel: 3, shape: V2,
     tags: ['shadow'], effects: [stat('critChance', 6, 3)], price: 190, weaponBias: ['dagger'] },
   { id: 'sh_night_cloak', name: 'Áo Choàng Đêm', desc: 'Né tránh +{v}%. Khi hết lượt lướt: né tránh thêm 15%.', rarity: 'rare', maxLevel: 4, shape: SQ,
@@ -134,7 +134,7 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
   { id: 'l_tide_crown', name: 'Vương Miện Thủy Triều', desc: '{v}% sát thương nhận vào trừ vào MP trước. MP tối đa +20.', rarity: 'legendary', maxLevel: 5, shape: T4,
     tags: ['lake'], effects: [special('manaShield', 30, 8), stat('maxMp', 20, 8)], price: 860 },
   { id: 'l_koi_charm', name: 'Bùa Cá Chép', desc: 'Triệu hồi Đom Đóm gây {v} sát thương mỗi phát. Phải chạm mép dưới.', rarity: 'rare', maxLevel: 3, shape: H3,
-    tags: ['lake', 'companion'], effects: [{ kind: 'summon', companion: 'cmp_wisp', base: 10, perLevel: 4 }], constraint: { kind: 'touchEdge', edge: 'bottom' }, price: 230 },
+    tags: ['lake', 'companion'], effects: [{ kind: 'summon', companion: 'cmp_wisp', base: 14, perLevel: 5 }], constraint: { kind: 'touchEdge', edge: 'bottom' }, price: 230 },
 
   // ───────────── Gió Hát (windsong) ─────────────
   { id: 'w_paper_fan', name: 'Quạt Giấy Lá', desc: 'Tốc chạy +{v}%.', rarity: 'common', maxLevel: 3, shape: S1,
@@ -152,15 +152,15 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
   { id: 'w_gale_scarf', name: 'Khăn Bão Lốc', desc: 'Lướt để lại lốc xoáy cuốn kẻ địch, gây {v} sát thương. Ô bên phải phải trống.', rarity: 'legendary', maxLevel: 5, shape: S4,
     tags: ['windsong'], effects: [special('galeDash', 40, 15)], constraint: { kind: 'emptyNeighbor', dir: 'right' }, price: 780 },
   { id: 'w_dandelion_seed', name: 'Hạt Bồ Công Anh', desc: 'May mắn +{v}.', rarity: 'common', maxLevel: 3, shape: S1,
-    tags: ['windsong', 'companion'], effects: [stat('luck', 2, 1)], price: 70 },
+    tags: ['windsong', 'companion'], effects: [stat('luck', 3, 2)], price: 70 },
 
   // ───────────── Học Viện (academy) ─────────────
   { id: 'a_icebolt_tome', name: 'Sách Băng Tiễn', desc: 'Phép: bắn mũi băng gây {v} sát thương Băng (12 MP).', rarity: 'common', maxLevel: 3, shape: V2,
-    tags: ['academy', 'glacier'], effects: [{ kind: 'spell', spell: 'icebolt', mpCost: 12, cooldown: 1.5, base: 30, perLevel: 10 }], price: 100, unlockedByDefault: true },
+    tags: ['academy', 'glacier'], effects: [{ kind: 'spell', spell: 'icebolt', mpCost: 12, cooldown: 1.5, base: 40, perLevel: 14 }], price: 100, unlockedByDefault: true },
   { id: 'a_fireball_tome', name: 'Sách Cầu Lửa', desc: 'Phép: ném cầu lửa nổ gây {v} sát thương Lửa (15 MP).', rarity: 'common', maxLevel: 3, shape: V2,
-    tags: ['academy', 'ember'], effects: [{ kind: 'spell', spell: 'fireball', mpCost: 15, cooldown: 2, base: 40, perLevel: 12 }], price: 110, unlockedByDefault: true },
+    tags: ['academy', 'ember'], effects: [{ kind: 'spell', spell: 'fireball', mpCost: 15, cooldown: 2, base: 52, perLevel: 16 }], price: 110, unlockedByDefault: true },
   { id: 'a_chain_scroll', name: 'Cuộn Sét Nhảy', desc: 'Phép: tia sét nảy giữa 4 kẻ địch, gây {v} sát thương (18 MP).', rarity: 'rare', maxLevel: 4, shape: H2,
-    tags: ['academy', 'storm'], effects: [{ kind: 'spell', spell: 'chainLightning', mpCost: 18, cooldown: 2.5, base: 30, perLevel: 10 }], price: 200 },
+    tags: ['academy', 'storm'], effects: [{ kind: 'spell', spell: 'chainLightning', mpCost: 18, cooldown: 2.5, base: 38, perLevel: 13 }], price: 200 },
   { id: 'a_arcane_quill', name: 'Bút Lông Huyền Bí', desc: 'Phép: 5 tia bí thuật tự dẫn, mỗi tia {v} sát thương (10 MP).', rarity: 'rare', maxLevel: 4, shape: S1,
     tags: ['academy'], effects: [{ kind: 'spell', spell: 'arcaneMissiles', mpCost: 10, cooldown: 1.2, base: 12, perLevel: 4 }], price: 230 },
   { id: 'a_bubble_primer', name: 'Sách Bong Bóng', desc: 'Phép: bong bóng chặn {v} sát thương trong 4 giây (20 MP).', rarity: 'rare', maxLevel: 3, shape: SQ,
@@ -172,7 +172,7 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
   { id: 'a_grand_grimoire', name: 'Đại Pháp Điển', desc: 'Phép thuật +{v}. Hồi chiêu −10%. 15% cơ hội phép tự lặp lại. Phải chạm mép phải.', rarity: 'legendary', maxLevel: 5, shape: SQ,
     tags: ['academy'], effects: [stat('magic', 10, 4), stat('cooldownPct', 10, 4), special('spellEcho', 15, 5)],
     constraint: { kind: 'touchEdge', edge: 'right' }, price: 880 },
-  { id: 'a_ink_pot', name: 'Lọ Mực Sao', desc: 'Phép thuật +{v}%. Hạ gục bằng phép hồi 4 MP.', rarity: 'epic', maxLevel: 4, shape: L4,
+  { id: 'a_ink_pot', name: 'Lọ Mực Sao', desc: 'Phép thuật +{v}%. Hạ gục hồi 4 MP.', rarity: 'epic', maxLevel: 4, shape: L4,
     tags: ['academy'], effects: [stat('magic', 15, 5, true), { kind: 'onKill', action: 'mp', base: 4, perLevel: 1 }], price: 330 },
 
   // ───────────── Đồng Hành (companion) ─────────────
@@ -200,8 +200,8 @@ const ART: Omit<ArtifactDef, 'icon'>[] = [
     tags: ['curse'], effects: [onHit('poison', 15, 5)], price: 90, unlockedByDefault: true },
   { id: 'cu_hex_doll', name: 'Búp Bê Rơm', desc: 'Gây thêm {v}% sát thương lên kẻ địch đang dính hiệu ứng xấu.', rarity: 'rare', maxLevel: 4, shape: V2,
     tags: ['curse'], effects: [special('debuffAmp', 15, 5)], price: 220 },
-  { id: 'cu_witch_candle', name: 'Nến Phù Thủy', desc: 'Hút máu +{v}%. Khi HP dưới 50%: hút máu thêm 3%. Hạ gục hồi 1 HP.', rarity: 'rare', maxLevel: 3, shape: H2,
-    tags: ['curse'], effects: [stat('lifesteal', 2, 1), { kind: 'conditional', when: 'hpBelow50', inner: stat('lifesteal', 3, 2) },
+  { id: 'cu_witch_candle', name: 'Nến Phù Thủy', desc: 'Hút máu +{v}%. Khi HP dưới 50%: hút máu thêm 2%. Hạ gục hồi 1 HP.', rarity: 'rare', maxLevel: 3, shape: H2,
+    tags: ['curse'], effects: [stat('lifesteal', 1, 1), { kind: 'conditional', when: 'hpBelow50', inner: stat('lifesteal', 2, 1) },
       { kind: 'onKill', action: 'heal', base: 1, perLevel: 0.5 }], price: 200 },
   { id: 'cu_bone_dice', name: 'Xúc Xắc Xương', desc: 'May mắn +{v}. Sát thương chí mạng +15%. Chỉ đặt ở góc túi.', rarity: 'epic', maxLevel: 3, shape: S1,
     tags: ['curse'], effects: [stat('luck', 5, 2), stat('critDamage', 15, 5)], constraint: { kind: 'cornerOnly' }, price: 330 },

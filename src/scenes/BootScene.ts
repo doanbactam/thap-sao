@@ -2,6 +2,8 @@
 import Phaser from 'phaser';
 import { queueManifests, queueManifestParts, mergeManifests, queueKeys, bootKeys, buildAnims, PAL, FONT } from '../game/assets';
 import { G } from '../game/state';
+import { playMusic, stopMusic, musicEnabled, musicState } from '../game/audio';
+import '../game/enemyAnim'; // registers window.__TSAnim (enemy wind-up / recovery poses for AI + tools)
 
 export class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
@@ -20,7 +22,7 @@ export class BootScene extends Phaser.Scene {
       this.load.once('complete', () => {
         buildAnims(this);
         const fonts = (document as any).fonts;
-        const go = () => { G.logEvent('boot', {}); this.scene.start('Hub'); };
+        const go = () => { G.logEvent('boot', {}); installMusicDirector(this.game); this.scene.start('Hub'); };
         if (fonts?.load) Promise.race([Promise.all([fonts.load('800 24px "Baloo 2"'), fonts.load('700 18px "Baloo 2"')]), new Promise((r) => setTimeout(r, 2500))]).then(go, go); else go();
       });
       this.load.start();
@@ -28,4 +30,16 @@ export class BootScene extends Phaser.Scene {
     this.parts = queueManifestParts(this);
     this.load.start();
   }
+}
+
+/** Ambient music follows the active area (hub = 0, run = chapter) — checked twice a second, never per frame. */
+function installMusicDirector(game: Phaser.Game) {
+  let acc = 0;
+  game.events.on(Phaser.Core.Events.POST_STEP, (_t: number, d: number) => {
+    acc += d; if (acc < 500) return; acc = 0;
+    const sm = game.scene; const inRun = (sm.isActive('Run') || sm.isPaused('Run')) && G.run;
+    const area = inRun ? Math.max(1, Math.min(6, G.run!.chapter)) : (sm.isActive('Hub') ? 0 : musicState().area);
+    if (G.meta.settings.mute || !musicEnabled()) { if (musicState().playing) stopMusic(true); return; }
+    if (area >= 0) playMusic(area);
+  });
 }

@@ -49,4 +49,65 @@ export function sfx(name: Sfx) {
     case 'win': [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, 0.2, 0.2, i * 0.12)); break;
   }
 }
-export function setMute(m: boolean) { G.meta.settings.mute = m; G.saveMeta(); }
+export function setMute(m: boolean) { G.meta.settings.mute = m; G.saveMeta(); if (m) stopMusic(true); else if (musicArea >= 0) { const a = musicArea; musicArea = -1; playMusic(a); } }
+
+// ---------------- ambient music (v2) ----------------
+// Tiny procedural loop per area: a soft two-oscillator pad chord every 2 bars + a sparse pentatonic pluck.
+// ~3 short-lived oscillators per beat through one low-passed bus; scheduled 0.3 s ahead from a timer (not the
+// game loop). Off when muted (global mute) or when the player turns music off (persisted in localStorage).
+interface Area { root: number; scale: number[]; bpm: number; chords: number[][]; wave: OscillatorType; cut: number }
+const AREAS: Area[] = [
+  { root: 196.0, scale: [0, 2, 4, 7, 9], bpm: 76, chords: [[0, 4, 7], [-3, 0, 4], [5, 9, 12], [7, 11, 14]], wave: 'triangle', cut: 1400 }, // hub: warm G major
+  { root: 220.0, scale: [0, 2, 4, 7, 9], bpm: 84, chords: [[0, 4, 7], [5, 9, 12], [-3, 0, 4], [7, 11, 14]], wave: 'triangle', cut: 1500 }, // ch1 Rừng Rêu
+  { root: 174.6, scale: [0, 3, 5, 7, 10], bpm: 92, chords: [[0, 3, 7], [-2, 2, 5], [-4, 0, 3], [-5, -2, 2]], wave: 'sawtooth', cut: 900 }, // ch2 mine, minor
+  { root: 261.6, scale: [0, 2, 4, 7, 11], bpm: 70, chords: [[0, 4, 11], [5, 9, 16], [2, 5, 9], [7, 11, 14]], wave: 'sine', cut: 2200 }, // ch3 library, maj7
+  { root: 233.1, scale: [0, 2, 3, 7, 9], bpm: 64, chords: [[0, 3, 7], [-4, 0, 3], [-7, -3, 0], [-2, 2, 5]], wave: 'sine', cut: 1800 }, // ch4 ice, dorian
+  { root: 164.8, scale: [0, 3, 5, 6, 7, 10], bpm: 100, chords: [[0, 3, 7], [5, 8, 12], [3, 7, 10], [-2, 2, 5]], wave: 'square', cut: 700 }, // ch5 steam works, blues
+  { root: 207.7, scale: [0, 2, 6, 7, 11], bpm: 60, chords: [[0, 4, 7, 11], [2, 6, 9], [-1, 2, 6], [6, 9, 13]], wave: 'sine', cut: 2600 }, // ch6 star core, lydian
+];
+const MUSIC_KEY = 'thapsao_music';
+let musicBus: GainNode | null = null; let musicArea = -1; let musicTimer: any = null; let nextBeat = 0; let beatN = 0; let seed = 1;
+export function musicEnabled(): boolean { try { return localStorage.getItem(MUSIC_KEY) !== '0'; } catch { return true; } }
+export function setMusicEnabled(on: boolean) { try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch { /* private mode */ } if (!on) stopMusic(); else if (musicArea >= 0) { const a = musicArea; musicArea = -1; playMusic(a); } }
+const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+function note(c: AudioContext, bus: AudioNode, type: OscillatorType, f: number, t: number, dur: number, vol: number, attack = 0.01) {
+  const o = c.createOscillator(); const g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(bus); o.start(t); o.stop(t + dur + 0.05);
+}
+function schedule() {
+  const c = ctx; if (!c || !musicBus || c.state !== 'running' || musicArea < 0) return;
+  const A = AREAS[musicArea] ?? AREAS[0]; const beat = 60 / A.bpm;
+  if (nextBeat < c.currentTime) nextBeat = c.currentTime + 0.05;
+  while (nextBeat < c.currentTime + 0.3) {
+    const bar = Math.floor(beatN / 4), inBar = beatN % 4; const semi = (s: number) => A.root * Math.pow(2, s / 12);
+    if (inBar === 0 && bar % 2 === 0) { // pad chord, 2 bars long
+      const ch = A.chords[(bar / 2) % A.chords.length];
+      for (const s of ch) { note(c, musicBus, A.wave, semi(s - 12), nextBeat, beat * 8, 0.05, beat * 1.5); note(c, musicBus, 'sine', semi(s - 12) * 1.004, nextBeat, beat * 8, 0.035, beat * 2); }
+      note(c, musicBus, 'sine', semi(ch[0] - 24), nextBeat, beat * 4, 0.08, 0.05); // soft bass
+    }
+    if (rnd() < (inBar === 0 ? 0.75 : 0.4)) { // pluck
+      const deg = A.scale[Math.floor(rnd() * A.scale.length)] + (rnd() < 0.3 ? 12 : 0);
+      note(c, musicBus, 'triangle', semi(deg), nextBeat + (rnd() < 0.25 ? beat / 2 : 0), beat * 1.6, 0.06);
+    }
+    nextBeat += beat; beatN++;
+  }
+}
+/** Start (or switch to) the loop for an area: 0 = hub, 1..6 = chapters. Safe to call every second. */
+export function playMusic(area: number) {
+  if (area === musicArea && musicTimer) return;
+  musicArea = area;
+  if (G.meta.settings.mute || !musicEnabled()) { stopMusic(true); return; }
+  const c = ac(); if (!c || !master) return;
+  if (!musicBus) { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.4; musicBus = c.createGain(); musicBus.connect(lp); lp.connect(c.destination); (musicBus as any)._lp = lp; }
+  const A = AREAS[area] ?? AREAS[0]; ((musicBus as any)._lp as BiquadFilterNode).frequency.setTargetAtTime(A.cut, c.currentTime, 0.5);
+  musicBus.gain.setTargetAtTime(0.5 * (G.meta.settings.sfxVolume ?? 0.6), c.currentTime, 0.8);
+  seed = 1 + area * 977; beatN = 0; nextBeat = 0;
+  if (!musicTimer) musicTimer = setInterval(schedule, 120);
+}
+export function stopMusic(keepArea = false) {
+  if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+  if (musicBus && ctx) musicBus.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+  if (!keepArea) musicArea = -1;
+}
+export const musicState = () => ({ area: musicArea, playing: !!musicTimer, enabled: musicEnabled() });

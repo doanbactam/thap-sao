@@ -1,8 +1,100 @@
 # Tháp Sao — engine status
 
-_Last updated: 2026-10-10 (engine continuation run)._
+_Last updated: 2026-10-10 (v2 depth pass — integration/QA of the four v2 workstreams)._
 
-## Gates (all green)
+## v2 depth pass (commit "v2 depth pass")
+Four workstreams merged on top of `v1 baseline` (no new content: no new weapons, enemies, bosses, items, artifacts):
+combat feel (`docs/V2_COMBAT.md`, `docs/COMBAT.md`), enemy/boss AI + encounters (`docs/V2_AI.md`), build/decision depth
+(`docs/V2_BUILD.md`), animation readability + performance (`docs/V2_ANIM.md`, `docs/V2_PERF.md`).
+
+### Gates (v2, all green)
+| Gate | Command | Result |
+|---|---|---|
+| Typecheck | `npm run typecheck` | clean |
+| Unit tests | `npm test` | 20 files, 330 pass + 1 skipped (the `npm run sim` full report) |
+| Balance sim | `npm run sim` (~110 s, run detached) | pass; see numbers below |
+| Build | `npm run build` | `dist/` + `docs/ThapSao.html` (26.1 MB, 234 embedded art files) |
+| Smoke | `nohup node tools/smoke.mjs > work/smoke.log 2>&1 &` (~11 min) | **114/114 checks, 0 console errors, boss real kills 6 / 6** |
+| Checklist | `npm run checklist` | **118/118** (C001–C110 + new V2 lines C111–C118) |
+| Perf | `node tools/perf.mjs dist <label> 10` | see table below |
+| Source zip | `npm run zip` | `docs/ThapSao_src.zip` 47.3 MB, 585 entries (now also excludes `.git/`) |
+
+Boss fights in smoke are fought to the death with real damage (god mode, bot at a normal run's level for the chapter):
+ch1 3 s · ch2 22 s · ch3 34 s · ch4 23 s · ch5 80 s · ch6 74 s (wall clock under swiftshader); `__TS.killBoss()` fallback never used.
+
+### What the integration pass changed
+1. **Leftover hooks wired**
+   - `syncEnemyPose(e.sprite, e.agent, isDisabled(e.status), strength)` per enemy per frame in `RunScene.updateEnemies`
+     (strength 1 normal, 1.3 elite, 0.6 boss); `enemyPoseClear` on death. RunScene's own red/white windup flicker was dropped
+     (kept for teleporter `blink`) so the pose's additive glow + final white flash is the single wind-up read.
+   - `combatFx.ts`: removed the redundant startup weapon rotation (the hero rig poses the weapon from `rs.cs`) and the
+     perfect-dodge ghost image (rig dash afterimages already cover it); `spark()` now goes through the pooled `fxAt`
+     (no sprite + tween per hit).
+   - Specials posed on the rig: shield bash `playAttack('bash', 0, 260, {power 1.4})`, katana iaido
+     `playAttack('thrust', 20, 260, {reach 22, power 1.6})`, staff nova `playCast(300)`, crossbow piercing shot
+     `playAttack('shoot', 0, 220, {power 1.5})`. Greatsword spin already follows `spinning` in the rig.
+   - `window.__TSAnim.enemyPose(sprite)` exposed for probes/smoke.
+2. **Bug found by the merge**: room setup spawns wave 1 with a 500 ms delayed call, but `checkRoom()` saw 0 enemies on the
+   first frame and spawned wave 1 itself, so the delayed call then spawned wave 2 → **waves 1 and 2 always arrived together**
+   (hidden in v1, which usually had 1 wave). Fixed in `checkRoom` (waits while `waveIdx === 0`).
+3. **Retune where workstreams collide**
+   - Chapter-1 encounter budget `waveBudget` 3.5 → **2.75**, and **ch1 floor 1 is always exactly 2 waves** (no 3rd wave).
+     Bodies per room (400 seeds, swarm = 3 bodies), before → after:
+     ch1 f1 d0 6.7 → **5.1** (wave 1 ≈ 2.4), d1 8.9 → 6.1, d2 11.2 → 7.4; ch1 f2 d0–d2 8.4/10.7/12.6 → 7.1/9.1/11.4;
+     ch1 f3 10.3/12.2/14.8 → 8.7/11.0/12.9. Chapters 2–6 unchanged. (v1 ch1 f1 d0 was 1 wave of 2–4.)
+     `tests/director.test.ts` "≥ 2 per wave" now counts bodies (a ch1 wave can open with one bee-swarm group of 3).
+   - Knockback `knockImpulse` 0.45 (poise holds) / 1.3 (break) **kept**: with v2 AI, idle bodies do no contact damage and
+     rushers without an attack token hold a 110–270 px ring, so low knockback no longer lets enemies "pin" the player; it
+     keeps recovering enemies inside the punish window. Revisit only if playtests show melee feels sticky.
+   - `npm run sim` after the retune (200 runs each, mid-progress meta): greedy win 42 % (tier-2 combo on reaching ch3 84 %),
+     casual 37 % (75 %), random 0 % (34 %). Workstream numbers were 43/85, 35/76, 0/27 at 120 runs — within noise.
+4. **Smoke / checklist additions** (`tools/smoke.mjs`, `docs/CHECKLIST.md` C111–C118, `tools/checklist.mjs`):
+   `V2_wave_waves` (first room has ≥ 2 waves and wave 2 is reached), `V2_elite_marker` (swift elite: ring + "Tinh Anh · Nhanh"),
+   `V2_enemy_telegraph` (an enemy in `windup` with the wind-up pose and a telegraph hazard on screen), `V2_charged_attack`
+   (real mouse hold → `chargeStart` + `chargedAttack`), `V2_perfect_dodge` (real Space dash; a charging enemy is placed on
+   the hero in the dash's first frame), `V2_parry` + `V2_projectile_reflect` (real K guard; a charging enemy / an enemy bolt
+   is placed in front inside the 150 ms window; god mode off for that step), `V2_drag_preview` (+/−/★ labels visible mid-drag),
+   `V2_choice_deltas` / `V2_choice_keep` / `V2_choice_banish` (real clicks on "Giữ lại", "Loại (1 xúc xắc)", "Đổi").
+   C018 waits 700 ms after the last attack before the dash press (a dash is buffered 120 ms; pressing during a
+   non-cancellable strike is dropped by design).
+
+### Perf (merged build, `tools/perf.mjs`, 30 enemies + ~110 projectiles + 30 hits/s, swiftshader, load avg ~2)
+| metric (median of 3) | v1 baseline (`git archive 7458848`) | v2 merged | change |
+|---|---|---|---|
+| main-thread step / frame avg | 8.5 ms | 4.8 ms | −43 % |
+| step p95 | 13.1 ms | 8.0 ms | −39 % |
+| RunScene.update | 0.50 ms | 0.43 ms | — |
+| script time / frame (CDP) | 10.4 ms | 5.4 ms | −48 % |
+| task time / frame (CDP) | 12.1 ms | 6.9 ms | −43 % |
+| game objects created / s | ~84 | ~4.9 | −94 % |
+| fps (software GL) | 11.5 | 26.1 | ×2.3 |
+| shader links in window | 0–1 | 0–1 | — |
+Note: in v2 holding attack with the crossbow fires charged shots every ~1.5 s instead of auto-fire, so the player-side
+load in this scenario is lighter than v1's (enemy load is identical). Raw rows: `out/perf/results.jsonl`.
+
+### Best v2 screenshots
+`out/smoke/08_v2_elite_telegraph.png` (elite + aim/charge telegraphs), `out/smoke/09_v2_charged_attack.png` (charge ring,
+"Tụ đầy!"), `out/smoke/10_v2_perfect_dodge.png` ("Né hoàn hảo!", afterimages), `out/build_v2/03_drag_tablet_disable_preview.png`
+(drag preview: −1 VÔ HIỆU, −2 ★0/3, combo loss line), `out/smoke/15_v2_choice_keep_banish.png` (deltas, kept card, banish),
+`out/smoke/27_ch2_boss_fight.png` / `39_ch6_boss_fight.png` (boss fights). `out/build_v2/*` comes from
+`SHOTS_DIST=dist node tools/build-shots.mjs`.
+
+### Known gaps / risks (v2)
+- Perfect dodge and parry smoke checks use real inputs, but the *threat* is placed by a probe hook at the right frame
+  (headless frame pacing ~15–25 fps makes a natural 120 ms/150 ms coincidence unreliable). The rules are unit-tested.
+- Balance of v2 pacing (windup + recovery per attack, 2–3 waves) is validated only by the abstract simulator and the bot;
+  no human playtest. Ch1 floor 1 was eased; ch1 f2–f3 still field 7–13 bodies per room over 2–3 waves.
+- Holding attack no longer auto-repeats light attacks (hold = charge) — also for crossbow/staff; players used to v1 hold-to-fire
+  will notice. Greatsword taps faster than its chain window are dropped after the 120 ms buffer (intended commitment).
+- Slow-mo (perfect dodge) scales scene `dt` only; tweens/sprite anims/delayed calls run at normal speed for those 350 ms.
+- Boss kill times in smoke (3–80 s) are bot times in god mode; the modeled TTK for a normal run is 29–37 s.
+- Real-GPU / phone FPS still not measured; perf numbers are swiftshader CPU-side.
+- Late-game gold surplus (sim: 1.5–2.5k held in ch5–6) remains; needs new sinks (out of scope).
+
+---
+
+## v1 engine continuation run (history)
+### Gates at v1 (all green)
 | Gate | Command | Result |
 |---|---|---|
 | Typecheck | `npm run typecheck` | clean |
@@ -56,6 +148,7 @@ The smoke run takes longer than the 120 s shell limit of the agent sandbox; run 
 9. Screenshots compared against the mockups (see list below); placeholders = 0 in every smoke state.
 
 ## Screenshots (out/smoke/, regenerated by every smoke run)
+_v2 note: smoke now takes more shots, so the numeric prefixes below shifted (e.g. ch1 combat room is `22_…`, inventory full `20_…`); names are unchanged._
 Best six to show: `01_hub.png`, `17_ch1_combat_room.png`, `15_inventory_full.png`, `10_choice_artifact.png`,
 `34_ch6_boss_fight.png`, `35_ending_credits.png`. Also: `11_shop.png`, `12_event_dialog.png`, `13_map.png`,
 `21/24/27/30/33_ch*_combat_room.png`, `18/22/25/28/31_ch*_boss_fight.png`, `37_destiny_tree.png`, `38_talents.png`,

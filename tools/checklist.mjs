@@ -30,6 +30,15 @@ const P = {
   C094: ['t:talent points cap 25', 's:C094_talents_respec'], C095: ['t:>= 6 costumes'], C096: ['s:C096_weapon_rack'], C097: ['t:journal discovery', 's:C097_journal'], C098: ['s:C098_training_spawn'], C099: ['t:migration from v1', 't:meta roundtrip', 's:C099_meta_persisted'],
   C100: ['s:C100_hud'], C101: ['s:C101_inventory_opens', 's:C101_pauses_combat', 's:inventory_full'], C102: ['s:C102_choice_cards'], C103: ['t:every engine key resolves', 't:every literal t(', 't:ev.*, node.*, rar.*', 's:C103_font_vn'], C104: ['s:C104_touch_joystick', 's:C104_touch_attack_button'],
   C105: ['s:C105_keyboard_mouse'], C106: ['s:C106_landscape_fit'], C107: ['s:C107_manifests', 's:single_file_build'], C108: ['s:C108_sfx'], C109: ['s:C109_mute'], C110: ['s:C110_full_run', 's:C081_death_results', 's:C092_destiny_buy', 's:__noerrors'],
+  // V2 depth (integration pass)
+  C111: ['t:windups never drop below MIN_WINDUP', 't:contact damage only during active melee frames', 's:V2_enemy_telegraph'],
+  C112: ['t:normal rooms have 2–3 waves, arena 3–4', 't:escalates: budget grows', 's:V2_wave_waves', 's:C079_event_arena'],
+  C113: ['t:elites: none on chapter 1 floor 1', 's:V2_elite_marker'],
+  C114: ['t:hold → charge after HOLD_DELAY', 't:every weapon has a light chain and a charged attack', 's:V2_charged_attack'],
+  C115: ['t:a threat within the window = perfect dodge', 's:V2_perfect_dodge'],
+  C116: ['t:a successful parry lifts the lockout', 's:V2_parry', 's:V2_projectile_reflect'],
+  C117: ['t:tablet: target cells with sign, level change and disabling', 't:moving an item compares against the pre-drag snapshot', 's:V2_drag_preview'],
+  C118: ['t:every choice card has a concrete numeric delta', 't:lock keeps an option through a reroll', 's:V2_choice_deltas', 's:V2_choice_keep', 's:V2_choice_banish'],
 };
 const proofOk = (p) => {
   if (p === 's:__noerrors') return (smoke.errors ?? []).filter((e) => !e.startsWith('check failed')).length === 0;

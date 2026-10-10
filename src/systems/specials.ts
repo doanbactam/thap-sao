@@ -50,3 +50,14 @@ export function companionMods(sp: Specials) {
 }
 export const guardCounterDamage = (sp: Specials) => sp.guardCounter ?? 0;
 export const galeDashDamage = (sp: Specials) => sp.galeDash ?? 0;
+
+// ---- V2: elemental proc damage (see effects.ts procElement/procScale) ----
+import { procElement, procScale, type ProcElement } from './effects';
+import { getArtifact } from './registry';
+const DAMAGE_PROCS = new Set(['kill:explode', 'dash:trail', 'dash:shockwave', 'hurt:thorns', 'hurt:nova', 'periodic:orb', 'periodic:lightning', 'periodic:meteor', 'periodic:frostRing']);
+export const isDamageProc = (kind: string) => DAMAGE_PROCS.has(kind);
+/** Element and scaled amount of a triggered action (heals / MP / money pass through unscaled). */
+export function procDamage(kind: string, v: number, source: string, stats: { physical: number; fire: number; ice: number; lightning: number }, level = 1): { v: number; el: ProcElement } {
+  const el = procElement(source, kind, (id) => (getArtifact(id)?.tags as string[] | undefined) ?? []);
+  return { v: DAMAGE_PROCS.has(kind) ? Math.round(v * procScale(stats, el, level)) : v, el };
+}

@@ -83,8 +83,35 @@ export function castSpell(slot: SpellSlot, mp: number, cdLeft: number): { ok: bo
   if (mp < slot.mpCost) return { ok: false, mp, reason: 'mp' };
   return { ok: true, mp: mp - slot.mpCost };
 }
-/** Special hooks implemented by the engine. Unknown ids are reported (not silently dropped). */
-export const KNOWN_SPECIALS = ['echoStrike', 'goldTouch', 'secondWind', 'starFall', 'vampire', 'berserk', 'glassCannon', 'thornArmor'];
+/** Special hooks implemented by the engine (src/systems/specials.ts SPECIAL_IDS). Unknown ids are reported (not silently dropped). */
+export const KNOWN_SPECIALS = ['freezeShatter', 'phoenixRevive', 'lightningRod', 'guardCounter', 'backstab', 'manaShield', 'dashStrike', 'galeDash',
+  'spellCrit', 'spellEcho', 'companionDamage', 'companionHaste', 'companionCrit', 'extraCompanion', 'companionShare', 'debuffAmp', 'doomMark'];
+
+// ---- elemental proc scaling (V2 synergy audit) ----
+// Before V2 the flat damage of periodic / on-kill / on-dash procs ignored the element stats, so +Ice/+Fire/+Lightning
+// artifacts were dead on the 5 physical weapons. Procs from an elemental source now scale with that element's stat
+// (base 20 = ×1). Sources: 'combo:<family>' or an artifact id whose tags include glacier/ember/storm.
+export type ProcElement = 'physical' | 'fire' | 'ice' | 'lightning';
+const FAMILY_EL: Record<string, ProcElement> = { glacier: 'ice', ember: 'fire', storm: 'lightning' };
+const ACTION_EL: Record<string, ProcElement> = { frostRing: 'ice', meteor: 'fire', lightning: 'lightning' };
+/** Element of a proc: the action's own element (frostRing/meteor/lightning) wins, else the source's family tag. */
+export function procElement(source: string, action = '', tagsOf: (id: string) => string[] = () => []): ProcElement {
+  const a = action.split(':').pop() ?? '';
+  if (ACTION_EL[a]) return ACTION_EL[a];
+  if (source.startsWith('combo:')) return FAMILY_EL[source.slice(6)] ?? 'physical';
+  const id = source.split('<')[0];
+  for (const t of tagsOf(id)) if (FAMILY_EL[t]) return FAMILY_EL[t];
+  return 'physical';
+}
+/**
+ * Damage multiplier for a proc: the element stat relative to the level baseline (20 + 2/level), clamped to [0.5, 4].
+ * Only item/talent/costume bonuses to that element move it, so procs keep v1 values unless the build invests in the
+ * element (physical procs stay ≈ ×1 because no artifact grants flat physical).
+ */
+export function procScale(stats: { physical: number; fire: number; ice: number; lightning: number }, el: ProcElement, level = 1): number {
+  const base = 20 + 2 * Math.max(0, level - 1);
+  return Math.max(0.5, Math.min(4, (stats[el] ?? base) / base));
+}
 export function specialsOf(b: Bundle): Record<string, number> {
   const out: Record<string, number> = {}; for (const s of b.specials) out[s.e.id] = (out[s.e.id] ?? 0) + s.value; return out;
 }

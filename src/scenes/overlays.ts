@@ -8,7 +8,9 @@ import { txt, darkTxt, card, button, stars, wrapText, toast, pill, dim, title } 
 import { GridView, itemDesc } from '../ui/gridView';
 import { t } from '../systems/i18n';
 import { getArtifact, getTablet, getMiracle, getUpgrade, getCombo, getPotion, getChapter } from '../systems/registry';
-import { rerollChoice, takeChoice, skipChoice, buy, sell, rerollShop, enchant, runStats, discard, itemBasePrice } from '../systems/run';
+import { rerollChoice, takeChoice, skipChoice, buy, sell, rerollShop, enchant, runStats, discard, itemBasePrice, toggleLock, banishOption, shopHeal, shopHealCost, shopEnchant, enchantCost, shopRerollGold, eventStakes, ECON } from '../systems/run';
+import { choiceDelta, addBest } from '../systems/build';
+import { comboLine } from '../systems/inventory';
 import { resolve } from '../systems/inventory';
 import { sellPrice } from '../systems/stats';
 import type { RunState } from '../systems/run';
@@ -47,46 +49,71 @@ export class ChoiceScene extends Overlay {
     this.children.removeAll(true);
     const r = run(); const c = r.choice; if (!c) { this.close(); return; }
     dim(this); title(this, `${t('choice.title')} — ${t(`choice.${c.kind}`)}`, 70);
-    c.options.forEach((id, i) => this.cardFor(c.kind, id, 240 + i * 400, 360, i));
-    const rr = button(this, 520, 650, 260, 56, `${t('choice.reroll')} (${r.dice})`, () => { if (rerollChoice(r, G.meta, statsNow().luck)) { sfx('magic'); G.logEvent('reroll', { kind: c.kind }); this.build(); } }, 'purple', { icon: 'btn_reroll', id: 'reroll' });
+    c.options.forEach((id, i) => this.cardFor(c.kind, id, 240 + i * 400, 350, i));
+    const rr = button(this, 520, 664, 260, 52, `${t('choice.reroll')} (${r.dice})`, () => { if (rerollChoice(r, G.meta, statsNow().luck)) { sfx('magic'); G.logEvent('reroll', { kind: c.kind, locked: c.locked }); this.build(); } }, 'purple', { icon: 'btn_reroll', id: 'reroll' });
     rr.setEnabled(r.dice > 0);
-    button(this, 800, 650, 200, 56, t('choice.skip'), () => { skipChoice(r); this.close(); }, 'wood', { id: 'skip' });
+    button(this, 800, 664, 200, 52, t('choice.skip'), () => { skipChoice(r); this.close(); }, 'wood', { id: 'skip' });
     G.logEvent('choiceShown', { kind: c.kind, options: c.options });
   }
   cardFor(kind: string, id: string, x: number, y: number, i: number) {
-    const W = 340, H = 400; card(this, x, y, W, H);
+    const W = 340, H = 440; card(this, x, y, W, H); const r0 = run(); const locked = r0.choice?.locked === i;
+    if (locked) { const lg = this.add.graphics(); lg.lineStyle(5, 0xffcb3a, 1).strokeRoundedRect(x - W / 2 - 4, y - H / 2 - 4, W + 8, H + 8, 20); }
     let name = id, desc = '', icon = '', rar = 'common', maxL = 0, tags: string[] = [];
     if (kind === 'artifact') { const a = getArtifact(id)!; name = a.name; desc = itemDesc(id, 0); icon = a.icon; rar = a.rarity; maxL = a.maxLevel; tags = a.tags.map((tg) => getCombo(tg)?.name ?? tg); if (a.constraint) desc += '\n! ' + ({ touchEdge: 'Ràng buộc mép', emptyNeighbor: 'Cần ô trống', cornerOnly: 'Chỉ ở góc', noOtherOfTag: 'Độc nhất' } as any)[a.constraint.kind]; }
     else if (kind === 'tablet') { const tb = getTablet(id)!; name = tb.name; desc = tb.desc; icon = tb.icon; rar = tb.rarity; }
     else if (kind === 'miracle') { const m = getMiracle(id)!; name = m.name; desc = m.desc; icon = m.icon; rar = 'legendary'; }
     else { const u = getUpgrade(id)!; name = u.name; desc = u.desc; icon = `wic_${u.weapon}`; rar = (['common', 'rare', 'epic'] as const)[u.tier - 1]; tags = [`Bậc ${u.tier}`]; }
     const col = RARITY_COLOR[rar];
-    const g = this.add.graphics(); g.fillStyle(col, 1).fillRoundedRect(x - W / 2 + 14, y - H / 2 + 14, W - 28, 140, 14).lineStyle(3, PAL.outline, 1).strokeRoundedRect(x - W / 2 + 14, y - H / 2 + 14, W - 28, 140, 14);
-    const ir = iconRef(this, icon); this.add.image(x, y - H / 2 + 84, ir.tex, ir.frame).setDisplaySize(110, 110);
+    const g = this.add.graphics(); g.fillStyle(col, 1).fillRoundedRect(x - W / 2 + 14, y - H / 2 + 14, W - 28, 130, 14).lineStyle(3, PAL.outline, 1).strokeRoundedRect(x - W / 2 + 14, y - H / 2 + 14, W - 28, 130, 14);
+    const ir = iconRef(this, icon); this.add.image(x, y - H / 2 + 79, ir.tex, ir.frame).setDisplaySize(104, 104);
     // footprint (polyomino) preview in the header's top-right corner
     const shape = kind === 'artifact' ? getArtifact(id)?.shape : kind === 'tablet' ? getTablet(id)?.shape : undefined;
     if (shape) { const cs = 13; const mx = Math.max(...shape.map((c) => c[0])); const fg = this.add.graphics(); for (const [cx, cy] of shape) fg.fillStyle(PAL.cream, 1).fillRect(x + W / 2 - 30 - (mx + 1) * cs + cx * cs, y - H / 2 + 24 + cy * cs, cs - 2, cs - 2).lineStyle(2, PAL.outline, 1).strokeRect(x + W / 2 - 30 - (mx + 1) * cs + cx * cs, y - H / 2 + 24 + cy * cs, cs - 2, cs - 2); }
-    darkTxt(this, x, y - 40, name, 24, { fontStyle: '800', align: 'center', wordWrap: { width: W - 30 } }).setOrigin(0.5, 0);
-    darkTxt(this, x, y - 4, t(`rar.${rar}`), 17, { color: RARITY_TEXT[rar], fontStyle: '800' }).setOrigin(0.5, 0);
-    if (maxL) stars(this, x - (maxL - 1) * 7, y + 30, 0, maxL, 13);
-    if (tags.length) darkTxt(this, x, y + 42, tags.join(' · '), 15, { color: '#A9531E' }).setOrigin(0.5, 0);
-    wrapText(this, x - W / 2 + 20, y + 66, desc, W - 40, 15).setOrigin(0, 0);
-    button(this, x, y + H / 2 - 36, 200, 50, t('choice.take'), () => {
-      if (takeChoice(run(), G.meta, i)) { sfx('pickup'); G.logEvent('choiceTaken', { kind, id }); G.saveMeta(); this.close(); }
+    const top = y - H / 2;
+    darkTxt(this, x, top + 150, name, 23, { fontStyle: '800', align: 'center', wordWrap: { width: W - 30 } }).setOrigin(0.5, 0);
+    darkTxt(this, x - 8, top + 180, t(`rar.${rar}`), 16, { color: RARITY_TEXT[rar], fontStyle: '800' }).setOrigin(1, 0);
+    if (maxL) stars(this, x + 6, top + 191, 0, maxL, 12);
+    if (tags.length) darkTxt(this, x, top + 202, tags.join(' · '), 14, { color: '#A9531E' }).setOrigin(0.5, 0);
+    wrapText(this, x - W / 2 + 18, top + 222, desc, W - 36, 14).setOrigin(0, 0);
+    // V2: concrete delta to the current build (power, stats, combo progress) — computed where it would be placed
+    try {
+      const dl = choiceDelta(r0, G.meta, kind as any, id);
+      const box = this.add.graphics(); box.fillStyle(0xf3e3c3, 1).fillRoundedRect(x - W / 2 + 12, top + 290, W - 24, 92, 10).lineStyle(2, PAL.outline, 0.6).strokeRoundedRect(x - W / 2 + 12, top + 290, W - 24, 92, 10);
+      const pc = dl.power.pct; const head = `${pc >= 0 ? '▲' : '▼'} Sức mạnh ${pc >= 0 ? '+' : '−'}${Math.abs(pc).toFixed(0)}%`;
+      darkTxt(this, x - W / 2 + 22, top + 294, head, 16, { color: pc > 0.5 ? '#3F7A25' : pc < -0.5 ? '#B23A2A' : '#7A4A24', fontStyle: '800' });
+      const rest = [...dl.combos.filter((cb) => cb.after !== cb.before).slice(0, 2).map(comboLine), ...dl.stats.slice(0, 3).map((sd) => sd.text)];
+      if (dl.placed === 'side') rest.unshift('Túi đầy → vào Túi Phụ (chưa có tác dụng)'); if (dl.placed === 'none') rest.unshift('Túi đầy!');
+      wrapText(this, x - W / 2 + 22, top + 314, rest.slice(0, 3).join('\n') || 'Không đổi chỉ số trực tiếp', W - 44, 13, '#5A3A20');
+    } catch (err) { G.logEvent('deltaError', { id, err: String(err) }); }
+    button(this, x, y + H / 2 - 30, 180, 46, t('choice.take'), () => {
+      if (takeChoice(run(), G.meta, i, (rr, iid) => addBest(rr, G.meta, iid))) { sfx('pickup'); G.logEvent('choiceTaken', { kind, id }); G.saveMeta(); this.close(); }
       else { toast(this, t('inv.full'), '#ff7a66'); sfx('deny'); }
     }, 'green', { id: `take${i}` });
+    // V2: lock (free, kept on reroll) and banish (1 die, never offered again this run)
+    if (kind !== 'miracle') {
+      button(this, x - 95, y + H / 2 + 26, 150, 38, locked ? 'Bỏ giữ' : 'Giữ lại', () => { toggleLock(r0, i); sfx('ui'); G.logEvent('choiceLock', { i, id }); this.build(); }, locked ? 'orange' : 'wood', { id: `lock${i}`, size: 17 });
+      if (kind !== 'upgrade') { const bb = button(this, x + 95, y + H / 2 + 26, 150, 38, 'Loại (1 xúc xắc)', () => { if (banishOption(r0, G.meta, i, statsNow().luck)) { sfx('deny'); G.logEvent('choiceBanish', { i, id }); this.build(); } }, 'red', { id: `banish${i}`, size: 15 }); bb.setEnabled(r0.dice > 0); }
+    }
   }
 }
 
 export class ShopScene extends Overlay {
   constructor() { super('Shop'); }
-  view!: GridView; list!: Phaser.GameObjects.Container; money!: ReturnType<typeof pill>;
+  view!: GridView; list!: Phaser.GameObjects.Container; money!: ReturnType<typeof pill>; enchantMode = false;
+  doEnchant(p: { uid: number; id: string }) {
+    const r = run(); const c = enchantCost(r, p.uid);
+    if (c === null) { sfx('deny'); toast(this, 'Đã đạt cấp tối đa', '#ff7a66'); return; }
+    if (!shopEnchant(r, p.uid)) { sfx('deny'); toast(this, `Cần ${c} Hạt Dẻ`, '#ff7a66'); return; }
+    sfx('levelup'); G.logEvent('shopEnchant', { id: p.id, cost: c }); toast(this, `${getArtifact(p.id)?.name ?? p.id} +1 cấp (−${c})`, '#a6e070');
+    this.enchantMode = false; this.view.o.selectMode = undefined; this.view.redraw(); this.refresh(); G.saveRun();
+  }
   create() {
     this.frame(t('shop.title'));
     const r = run();
     this.money = pill(this, 90, 92, 150, 'ic_money', r.money); pill(this, 260, 92, 110, 'ic_dice', r.dice);
     const cell = r.grid.cols > 6 ? 58 : 64;
-    this.view = new GridView(this, r.grid, { x: 70, y: 150, cell, onChange: () => this.refresh(), sellZone: { x: 70, y: 150 + cell * r.grid.rows + (r.grid.sideUnlocked ? cell + 60 : 20), w: cell * 5, h: 70, onSell: (p) => { const v = sellPrice(itemBasePrice(p.id), statsNow().barter); r.money += v; sfx('coin'); toast(this, `+${v} Hạt Dẻ`, '#ffcb6b'); this.refresh(); } } });
+    this.enchantMode = false;
+    this.view = new GridView(this, r.grid, { x: 70, y: 150, cell, onChange: () => this.refresh(), tipExtra: (p) => { if (p.kind !== 'artifact') return null; const c = enchantCost(run(), p.uid); return c === null ? 'Cường hóa: đã tối đa' : `Cường hóa +1: ${c} Hạt Dẻ`; }, sellZone: { x: 70, y: 150 + cell * r.grid.rows + (r.grid.sideUnlocked ? cell + 60 : 20), w: cell * 5, h: 70, onSell: (p) => { const v = sellPrice(itemBasePrice(p.id), statsNow().barter); r.money += v; sfx('coin'); toast(this, `+${v} Hạt Dẻ`, '#ffcb6b'); this.refresh(); } } });
     this.refresh();
   }
   refresh() {
@@ -99,15 +126,25 @@ export class ShopScene extends Overlay {
       const ir = iconRef(this, def?.icon ?? it.id); const im = this.add.image(x, y - 40, ir.tex, ir.frame).setDisplaySize(72, 72); this.list.add(im);
       if (def?.rarity) { const rc = this.add.graphics(); rc.lineStyle(4, RARITY_COLOR[def.rarity], 1).strokeRoundedRect(x - 44, y - 78, 88, 76, 10); this.list.add(rc); }
       this.list.add(darkTxt(this, x, y + 4, def?.name ?? it.id, 16, { fontStyle: '800', align: 'center', wordWrap: { width: 170 } }).setOrigin(0.5, 0));
+      if (!it.sold && it.kind !== 'potion') { try { const dl = choiceDelta(r, G.meta, it.kind, it.id); const pc = dl.power.pct; const cl = dl.combos.find((cb) => cb.after > cb.before);
+        this.list.add(darkTxt(this, x, y + 27, `${pc >= 0 ? '+' : '−'}${Math.abs(pc).toFixed(0)}% sức mạnh${cl ? `\n${comboLine(cl)}` : ''}`, 12, { color: pc > 0.5 ? '#3F7A25' : '#7A4A24', align: 'center', wordWrap: { width: 170 }, lineSpacing: -2 }).setOrigin(0.5, 0)); } catch { /* preview only */ } }
+      else if (!it.sold && it.kind === 'potion') this.list.add(darkTxt(this, x, y + 30, def?.desc ?? '', 12, { color: '#7A4A24', align: 'center', wordWrap: { width: 170 } }).setOrigin(0.5, 0));
       const b = button(this, x, y + 88, 160, 44, it.sold ? t('shop.sold') : `${it.price} Hạt Dẻ`, () => {
-        if (buy(r, G.meta, i)) { sfx('coin'); G.logEvent('shopBuy', { id: it.id, price: it.price }); this.view.redraw(); this.refresh(); G.saveMeta(); }
+        if (buy(r, G.meta, i, (rr, iid) => addBest(rr, G.meta, iid))) { sfx('coin'); G.logEvent('shopBuy', { id: it.id, price: it.price }); this.view.redraw(); this.refresh(); G.saveMeta(); }
         else { sfx('deny'); toast(this, r.money < it.price ? 'Không đủ Hạt Dẻ' : t('inv.full'), '#ff7a66'); }
       }, it.sold ? 'wood' : 'green', { id: `buy${i}` });
       b.setEnabled(!it.sold); this.list.add(b);
     });
-    const rr = button(this, 1020, 650, 220, 52, `${t('shop.reroll')} (${r.dice} xúc xắc)`, () => { const s = statsNow(); if (rerollShop(r, G.meta, s.luck, s.barter)) { sfx('magic'); G.logEvent('shopReroll', {}); this.refresh(); } }, 'purple', { id: 'shopReroll' });
-    rr.setEnabled(r.dice > 0); this.list.add(rr);
-    this.list.add(darkTxt(this, 620, 650, shop.discount ? `Giảm ${Math.round(shop.discount * 100)}%!` : t('shop.sellHint'), 15));
+    // V2 services: reroll (die, or escalating gold when out of dice), bandage heal (once), enchant an artifact (gold)
+    const gold = shopRerollGold(r); const useDie = r.dice > 0;
+    const rr = button(this, 1110, 652, 210, 50, useDie ? `${t('shop.reroll')} (1 xúc xắc · còn ${r.dice})` : `${t('shop.reroll')} (${gold} HD)`, () => { const s = statsNow(); if (rerollShop(r, G.meta, s.luck, s.barter)) { sfx('magic'); G.logEvent('shopReroll', { gold: !useDie }); this.refresh(); } else { sfx('deny'); toast(this, 'Không đủ Hạt Dẻ', '#ff7a66'); } }, 'purple', { id: 'shopReroll', size: 18 });
+    rr.setEnabled(useDie || r.money >= gold); this.list.add(rr);
+    const s0 = statsNow(); const hc = shopHealCost(r);
+    const hb = button(this, 650, 652, 210, 50, shop.healed ? 'Đã băng bó' : `Băng bó +${Math.round(ECON.healPct * 100)}% HP (${hc})`, () => { if (shopHeal(r, statsNow().maxHp)) { sfx('levelup'); G.logEvent('shopHeal', { cost: hc }); this.refresh(); } else { sfx('deny'); toast(this, r.hp >= s0.maxHp ? 'HP đã đầy' : 'Không đủ Hạt Dẻ', '#ff7a66'); } }, 'green', { id: 'shopHeal', size: 16 });
+    hb.setEnabled(!shop.healed && r.hp < s0.maxHp && r.money >= hc); this.list.add(hb);
+    const eb = button(this, 880, 652, 210, 50, this.enchantMode ? 'Chọn cổ vật…' : 'Cường hóa +1 cấp', () => { this.enchantMode = !this.enchantMode; this.view.o.selectMode = this.enchantMode ? (p) => this.doEnchant(p) : undefined; this.refresh(); }, this.enchantMode ? 'orange' : 'wood', { id: 'shopEnchant', size: 17 });
+    this.list.add(eb);
+    this.list.add(darkTxt(this, 560, 600, this.enchantMode ? 'Bấm một cổ vật trong túi để cường hóa (giá hiện khi rê chuột).' : shop.discount ? `Giảm ${Math.round(shop.discount * 100)}%!` : `${t('shop.sellHint')} · HP ${Math.ceil(r.hp)}/${s0.maxHp}`, 14));
   }
 }
 
@@ -190,10 +227,16 @@ export class EventScene extends Overlay {
     const art = ({ clover: 'clover', merchant: 'merchant_rat', obelisk: 'obelisk', fountain: `fountain_${this.data0.fountain ?? 'green'}`, companion: 'cmp_sprout', blood: 'blood_altar', pocket: 'pocket_portal' } as Record<string, string>)[ev];
     if (art && MANIFEST[art] && this.textures.exists(art)) { const im = this.add.image(440, 470, art).setOrigin(0.5, 1); const sc = Math.min(150 / im.height, 190 / im.width); im.setScale(sc); }
     wrapText(this, 560, 240, eventText(ev), 380, 17);
-    opts.forEach(([k, label], i) => button(this, 750, 350 + i * 70, 360, 56, label, () => this.close(k), k === 'leave' ? 'wood' : 'orange', { id: `ev_${k}` }));
+    const r = G.run; const maxHp = r ? runStats(r, G.meta).maxHp : 0;
+    opts.forEach(([k, label], i) => {
+      const yy = 340 + i * 82; button(this, 750, yy, 360, 52, label, () => this.close(k), k === 'leave' ? 'wood' : 'orange', { id: `ev_${k}` });
+      // V2: clear stakes — exact cost and reward of this option, computed from the run (obelisk names the real swap)
+      if (r && k !== 'leave') { let st = ''; try { st = eventStakes(r, G.meta, ev as any, k, { maxHp }); } catch { st = ''; }
+        if (st) darkTxt(this, 750, yy + 30, st, 13, { color: '#7A2E1E', fontStyle: '800', align: 'center', wordWrap: { width: 380 } }).setOrigin(0.5, 0); }
+    });
   }
 }
 function eventText(ev: string) {
   return ({ clover: 'Một cây cỏ bốn lá lấp lánh. Hãy chọn phúc lành.', merchant: 'Thương nhân chuột lang thang bán rẻ hơn 10%.', obelisk: 'Bia đá cổ hoán đổi sức mạnh của bạn một cách ngẫu nhiên.', fountain: 'Đài phun nước kỳ lạ…', companion: 'Một người bạn đồng hành đang chờ được thuê.', blood: 'Bàn thờ đòi máu. Hoặc… đánh con dơi canh giữ.', pocket: 'Một khe nứt dẫn tới không gian túi. Ngọc Sao có thể mở khóa cổ vật vĩnh viễn.' } as any)[ev] ?? '';
 }
-void discard; void sell; void resolve; void getCombo;
+void discard; void sell; void resolve; void getCombo; void enchant;

@@ -12,7 +12,8 @@
     "build:web": "vite build",
     "build:single": "node tools/build-single.mjs",
     "zip": "sh tools/zip-src.sh",
-    "checklist": "node tools/checklist.mjs"
+    "checklist": "node tools/checklist.mjs",
+    "sim": "SIM_REPORT=1 vitest run tests/sim.test.ts"
   },
   "dependencies": {
     "phaser": "4.2.1"

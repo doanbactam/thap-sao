@@ -184,3 +184,73 @@ export function preview(g: Grid, id: string, x: number, y: number, rot: number, 
 
 export function listItems(g: Grid): Placed[] { return [...g.items, ...(g.side.filter(Boolean) as Placed[])]; }
 export function cloneGrid(g: Grid): Grid { return JSON.parse(JSON.stringify(g)); }
+
+// ---------------- V2: rich placement preview ----------------
+export interface PreviewTarget { cell: [number, number]; op: TabletOp; sign: 1 | -1 | 0; hitsArtifact: boolean; inBounds: boolean }
+export interface PreviewArt {
+  uid: number; id: string; self: boolean;
+  levelBefore: number; levelAfter: number; effBefore: number; effAfter: number; maxBefore: number; maxAfter: number;
+  wasActive: boolean; nowActive: boolean; disabledAfter: boolean; constraintOkAfter: boolean;
+}
+export interface PreviewCombo { id: ComboId; before: number; after: number; thresholds: number[]; tierBefore: number; tierAfter: number; next: number | null }
+export interface PlacementPreview { valid: boolean; marks: Array<{ x: number; y: number; ok: boolean }>; targets: PreviewTarget[]; arts: PreviewArt[]; combos: PreviewCombo[] }
+
+export const opSign = (op: TabletOp): 1 | -1 | 0 => (op.op === 'level' ? (op.amount > 0 ? 1 : op.amount < 0 ? -1 : 0) : op.op === 'maxLevel' ? (op.amount >= 0 ? 1 : -1) : 0);
+const tierOf = (thr: number[], n: number) => thr.reduce((t, c, i) => (n >= c ? i + 1 : t), 0);
+/** Progress of one combo family for a count: thresholds, tier and the next threshold (null when maxed). */
+export function comboProgress(id: ComboId, n: number): { thresholds: number[]; tier: number; next: number | null } {
+  const thr = (getCombo(id)?.tiers ?? []).map((t) => t.count);
+  const tier = tierOf(thr, n); return { thresholds: thr, tier, next: thr[tier] ?? null };
+}
+/**
+ * What placing `id` at (x,y,rot) would do BEFORE it is dropped: tablet target cells (+/−), every artifact whose level,
+ * active state or max level changes (including the dragged artifact itself) and the combo counts that move.
+ * `before` is the grid state to compare against (defaults to `g`; the grid view passes the pre-drag snapshot so that
+ * moving an item shows the net change). `movingUid` keeps the dragged item's uid stable across both states.
+ */
+export function placementPreview(g: Grid, id: string, x: number, y: number, rot: number, movingUid?: number, before: Grid = g): PlacementPreview {
+  const base = preview(g, id, x, y, rot, movingUid);
+  const out: PlacementPreview = { valid: base.valid, marks: base.marks, targets: [], arts: [], combos: [] };
+  const kind = kindOf(id);
+  const clone: Grid = { ...g, items: g.items.filter((i) => i.uid !== movingUid).map((i) => ({ ...i })), side: [...g.side] };
+  const movingLevel = [...before.items, ...(before.side.filter(Boolean) as Placed[])].find((i) => i.uid === movingUid)?.level ?? 0;
+  const resBefore = resolve(before);
+  if (!base.valid) {
+    if (kind === 'tablet') { // still show where it would point
+      const ghost: Placed = { uid: -1, id, kind: 'tablet', x, y, rot: ((rot % 4) + 4) % 4, level: 0 };
+      out.targets = tabletTargets(ghost).map((t) => ({ cell: t.cell, op: t.op, sign: opSign(t.op), hitsArtifact: false, inBounds: t.cell[0] >= 0 && t.cell[1] >= 0 && t.cell[0] < g.cols && t.cell[1] < g.rows }));
+    }
+    return out;
+  }
+  const p = place(clone, id, x, y, rot, movingLevel)!;
+  const selfUid = movingUid ?? p.uid; p.uid = selfUid;
+  const after = resolve(clone);
+  const occ = occupancy(clone);
+  if (p.kind === 'tablet') out.targets = tabletTargets(p).map((t) => {
+    const o = occ.get(`${t.cell[0]},${t.cell[1]}`);
+    return { cell: t.cell, op: t.op, sign: opSign(t.op), hitsArtifact: !!o && o.kind === 'artifact', inBounds: t.cell[0] >= 0 && t.cell[1] >= 0 && t.cell[0] < g.cols && t.cell[1] < g.rows };
+  });
+  for (const [uid, a] of after.arts) {
+    const b = resBefore.arts.get(uid); const self = uid === selfUid;
+    const lb = b?.level ?? a.baseLevel, eb = b?.effLevel ?? Math.max(0, Math.min(a.baseLevel, a.maxLevel)), mb = b?.maxLevel ?? getArtifact(a.id)!.maxLevel;
+    const wasActive = b ? b.active : false;
+    if (!self && b && lb === a.level && b.active === a.active && mb === a.maxLevel && eb === a.effLevel) continue;
+    out.arts.push({ uid, id: a.id, self, levelBefore: lb, levelAfter: a.level, effBefore: eb, effAfter: a.effLevel, maxBefore: mb, maxAfter: a.maxLevel, wasActive, nowActive: a.active, disabledAfter: a.disabled, constraintOkAfter: a.constraintOk || a.ignoreConstraint });
+  }
+  const selfTags = p.kind === 'artifact' ? (getArtifact(id)?.tags ?? []) : [];
+  const ids = new Set<string>([...Object.keys(resBefore.comboCounts), ...Object.keys(after.comboCounts)]);
+  for (const cid of ids) {
+    const nb = resBefore.comboCounts[cid] ?? 0, na = after.comboCounts[cid] ?? 0;
+    if (nb === na && !selfTags.includes(cid as ComboId)) continue;
+    const pa = comboProgress(cid as ComboId, na);
+    out.combos.push({ id: cid as ComboId, before: nb, after: na, thresholds: pa.thresholds, tierBefore: comboProgress(cid as ComboId, nb).tier, tierAfter: pa.tier, next: pa.next });
+  }
+  out.combos.sort((a, b) => (b.after - b.before) - (a.after - a.before) || b.after - a.after);
+  return out;
+}
+/** Short label for a preview combo line, e.g. "Băng Hà 2→3/4" or "Băng Hà 3→4 ★2". */
+export function comboLine(c: PreviewCombo): string {
+  const name = getCombo(c.id)?.name ?? c.id; const arrow = c.before === c.after ? `${c.after}` : `${c.before}→${c.after}`;
+  const goal = c.next ?? c.thresholds[c.thresholds.length - 1];
+  return `${name} ${arrow}/${goal}${c.tierAfter > c.tierBefore ? ` ★${c.tierAfter} kích hoạt!` : c.tierAfter < c.tierBefore ? ` (mất ★${c.tierBefore})` : c.tierAfter ? ` ★${c.tierAfter}` : ''}`;
+}

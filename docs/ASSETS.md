@@ -78,3 +78,18 @@ parts of one generated still — see the Miêu rig approach) as long as motion r
 Atlas `icons_items` (`public/assets/sprites/icons_items.png/.json`), frame name = the `icon` field in
 `src/data/artifacts.ts` / `tablets.ts` (`art_<id>`, `tab_<id>`), 96×96 source, shown at 48 px. Manifest file
 `manifest.icons.json`.
+
+## V2 additions (animation / perf workstream — see `docs/V2_ANIM.md`, `docs/V2_PERF.md`)
+- **Held weapons** (`wpn_*`): the manifest `anchor` is the **grip** — the hero rig (`src/game/heroAnim.ts`) puts a paw on
+  it and rotates the weapon around it along the attack arc. Keep weapons pointing right with the handle at the anchor.
+  Display multipliers for tiny art live in `WEAPON_SCALE` (dagger 1.35, katana 1.1, sword-and-shield 1.1).
+  `wpn_shield` is the off-hand for sword-and-shield (anchor centre).
+- **Runtime textures** (generated in code, not files — never add them to a manifest): `hero_paw_<rgb>` (paw, colour
+  sampled from the costume sheet's frame 0), `dmgfont` (bitmap font for damage numbers, Baloo 2, cached in
+  `cache.bitmapFont`), `ebar_track` / `ebar_fill` / `ebar_dot` (enemy HP bar quads).
+- **Pools**: FX sprites (`fx_*`), projectiles (`pj_*`) and damage numbers are recycled (`src/game/fxPool.ts`): an FX
+  sheet must keep its first anim as the one-shot (`play`/`loop`), projectiles render their frame 0.
+- **Music**: procedural WebAudio only (`src/game/audio.ts` `playMusic(area)`, area 0 = hub, 1–6 = chapters), no audio
+  files. Music on/off is the HUD ♪ button (`hudMusic`), persisted in `localStorage.thapsao_music`; global mute silences it.
+- Tools: `tools/anim-shots.mjs` + `tools/anim-sheet.py` (frame-exact hero pose contact sheets → `out/anim/`),
+  `tools/perf.mjs` + `tools/profsum.mjs` (combat perf probe → `out/perf/`).

@@ -110,16 +110,61 @@ try {
   st = await S(); ok('C072_enter_node', typeof st.run.pos === 'number', `pos=${st.run.pos}`);
   await waitFor(() => window.__TS.getState().room?.enemies.length > 0 || !window.__TS.getState().room?.fighting, 8000);
   await sleep(800); await shot('room_combat_start');
+  const roomWaves = (await S()).room.waves; let wavesReached = 0;
   // ---------- real combat ----------
   const before = (await S()).room.dmgDealt;
-  const atk = await fight(90000, async (s) => s.run.cleared);
-  st = await S(); ok('C022_real_combat', st.room.dmgDealt > before && atk > 0, `attacks=${atk} dmg=${st.room.dmgDealt}`);
+  const atk = await fight(90000, async (s) => { wavesReached = Math.max(wavesReached, s.room.waveIdx); return s.run.cleared; });
+  st = await S(); wavesReached = Math.max(wavesReached, st.room.waveIdx); ok('C022_real_combat', st.room.dmgDealt > before && atk > 0, `attacks=${atk} dmg=${st.room.dmgDealt}`);
   if (!st.run.cleared) { log('combat timeout → clearRoom'); await ev(() => window.__TS.clearRoom()); await sleep(1500); }
   st = await S(); ok('C078_room_cleared_doors_open', st.run.cleared);
   const L = await ev(() => window.__TS.log().map((l) => l.type));
   ok('C105_keyboard_mouse', L.includes('attack') && L.includes('hit'));
-  await page.keyboard.press('Space'); await sleep(400); ok('C018_dash', (await ev(() => window.__TS.log('dash').length)) > 0);
+  await sleep(700); /* V2: let the last attack's recovery end — a dash is buffered only 120 ms (docs/COMBAT.md) */ await page.keyboard.press('Space'); await sleep(400); ok('C018_dash', (await ev(() => window.__TS.log('dash').length)) > 0);
   await shot('room_cleared');
+
+  // ---------- V2 depth: waves, elite marker + telegraph, charged attack, perfect dodge, parry (docs/V2_*.md) ----------
+  ok('V2_wave_waves', roomWaves >= 2 && wavesReached >= 2, `waves ${roomWaves}, reached wave ${wavesReached}`);
+  await ev(() => window.__TS.setWeapon('swordshield')); await sleep(600);
+  const RS = 'window.__game.scene.getScene("Run")';
+  await ev(() => { const rs = window.__game.scene.getScene('Run'); rs.px = 640; rs.py = 560;
+    rs.waves = [['beetle_charger', 'slime_moss', 'sprout_archer']]; rs.waveElites = [['swift', null, null]]; rs.waveIdx = 0; rs.miniBoss = undefined; rs.spawnWave(); });
+  await sleep(700);
+  const elite = await ev(() => { const rs = window.__game.scene.getScene('Run'); const e = rs.enemies.find((x) => !x.dead && x.elite); return e ? { id: e.id, affix: e.elite, ring: !!(e.eliteG && e.eliteG.visible), label: e.eliteLabel?.text, hp: e.maxHp } : null; });
+  ok('V2_elite_marker', !!elite && elite.ring && /Tinh Anh/.test(elite.label ?? ''), JSON.stringify(elite));
+  const tele = await waitFor(() => { const rs = window.__game.scene.getScene('Run'); return rs.enemies.some((e) => !e.dead && e.agent.state === 'windup' && window.__TSAnim?.enemyPose(e.sprite) === 'windup') && rs.hazards.length > 0; }, 15000);
+  ok('V2_enemy_telegraph', tele, 'wind-up pose + telegraph hazard on screen');
+  await shot('v2_elite_telegraph');
+  // charged attack: hold the mouse (hold ≥ 280 ms → charge ring → auto-release at full)
+  { const nC = await ev(() => window.__TS.log('chargedAttack').length);
+    const tgt = await ev(() => { const rs = window.__game.scene.getScene('Run'); const e = rs.enemies.find((x) => !x.dead); return e ? { x: e.agent.x, y: e.agent.y } : { x: 640, y: 300 }; });
+    const tp = await toPage(tgt.x, tgt.y - 14); await page.mouse.move(tp.x, tp.y);
+    await page.mouse.down(); await sleep(750); await shot('v2_charged_attack'); await sleep(1100); await page.mouse.up(); await sleep(500);
+    const L = await ev(() => window.__TS.log().filter((l) => l.type === 'chargeStart' || l.type === 'chargedAttack').map((l) => l.type));
+    ok('V2_charged_attack', L.includes('chargeStart') && (await ev(() => window.__TS.log('chargedAttack').length)) > nC, JSON.stringify(L.slice(-3))); }
+  // perfect dodge: a real dash (Space) while a charging enemy reaches the hero in the dash's first frames
+  { const nD = await ev(() => window.__TS.log('perfectDodge').length);
+    await ev(() => { const rs = window.__game.scene.getScene('Run'); const e = rs.enemies.find((x) => !x.dead && !x.dummy && !x.boss && x.agent.ai !== 'exploder'); if (!e) return;
+      const od = rs.startDash; rs.startDash = function (...a) { rs.startDash = od; od.apply(this, a);
+        const ou = rs.updateEnemies; rs.updateEnemies = function (dt) { rs.updateEnemies = ou; e.status.stunT = 0; e.status.frozenT = 0; e.agent.x = rs.px; e.agent.y = rs.py; e.chargeT = 0.2; e.chargeA = 0; e.chargeSpd = 1; e.contactCd = 0; e.kvx = 0; e.kvy = 0; return ou.call(this, dt); }; }; });
+    await page.keyboard.press('Space'); await sleep(180); await shot('v2_perfect_dodge'); await sleep(600);
+    ok('V2_perfect_dodge', (await ev(() => window.__TS.log('perfectDodge').length)) > nD); }
+  // parry: guard (K) opens; a charging enemy hits the shield inside the 150 ms window → stagger + riposte. Then a projectile → reflect.
+  { await sleep(1200); await ev(() => window.__TS.godMode(false)); await ev(() => window.__TS.heal());
+    const nP = await ev(() => window.__TS.log('parry').length);
+    const arm = (proj) => ev((proj) => { const rs = window.__game.scene.getScene('Run'); const e = rs.enemies.find((x) => !x.dead && !x.dummy && !x.boss && x.agent.ai !== 'exploder'); let n = 0;
+      const ou = rs.updateEnemies; rs.updateEnemies = function (dt) { if (rs.ws.guarding || ++n > 400) { rs.updateEnemies = ou; if (rs.ws.guarding) {
+        const f = rs.facing;
+        if (proj) rs.spawnEnemyProj(rs.px + Math.cos(f) * 34, rs.py - 14 + Math.sin(f) * 34, f + Math.PI, 260, 5);
+        else if (e) { e.status.stunT = 0; e.status.frozenT = 0; e.agent.x = rs.px + Math.cos(f) * 12; e.agent.y = rs.py + Math.sin(f) * 12; e.chargeT = 0.2; e.chargeA = f + Math.PI; e.chargeSpd = 1; e.contactCd = 0; e.kvx = 0; e.kvy = 0; } } }
+        return ou.call(this, dt); }; }, proj);
+    await arm(false); await page.keyboard.down('k'); await sleep(260); await shot('v2_parry'); await sleep(300); await page.keyboard.up('k'); await sleep(700);
+    const melee = await ev(() => window.__TS.log('parry').filter((l) => !l.data.proj).length);
+    await arm(true); await page.keyboard.down('k'); await sleep(450); await page.keyboard.up('k'); await sleep(400);
+    const Lp = await ev(() => window.__TS.log('parry').map((l) => l.data.proj));
+    ok('V2_parry', melee > 0 && Lp.length > nP, `parry events ${JSON.stringify(Lp.slice(-3))}`);
+    ok('V2_projectile_reflect', Lp.includes(true), JSON.stringify(Lp.slice(-3)));
+    await ev(() => window.__TS.godMode(true)); await ev(() => window.__TS.heal()); }
+  await ev(() => window.__TS.clearRoom()); await sleep(600); void RS;
 
   // ---------- inventory: place artifact + tablet with real drag ----------
   // find a proper pair using exported data on window via state check
@@ -148,6 +193,7 @@ try {
   const tf = await cellPx(itT.x, itT.y), tt = await cellPx(1, 2);
   await page.mouse.move(tf.x, tf.y); await page.mouse.down(); await sleep(150); await page.mouse.move(tt.x, tt.y, { steps: 6 }); await sleep(300);
   await shot('inventory_drag_preview');
+  ok('V2_drag_preview', await ev(() => { const walk = (l) => l.some((x) => (x.visible !== false && typeof x.text === 'string' && /^[+\-]\d|★\d|→/.test(x.text)) || (x.list && walk(x.list))); return walk(window.__game.scene.getScene('Inventory').children.list); }), 'live +/−/★ labels while dragging');
   await page.keyboard.press('e'); await sleep(150); await page.keyboard.press('q'); await sleep(150);
   await page.mouse.up(); await sleep(400);
   st = await S(); const a2 = st.run.items.find((i) => i.id === chosen.a), t2 = st.run.items.find((i) => i.id === chosen.tb);
@@ -174,7 +220,16 @@ try {
     let pass = false;
     if (['artifact', 'tablet', 'anvil', 'roots'].includes(ty)) {
       const shown = sc.includes('Choice'); if (shown && ty === 'artifact') await shot('choice_artifact');
-      if (shown && ty === 'artifact') { const d0 = (await S()).run.dice; await btn('reroll'); ok('C080_reroll_choice', (await ev(() => window.__TS.log('reroll').length)) > 0 && (await S()).run.dice === d0 - 1); }
+      if (shown && ty === 'artifact') { // V2: concrete deltas on cards, keep (lock) survives reroll, banish refills the slot
+        await ev(() => window.__TS.addCurrency('dice', 3));
+        ok('V2_choice_deltas', await ev(() => { const walk = (l) => l.some((x) => (typeof x.text === 'string' && /Sức mạnh/.test(x.text)) || (x.list && walk(x.list))); return walk(window.__game.scene.getScene('Choice').children.list); }));
+        await btn('lock0'); const kept = await ev(() => { const c = window.__TS.G.run.choice; return c.locked === 0 ? c.options[0] : null; });
+        const ban = await ev(() => window.__TS.G.run.choice.options[1]); await btn('banish1');
+        const afterBan = await ev(() => ({ o: [...window.__TS.G.run.choice.options], b: [...(window.__TS.G.run.banished ?? [])] }));
+        ok('V2_choice_banish', !!ban && afterBan.b.includes(ban) && !afterBan.o.includes(ban), JSON.stringify({ ban, ...afterBan }));
+        await shot('v2_choice_keep_banish');
+        const d0 = (await S()).run.dice; await btn('reroll');
+        ok('V2_choice_keep', !!kept && (await ev(() => window.__TS.G.run.choice?.options[0])) === kept, `kept ${kept}`); ok('C080_reroll_choice', (await ev(() => window.__TS.log('reroll').length)) > 0 && (await S()).run.dice === d0 - 1); }
       await btn('take0'); await sleep(400); const a = await S();
       pass = shown && (ty === 'anvil' ? a.run.upgrades.length > before.run.upgrades.length : ty === 'roots' ? a.run.miracles.length === 1 : a.run.items.length > before.run.items.length);
       if (ty === 'roots') ok('C075_roots', pass); if (ty === 'anvil') ok('C034_anvil', pass);
@@ -286,7 +341,7 @@ try {
   ok('C071_start_shop_dummy_f2', st.run.startShop && st.room.interacts.some((i) => i.id === 'shop_stall') && st.room.enemies.some((e) => e.dummy));
 
   // ---------- bosses of all 6 chapters ----------
-  const bossShots = [];
+  const bossShots = []; const realKills = [];
   for (let ch = 1; ch <= 6; ch++) {
     await closeOverlays();
     await ev((ch) => window.__TS.setChapter(ch, 3), ch); await sleep(1200);
@@ -300,6 +355,9 @@ try {
     await shot(`ch${ch}_combat_room`);
     for (let k = 0; k < 4 && !(await S()).run.cleared; k++) { await ev(() => window.__TS.clearRoom()); await sleep(500); }
     await ev(() => { window.__TS.G.run.pos = 'start'; window.__TS.G.run.roomCleared = true; });
+    // V2 (docs/V2_AI.md): bosses are tuned for a normal run's level at their chapter (L = 3 + 3·(ch−1)); give the bot that
+    // level (a jumped-to chapter skips the XP of earlier floors) so the boss can be killed with real damage below.
+    await ev((ch) => { const r = window.__TS.G.run; const L = 3 + 3 * (ch - 1); if (r.level < L) { r.level = L; r.xp = 0; } }, ch);
     await ev(() => window.__TS.gotoNode('gate')); await sleep(800);
     await waitFor(() => !!window.__TS.getState().room?.boss, 30000);
     st = await S(); const hp0 = st.room.boss?.hp;
@@ -315,11 +373,19 @@ try {
       const ph = await ev(() => window.__TS.log('bossPhase').length); ok('C087_phases', ph >= 2, `phase events ${ph}`); await shot('ch1_boss_phase3');
       st = await S(); ok('C089_boss_bar', !!st.room.boss);
     }
-    if (dealt > 0) await ev(() => window.__TS.killBoss());
+    if (dealt > 0) { // V2: fight to the death with real damage; killBoss() only as a logged fallback
+      const nDef = await ev(() => window.__TS.log('bossDefeated').length); const tk = Date.now();
+      await fight(150000, async (s) => !s.room.boss || !s.room.fighting);
+      const realKill = (await ev(() => window.__TS.log('bossDefeated').length)) > nDef;
+      log(realKill ? 'PASS' : 'NOTE', `boss_ch${ch}_real_kill`, realKill ? `${Math.round((Date.now() - tk) / 1000)} s` : 'timeout → __TS.killBoss() fallback');
+      realKills.push(realKill);
+      if (!realKill) await ev(() => window.__TS.killBoss());
+    }
     await sleep(1500);
     const L3 = await ev(() => window.__TS.log('bossDefeated').map((x) => x.data));
     ok(`boss_ch${ch}_defeated`, L3.some((x) => x.chapter === Math.min(6, ch + 1) || (ch === 6 && x.res === 'win')), JSON.stringify(L3.slice(-1)));
   }
+  log('boss real kills', realKills.filter(Boolean).length, '/', realKills.length);
   ok('C088_boss_patterns_seen', (await ev(() => window.__TS.G.log.filter((l) => l.type === 'hit').length)) > 0);
   ok('C082_ending', await waitScene('Ending', 15000)); await sleep(2500); await shot('ending_credits');
   st = await S(); ok('C082_hard_mode_unlocked', st.meta.hardModeUnlocked && st.meta.stats.wins === 1);

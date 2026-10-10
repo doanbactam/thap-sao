@@ -132,3 +132,13 @@ playthrough (`tools/smoke.mjs`, run by `npm run smoke`) proves it. Proof referen
 
 ## Quality gates
 - [x] C110 Smoke playthrough hub → all 6 bosses → ending, plus death → hub → Destiny purchase, zero console errors — proof: smoke C110_full_run; smoke C081_death_results; smoke C092_destiny_buy; smoke __noerrors
+
+## V2 depth (integration pass)
+- [x] C111 Enemy wind-up telegraph (pose + aim/charge line) before every attack, recovery = punish window — proof: test "windups never drop below MIN_WINDUP"; test "contact damage only during active melee frames"; smoke V2_enemy_telegraph
+- [x] C112 Rooms run in waves (2–3, arena 3–4), escalating per floor/depth; ch1 floor 1 capped at 2 gentle waves — proof: test "normal rooms have 2–3 waves, arena 3–4"; test "escalates: budget grows"; smoke V2_wave_waves; smoke C079_event_arena
+- [x] C113 Elites: existing enemy + affix, visible ring + label — proof: test "elites: none on chapter 1 floor 1"; smoke V2_elite_marker
+- [x] C114 Charged attack (hold → charge ring → per-weapon charged move) — proof: test "hold → charge after HOLD_DELAY"; test "every weapon has a light chain and a charged attack"; smoke V2_charged_attack
+- [x] C115 Perfect dodge (threat in the first 120 ms of a dash → slow-mo + counter bonus) — proof: test "a threat within the window = perfect dodge"; smoke V2_perfect_dodge
+- [x] C116 Parry: perfect guard staggers melee attackers (riposte) and reflects projectiles — proof: test "a successful parry lifts the lockout"; smoke V2_parry; smoke V2_projectile_reflect
+- [x] C117 Inventory drag preview (+/− tablet targets, level/★ changes, combo progress before dropping) — proof: test "tablet: target cells with sign, level change and disabling"; test "moving an item compares against the pre-drag snapshot"; smoke V2_drag_preview
+- [x] C118 Choice cards: concrete power/stat deltas, keep (lock through reroll) and banish (1 die) — proof: test "every choice card has a concrete numeric delta"; test "lock keeps an option through a reroll"; smoke V2_choice_deltas; smoke V2_choice_keep; smoke V2_choice_banish

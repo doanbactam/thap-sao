@@ -13,12 +13,12 @@ describe('enemy AI kit (C085, C086)', () => {
   it('ring fires rings', () => { expect(run('ring').acts.some((x) => x.type === 'ring')).toBe(true); });
   it('lobber marks AoE with delay', () => { expect(run('lobber').acts.some((x) => x.type === 'lob' && x.delay > 0)).toBe(true); });
   it('summoner summons', () => { expect(run('summoner', 8).acts.some((x) => x.type === 'summon')).toBe(true); });
-  it('shielded blocks front', () => { const { a } = run('shielded', 3); expect(shieldBlocks(a, { x: a.x + 100, y: a.y })).toBe(true); expect(shieldBlocks(a, { x: a.x - 100, y: a.y })).toBe(false); });
+  it('shielded blocks front', () => { const { a } = run('shielded', 1.2); expect(shieldBlocks(a, { x: a.x + 100, y: a.y })).toBe(true); expect(shieldBlocks(a, { x: a.x - 100, y: a.y })).toBe(false); });
   it('exploder fuses with telegraph then explodes', () => { const { acts } = run('exploder', 3, 30); expect(acts.some((x) => x.type === 'telegraphCircle')).toBe(true); expect(acts.some((x) => x.type === 'explode')).toBe(true); });
   it('teleporter telegraphs destination and teleports', () => { const { acts } = run('teleporter', 6); expect(acts.some((x) => x.type === 'telegraphCircle')).toBe(true); expect(acts.some((x) => x.type === 'teleport')).toBe(true); });
   it('turret stays still and shoots', () => { const { a, acts } = run('turret'); expect(a.x).toBe(0); expect(acts.some((x) => x.type === 'shoot' || x.type === 'ring')).toBe(true); });
   it('healer heals', () => { expect(run('healer').acts.some((x) => x.type === 'heal')).toBe(true); });
-  it('content param aliases (fireRate / bulletCount)', () => { const { acts } = run('shooter', 3, 200, 0, { fireRate: 0.5, bulletCount: 3 }); expect(acts.filter((x) => x.type === 'shoot').length).toBeGreaterThanOrEqual(4); expect(acts[0].count).toBe(3); });
+  it('content param aliases (fireRate / bulletCount)', () => { const { acts } = run('shooter', 6, 200, 0, { fireRate: 0.5, bulletCount: 3 }); expect(acts.filter((x) => x.type === 'shoot').length).toBeGreaterThanOrEqual(3); expect(acts.find((x) => x.type === 'shoot').count).toBe(3); });
 });
 
 const testBoss = (pattern: string, params: Record<string, number> = {}): BossDef => ({ id: 'tb', name: 'b', title: '', chapter: 1, mini: false, sprite: 'x', hp: 100, damage: 5, speed: 50, radius: 40, reward: { sapphire: 1, money: 1 }, phases: [{ hpBelow: 1, attacks: [{ id: 'a', pattern, params, weight: 1 }] }] });

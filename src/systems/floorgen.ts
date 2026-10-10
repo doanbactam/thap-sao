@@ -1,6 +1,7 @@
 // Floor generator (SPEC §5): start room, 3-column × 3-deep node map with branching, node types/modifiers,
 // random events, gate/boss room; plus combat wave planning. Framework-free.
-import type { NodeType, NodeModifier, EventId } from '../data/types';
+import type { NodeType, NodeModifier, EventId, EnemyDef } from '../data/types';
+import { planEncounter, type Affix } from './director';
 import { Rng } from './rng';
 import { getChapter, getEnemy } from './registry';
 
@@ -65,18 +66,14 @@ export function reachable(f: Floor): Set<number> {
 }
 
 // ---- waves ----
-export interface WavePlan { waves: string[][]; miniBoss?: string; derangement?: Array<'haste' | 'armor' | 'explode'> }
-export function planWaves(seed: number, chapter: number, floor: number, depth: number, modifier: NodeModifier, event: EventId | null): WavePlan {
+// Composition is delegated to the encounter director (role budgets, 2–3 waves, elites): see director.ts.
+export interface WavePlan { waves: string[][]; elites?: Array<Array<Affix | null>>; miniBoss?: string; derangement?: Array<'haste' | 'armor' | 'explode'> }
+export function planWaves(seed: number, chapter: number, floor: number, depth: number, modifier: NodeModifier, event: EventId | null, hard = false): WavePlan {
   const rng = new Rng(seed ^ 0x9e3779b9);
   const ch = getChapter(chapter);
-  const pool = ch.enemies.filter((e) => getEnemy(e));
-  let nWaves = event === 'arena' ? rng.int(3, 4) : rng.int(1, Math.min(3, 1 + Math.floor((floor + depth) / 2)));
-  const waves: string[][] = [];
-  for (let w = 0; w < nWaves; w++) {
-    const count = Math.min(9, 2 + Math.floor(chapter / 2) + depth + w + rng.int(0, 2));
-    waves.push(Array.from({ length: count }, () => rng.pick(pool)));
-  }
-  const plan: WavePlan = { waves };
+  const pool = ch.enemies.map((e) => getEnemy(e)).filter((d): d is EnemyDef => !!d);
+  const enc = planEncounter(seed, chapter, floor, depth, pool, { hard, arena: event === 'arena', miniboss: modifier === 'miniboss', derangement: modifier === 'derangement' });
+  const plan: WavePlan = { waves: enc.waves.map((w) => w.map((e) => e.id)), elites: enc.waves.map((w) => w.map((e) => e.elite ?? null)) };
   if (modifier === 'miniboss') plan.miniBoss = ch.miniBoss;
   if (modifier === 'derangement') plan.derangement = rng.shuffle(['haste', 'armor', 'explode'] as Array<'haste' | 'armor' | 'explode'>).slice(0, rng.int(1, 2));
   return plan;

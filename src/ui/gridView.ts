@@ -5,13 +5,15 @@ import { PAL, RARITY_COLOR, RARITY_TEXT, iconRef } from '../game/assets';
 import { sfx } from '../game/audio';
 import { txt, darkTxt, card, stars, wrapText, button } from './kit';
 import { t } from '../systems/i18n';
-import { type Grid, type Placed, resolve, preview, cellsOf, cellsAt, canPlace, place, remove, tabletTargets, rotateShape, shapeOf, type Resolution } from '../systems/inventory';
+import { type Grid, type Placed, resolve, preview, cellsOf, cellsAt, canPlace, place, remove, tabletTargets, rotateShape, shapeOf, type Resolution, placementPreview, comboLine, cloneGrid, opSign } from '../systems/inventory';
 import { getArtifact, getTablet, getCombo, combos as COMBOS } from '../systems/registry';
 import { scaled } from '../systems/effects';
 import type { Effect } from '../data/types';
 import { G } from '../game/state';
 
-export interface GridViewOpts { x: number; y: number; cell: number; sellZone?: { x: number; y: number; w: number; h: number; onSell: (p: Placed) => void }; discard?: boolean; onChange?: () => void; selectMode?: (p: Placed) => void }
+export interface GridViewOpts { x: number; y: number; cell: number; sellZone?: { x: number; y: number; w: number; h: number; onSell: (p: Placed) => void }; discard?: boolean; onChange?: () => void; selectMode?: (p: Placed) => void;
+  /** extra tooltip line for an item (e.g. shop enchant price) */ tipExtra?: (p: Placed) => string | null;
+  /** where the live combo-progress readout goes while dragging (default: under the grid) */ previewAt?: { x: number; y: number } }
 export function effectValue(e: Effect, level: number): number {
   switch (e.kind) {
     case 'stat': case 'onKill': case 'onDash': case 'onHurt': case 'periodic': case 'spell': case 'summon': case 'special': return scaled(e.base, e.perLevel, level);
@@ -29,15 +31,17 @@ export class GridView {
   c: Phaser.GameObjects.Container; res!: Resolution; rot = 0;
   drag: { p: Placed; fromSide: number | null; img: Phaser.GameObjects.Container; ox: number; oy: number } | null = null;
   hl: Phaser.GameObjects.Graphics; tip: Phaser.GameObjects.Container | null = null; selected: Placed | null = null;
+  /** V2 drag preview: grid snapshot before the drag, text layer, cache key */
+  before: Grid | null = null; pv: Phaser.GameObjects.Container; pvKey = '';
   constructor(public s: Phaser.Scene, public g: Grid, public o: GridViewOpts) {
-    this.c = s.add.container(0, 0); this.hl = s.add.graphics().setDepth(50);
+    this.c = s.add.container(0, 0); this.hl = s.add.graphics().setDepth(50); this.pv = s.add.container(0, 0).setDepth(60);
     s.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onMove(p));
     s.input.on('pointerup', (p: Phaser.Input.Pointer) => this.onUp(p));
     s.input.keyboard?.on('keydown-Q', () => this.rotate(-1)); s.input.keyboard?.on('keydown-E', () => this.rotate(1)); s.input.keyboard?.on('keydown-R', () => this.rotate(1));
     s.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (p.rightButtonDown() && this.drag) this.rotate(1); });
     this.redraw();
   }
-  rotate(d: number) { if (!this.drag) return; this.rot = (this.rot + d + 4) % 4; sfx('ui'); this.rebuildDragImg(); this.onMove(this.s.input.activePointer); }
+  rotate(d: number) { if (!this.drag) return; this.rot = (this.rot + d + 4) % 4; sfx('ui'); this.rebuildDragImg(); this.pvKey = ''; this.onMove(this.s.input.activePointer); }
   cellXY(cx: number, cy: number) { return { x: this.o.x + cx * this.o.cell, y: this.o.y + cy * this.o.cell }; }
   sideXY(i: number) { return { x: this.o.x + i * this.o.cell, y: this.o.y + this.g.rows * this.o.cell + 40 }; }
   pointerCell(px: number, py: number) { return { cx: Math.floor((px - this.o.x) / this.o.cell), cy: Math.floor((py - this.o.y) / this.o.cell) }; }
@@ -75,7 +79,16 @@ export class GridView {
     const r = iconRef(s, def.icon); const ic = s.add.image(mx * C / 2, my * C / 2 - (isArt ? 4 : 0), r.tex, r.frame); const sz = Math.min(mx, my) * C * 0.78; ic.setDisplaySize(sz, sz); c.add(ic);
     if (isArt && st) {
       const lv = st.disabled ? 0 : st.effLevel; c.add(stars(s, mx * C / 2 - (st.maxLevel - 1) * 6, my * C - 12, lv, Math.min(6, st.maxLevel), 11));
-      if (!st.active && !side) { ic.setTint(0x777777); fp.setAlpha(0.5); c.add(txt(s, mx * C / 2, 14, st.disabled ? t('inv.disabled') : '!', 12, '#ff7a66').setOrigin(0.5)); }
+      if (!st.active && !side) {
+        ic.setTint(0x777777); fp.setAlpha(0.5);
+        const xg = s.add.graphics(); const cellsL = rotateShape(shapeOf(p.id), rot).cells;
+        for (const [qx, qy] of cellsL) {
+          xg.lineStyle(4, 0xe2483d, 1).strokeRoundedRect(qx * C + 4, qy * C + 4, C - 8, C - 8, 10);
+          if (st.disabled) xg.lineStyle(5, 0xe2483d, 0.85).lineBetween(qx * C + 14, qy * C + 14, qx * C + C - 14, qy * C + C - 14).lineBetween(qx * C + C - 14, qy * C + 14, qx * C + 14, qy * C + C - 14);
+        }
+        c.add(xg);
+        c.add(txt(s, mx * C / 2, 14, st.disabled ? `VÔ HIỆU (cấp ${st.level})` : '! điều kiện', 12, '#ff7a66').setOrigin(0.5));
+      }
       if (st.level > st.baseLevel && !side) c.add(txt(s, mx * C - 10, 10, `+${st.level - st.baseLevel}`, 14, '#a6e070').setOrigin(0.5));
       if (st.level < st.baseLevel && !side) c.add(txt(s, mx * C - 10, 10, `${st.level - st.baseLevel}`, 14, '#ff7a66').setOrigin(0.5));
     }
@@ -88,6 +101,7 @@ export class GridView {
   }
   startDrag(p: Placed, fromSide: number | null, ptr: Phaser.Input.Pointer) {
     this.hideTip(); this.selected = p; this.rot = fromSide !== null ? 0 : p.rot;
+    this.before = cloneGrid(this.g); this.pvKey = '';
     if (fromSide !== null) this.g.side[fromSide] = null; else remove(this.g, p.uid);
     this.redraw();
     this.drag = { p, fromSide, img: this.s.add.container(ptr.x, ptr.y).setDepth(100), ox: 0, oy: 0 };
@@ -104,18 +118,52 @@ export class GridView {
   }
   dropCell(px: number, py: number) { const C = this.o.cell; return this.pointerCell(px - C / 2 + C / 2, py - C / 2 + C / 2); }
   onMove(ptr: Phaser.Input.Pointer) {
-    this.hl.clear(); if (!this.drag) return; const C = this.o.cell; const d = this.drag;
+    if (!this.drag) { this.hl.clear(); this.pv.removeAll(true); return; }
+    const C = this.o.cell; const d = this.drag;
     d.img.setPosition(ptr.x - C / 2, ptr.y - C / 2);
     const { cx, cy } = this.pointerCell(ptr.x, ptr.y);
+    const key = `${cx},${cy},${this.rot}`; if (key === this.pvKey) return; this.pvKey = key;
+    this.hl.clear(); this.pv.removeAll(true);
     if (cx < -1 || cy < -1 || cx > this.g.cols || cy > this.g.rows) return;
-    const pv = preview(this.g, d.p.id, cx, cy, this.rot);
-    for (const m of pv.marks) if (m.x >= 0 && m.y >= 0 && m.x < this.g.cols && m.y < this.g.rows) this.hl.fillStyle(m.ok ? 0x7cc44e : 0xe2483d, 0.45).fillRoundedRect(this.o.x + m.x * C + 3, this.o.y + m.y * C + 3, C - 6, C - 6, 8);
-    for (const [tx, ty] of pv.targets) if (tx >= 0 && ty >= 0 && tx < this.g.cols && ty < this.g.rows) this.hl.lineStyle(3, 0xffcb6b, 1).strokeRoundedRect(this.o.x + tx * C + 6, this.o.y + ty * C + 6, C - 12, C - 12, 8);
-    for (const ch of pv.changes) { const it = this.g.items.find((i) => i.uid === ch.uid); if (!it) continue; const good = ch.dLevel > 0 || (ch.nowActive && !ch.wasActive); for (const [x, y] of cellsOf(it)) this.hl.lineStyle(4, good ? 0x7cf07c : 0xff5040, 1).strokeRoundedRect(this.o.x + x * C + 2, this.o.y + y * C + 2, C - 4, C - 4, 8); }
+    this.drawPreview(d.p, cx, cy);
+  }
+  /** V2 live preview: footprint validity, tablet targets with +/− per cell, level change labels on every affected
+   *  artifact (incl. the dragged one), disabled warnings, and combo progress (e.g. "Băng Hà 2→3/4"). */
+  drawPreview(p: Placed, cx: number, cy: number) {
+    const C = this.o.cell; const s = this.s; const ox = this.o.x, oy = this.o.y;
+    const pv = placementPreview(this.g, p.id, cx, cy, this.rot, p.uid, this.before ?? this.g);
+    const inB = (x: number, y: number) => x >= 0 && y >= 0 && x < this.g.cols && y < this.g.rows;
+    for (const m of pv.marks) if (inB(m.x, m.y)) this.hl.fillStyle(m.ok ? 0x7cc44e : 0xe2483d, 0.45).fillRoundedRect(ox + m.x * C + 3, oy + m.y * C + 3, C - 6, C - 6, 8);
+    for (const tg of pv.targets) {
+      if (!tg.inBounds) continue; const [tx, ty] = tg.cell;
+      const col = tg.sign > 0 ? 0x7cf07c : tg.sign < 0 ? 0xff5040 : 0xffcb6b;
+      this.hl.lineStyle(3, col, tg.hitsArtifact ? 1 : 0.55).strokeRoundedRect(ox + tx * C + 6, oy + ty * C + 6, C - 12, C - 12, 8);
+      const lab = tg.op.op === 'level' ? `${tg.op.amount > 0 ? '+' : ''}${tg.op.amount}` : tg.op.op === 'maxLevel' ? `+${tg.op.amount}★max` : tg.op.op === 'doubleTags' ? '×2 bộ' : tg.op.op === 'copy' ? 'chép' : 'tự do';
+      this.pv.add(txt(s, ox + tx * C + C - 8, oy + ty * C + 8, lab, 13, tg.sign > 0 ? '#a6f07a' : tg.sign < 0 ? '#ff7a66' : '#ffcb6b').setOrigin(1, 0).setAlpha(tg.hitsArtifact ? 1 : 0.6));
+    }
+    for (const a of pv.arts) {
+      const it = a.self ? null : this.g.items.find((i) => i.uid === a.uid);
+      const cells = a.self ? cellsAt(p.id, cx, cy, this.rot) : it ? cellsOf(it) : []; if (!cells.length) continue;
+      const dl = a.levelAfter - a.levelBefore; const lost = a.wasActive && !a.nowActive; const gained = !a.wasActive && a.nowActive && !a.self;
+      const good = dl > 0 || gained || a.maxAfter > a.maxBefore; const bad = dl < 0 || lost || (a.self && !a.nowActive);
+      if (!a.self) for (const [x, y] of cells) this.hl.lineStyle(4, bad ? 0xff5040 : good ? 0x7cf07c : 0xffcb6b, 1).strokeRoundedRect(ox + x * C + 2, oy + y * C + 2, C - 4, C - 4, 8);
+      const [lx, ly] = cells.reduce((m, c) => (c[1] < m[1] || (c[1] === m[1] && c[0] < m[0]) ? c : m), cells[0]);
+      const parts: string[] = [];
+      if (dl !== 0) parts.push(`${dl > 0 ? '+' : ''}${dl}`);
+      if (a.effAfter !== a.effBefore || a.self) parts.push(`★${a.effAfter}/${a.maxAfter}`);
+      else if (a.maxAfter !== a.maxBefore) parts.push(`max ${a.maxAfter}`);
+      if (a.disabledAfter) parts.push('VÔ HIỆU'); else if (!a.nowActive) parts.push(a.self ? '! điều kiện' : 'tắt'); else if (gained) parts.push('bật');
+      if (!parts.length) continue;
+      this.pv.add(txt(s, ox + lx * C + 4, oy + ly * C + C - 24, parts.join(' '), 14, bad ? '#ff7a66' : good ? '#a6f07a' : '#ffffff').setOrigin(0, 0));
+    }
+    const at = this.o.previewAt ?? { x: ox, y: oy - 26 };
+    const lines = pv.combos.slice(0, 3).map(comboLine);
+    if (lines.length) this.pv.add(txt(s, at.x, at.y, lines.join('   ·   '), 18, pv.combos.some((c) => c.tierAfter < c.tierBefore) ? '#ff9a7a' : '#ffe9a8').setOrigin(0, 0.5));
+    else if (!pv.valid) this.pv.add(txt(s, at.x, at.y, t('inv.cantPlace'), 15, '#ff9a7a').setOrigin(0, 0.5));
   }
   inZone(z: { x: number; y: number; w: number; h: number } | undefined, px: number, py: number) { return !!z && px >= z.x && px <= z.x + z.w && py >= z.y && py <= z.y + z.h; }
   onUp(ptr: Phaser.Input.Pointer) {
-    if (!this.drag) return; const d = this.drag; this.drag = null; d.img.destroy(); this.hl.clear();
+    if (!this.drag) return; const d = this.drag; this.drag = null; d.img.destroy(); this.hl.clear(); this.pv.removeAll(true); this.before = null; this.pvKey = '';
     const C = this.o.cell; const { cx, cy } = this.pointerCell(ptr.x, ptr.y);
     let done = false;
     if (canPlace(this.g, d.p.id, cx, cy, this.rot)) { const np = place(this.g, d.p.id, cx, cy, this.rot, d.p.level); if (np) { np.uid = d.p.uid; done = true; sfx('pickup'); G.logEvent('invPlace', { id: d.p.id, x: cx, y: cy, rot: this.rot }); } }
@@ -146,10 +194,11 @@ export class GridView {
     if (st?.disabled) lines.push(`! ${t('inv.disabled')} (cấp ${st.level})`);
     else if (st && !st.active) lines.push(`! ${t('inv.inactive')}`);
     if (side) lines.push(`(${t('inv.side')})`);
+    const extra = this.o.tipExtra?.(p); if (extra) lines.push(extra);
     if (st?.copies.length) lines.push(`Sao chép: ${st.copies.map((cid) => getArtifact(cid)?.name).join(', ')}`);
     c.add(wrapText(s, 14, 66, lines.join('\n'), W - 28, 15));
     // show tablet targets on hover
-    if (tab && !side) { this.hl.clear(); for (const tt of tabletTargets(p)) { const [tx, ty] = tt.cell; if (tx >= 0 && ty >= 0 && tx < this.g.cols && ty < this.g.rows) this.hl.lineStyle(3, tt.op.op === 'level' && (tt.op as any).amount < 0 ? 0xff5040 : 0xffcb6b, 1).strokeRoundedRect(this.o.x + tx * this.o.cell + 6, this.o.y + ty * this.o.cell + 6, this.o.cell - 12, this.o.cell - 12, 8); } }
+    if (tab && !side) { this.hl.clear(); for (const tt of tabletTargets(p)) { const [tx, ty] = tt.cell; const sg = opSign(tt.op); if (tx >= 0 && ty >= 0 && tx < this.g.cols && ty < this.g.rows) this.hl.lineStyle(3, sg < 0 ? 0xff5040 : sg > 0 ? 0x7cf07c : 0xffcb6b, 1).strokeRoundedRect(this.o.x + tx * this.o.cell + 6, this.o.y + ty * this.o.cell + 6, this.o.cell - 12, this.o.cell - 12, 8); } }
   }
   hideTip() { this.tip?.destroy(); this.tip = null; if (!this.drag) this.hl.clear(); }
   /** combos side panel */
@@ -170,4 +219,4 @@ export class GridView {
     return c;
   }
 }
-void cellsAt; void button;
+void button; void preview;

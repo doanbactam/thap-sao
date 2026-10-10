@@ -1,5 +1,7 @@
 # Tháp Sao — Content reference (src/data/*)
 
+> **V2 note (build/decision workstream):** some artifact numbers/descriptions, event costs (blood altar 25% max HP → epic+, companion 150+50/chapter, red fountain gold) and shop prices were retuned; see `docs/V2_BUILD.md` §3–4 for the authoritative list.
+
 Owner: content agent. Engine reads everything through `src/data/types.ts` (unchanged — **no contract additions were
 needed**). This file documents the open-ended vocabularies (mod keys, pattern params, special ids, grant keys…) so the
 engine can implement them. All names/text are original; Sephiria was used only for mechanics/balance shape.
