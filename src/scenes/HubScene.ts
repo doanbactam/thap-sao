@@ -75,6 +75,8 @@ export class HubScene extends Phaser.Scene {
     ui.push(button(this, 1236, 36, 60, 56, '', () => this.open('Settings'), 'wood', { icon: 'btn_pause', id: 'settings' }));
     ui.push(button(this, 1236, 140, 70, 70, '', () => this.open('Journal'), 'purple', { icon: 'node_artifact', id: 'journalBtn' }));
     ui.push(txt(this, 1236, 182, t('hub.journal'), 13).setOrigin(0.5));
+    ui.push(button(this, 1236, 250, 70, 70, '', () => { G.meta.sapphires += 3000; G.saveMeta(); G.logEvent('testPackHub', {}); this.buildUi(); }, 'green', { icon: 'ic_sapphire', id: 'testSapphire' }));
+    ui.push(txt(this, 1236, 292, '+3000 Ngọc', 13).setOrigin(0.5));
     const bx = [306, 424, 542, 660, 778];
     const items: Array<[string, string, string, () => void]> = [['btn_attack', t('hub.training'), 'trainBtn', () => startTraining(this, G.meta.weapon)], ['wic_swordshield', t('hub.weapons'), 'weaponsBtn', () => this.open('Weapons')], ['st_critChance', t('hub.talents'), 'talentsBtn', () => this.open('Talents')], ['combo_companion', t('hub.costumes'), 'costumesBtn', () => this.open('Costumes')], ['node_levelup', t('hub.destinyShort'), 'destinyBtn', () => this.open('Destiny')]];
     const bar = this.add.graphics().setDepth(7000); bar.fillStyle(PAL.pill, 0.85).fillRoundedRect(240, 606, 800, 108, 18).lineStyle(3, PAL.outline, 1).strokeRoundedRect(240, 606, 800, 108, 18); ui.push(bar);

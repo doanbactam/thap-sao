@@ -197,12 +197,14 @@ export function drawMap(s: Phaser.Scene, r: RunState, cx: number, cy: number, sc
 export class PauseScene extends Overlay {
   constructor() { super('Pause'); }
   create() {
-    dim(this, 0.6); card(this, 640, 360, 460, 470); title(this, t('menu.pause'), 160);
+    dim(this, 0.6); card(this, 640, 390, 460, 540); title(this, t('menu.pause'), 160);
     button(this, 640, 250, 320, 60, t('menu.resume'), () => this.close(), 'green', { id: 'resume' });
     button(this, 640, 330, 320, 60, t('map.title'), () => { if (G.training) return; this.scene.stop(); this.scene.launch('Map', { from: this.data0.from }); }, 'wood', { id: 'map' });
     button(this, 640, 410, 320, 60, G.meta.settings.mute ? t('settings.unmute') : t('settings.mute'), () => { G.meta.settings.mute = !G.meta.settings.mute; G.saveMeta(); this.scene.restart(this.data0); }, 'purple', { id: 'mute' });
     button(this, 640, 490, 320, 60, G.training ? t('menu.back') : t('menu.quit'), () => { G.saveRun(); this.toHub(); }, 'orange', { id: 'quit' });
     if (!G.training) button(this, 640, 570, 320, 56, t('menu.abandon'), () => { const rs = this.scene.get('Run') as any; this.scene.stop(); this.scene.resume('Run'); if (rs && G.run) { G.run.hp = 0; G.run.dead = true; rs.dieRun(); } }, 'red', { id: 'abandon' });
+    // Test pack: quick resources for playtesting (v2 test build)
+    button(this, 640, 632, 320, 46, 'Gói Test: +500 HD, +5 xúc xắc, hồi đầy', () => { const r = G.run; if (!r) return; r.money += 500; r.dice += 5; r.hp = runStats(r, G.meta).maxHp; r.mp = 999; G.saveRun(); sfx('levelup'); G.logEvent('testPack', {}); toast(this, '+500 Hạt Dẻ · +5 xúc xắc · hồi đầy', '#9be37a', 110); }, 'purple', { id: 'testPack', size: 15 });
     this.input.keyboard?.on('keydown-ESC', () => this.close());
   }
   toHub() { G.logEvent('quitToHub', {}); this.scene.stop('Run'); this.scene.stop('Hud'); this.scene.stop(); G.run = null; G.training = false; this.scene.start('Hub'); }
