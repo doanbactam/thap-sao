@@ -1,0 +1,2564 @@
+{
+ "altar_enchant_l": {
+  "type": "image",
+  "file": "sprites/altar_enchant_l.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "altar_enchant_m": {
+  "type": "image",
+  "file": "sprites/altar_enchant_m.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "altar_enchant_s": {
+  "type": "image",
+  "file": "sprites/altar_enchant_s.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "anvil": {
+  "type": "image",
+  "file": "sprites/anvil.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "blood_altar": {
+  "type": "image",
+  "file": "sprites/blood_altar.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "chest_money": {
+  "type": "sheet",
+  "file": "sprites/chest_money.png",
+  "frameW": 142,
+  "frameH": 157,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "closed": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "open": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "opened": {
+    "frames": [
+     3
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "clover": {
+  "type": "image",
+  "file": "sprites/clover.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5
+ },
+ "dice_pickup": {
+  "type": "image",
+  "file": "sprites/dice_pickup.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5
+ },
+ "door_boss": {
+  "type": "image",
+  "file": "sprites/door_boss.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "door_closed": {
+  "type": "image",
+  "file": "sprites/door_closed.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "door_open": {
+  "type": "image",
+  "file": "sprites/door_open.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "fountain_gold": {
+  "type": "image",
+  "file": "sprites/fountain_gold.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "fountain_green": {
+  "type": "image",
+  "file": "sprites/fountain_green.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "fountain_red": {
+  "type": "image",
+  "file": "sprites/fountain_red.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "fx_burn": {
+  "type": "sheet",
+  "file": "sprites/fx_burn.png",
+  "frameW": 96,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.9
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "fx_crit": {
+  "type": "sheet",
+  "file": "sprites/fx_crit.png",
+  "frameW": 176,
+  "frameH": 176,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 22,
+    "loop": false
+   }
+  }
+ },
+ "fx_dash_dust": {
+  "type": "sheet",
+  "file": "sprites/fx_dash_dust.png",
+  "frameW": 144,
+  "frameH": 96,
+  "anchor": [
+   0.7,
+   0.75
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 16,
+    "loop": false
+   }
+  }
+ },
+ "fx_explosion": {
+  "type": "sheet",
+  "file": "sprites/fx_explosion.png",
+  "frameW": 256,
+  "frameH": 256,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 8,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "fps": 16,
+    "loop": false
+   }
+  }
+ },
+ "fx_freeze": {
+  "type": "sheet",
+  "file": "sprites/fx_freeze.png",
+  "frameW": 128,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.75
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 14,
+    "loop": false
+   }
+  }
+ },
+ "fx_heal": {
+  "type": "sheet",
+  "file": "sprites/fx_heal.png",
+  "frameW": 128,
+  "frameH": 160,
+  "anchor": [
+   0.5,
+   0.85
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  }
+ },
+ "fx_hit": {
+  "type": "sheet",
+  "file": "sprites/fx_hit.png",
+  "frameW": 128,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 5,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "fps": 22,
+    "loop": false
+   }
+  }
+ },
+ "fx_levelup": {
+  "type": "sheet",
+  "file": "sprites/fx_levelup.png",
+  "frameW": 192,
+  "frameH": 256,
+  "anchor": [
+   0.5,
+   0.9
+  ],
+  "scale": 0.5,
+  "frames": 8,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "fps": 12,
+    "loop": false
+   }
+  }
+ },
+ "fx_poison": {
+  "type": "sheet",
+  "file": "sprites/fx_poison.png",
+  "frameW": 96,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.9
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 10,
+    "loop": true
+   }
+  }
+ },
+ "fx_shock": {
+  "type": "sheet",
+  "file": "sprites/fx_shock.png",
+  "frameW": 128,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 18,
+    "loop": true
+   }
+  }
+ },
+ "fx_slash_big": {
+  "type": "sheet",
+  "file": "sprites/fx_slash_big.png",
+  "frameW": 288,
+  "frameH": 288,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 7,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "fps": 20,
+    "loop": false
+   }
+  }
+ },
+ "fx_slash_small": {
+  "type": "sheet",
+  "file": "sprites/fx_slash_small.png",
+  "frameW": 192,
+  "frameH": 192,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 20,
+    "loop": false
+   }
+  }
+ },
+ "fx_spawn": {
+  "type": "sheet",
+  "file": "sprites/fx_spawn.png",
+  "frameW": 160,
+  "frameH": 160,
+  "anchor": [
+   0.5,
+   0.69
+  ],
+  "scale": 0.5,
+  "frames": 8,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "fps": 12,
+    "loop": false
+   }
+  }
+ },
+ "fx_telegraph_circle": {
+  "type": "sheet",
+  "file": "sprites/fx_telegraph_circle.png",
+  "frameW": 192,
+  "frameH": 192,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 8,
+    "loop": true
+   }
+  }
+ },
+ "fx_telegraph_line": {
+  "type": "sheet",
+  "file": "sprites/fx_telegraph_line.png",
+  "frameW": 256,
+  "frameH": 64,
+  "anchor": [
+   0.0,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 10,
+    "loop": true
+   }
+  }
+ },
+ "fx_thrust": {
+  "type": "sheet",
+  "file": "sprites/fx_thrust.png",
+  "frameW": 256,
+  "frameH": 96,
+  "anchor": [
+   0.06,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 5,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "fps": 20,
+    "loop": false
+   }
+  }
+ },
+ "heart_green": {
+  "type": "image",
+  "file": "sprites/heart_green.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5
+ },
+ "hub_bush_berry": {
+  "type": "image",
+  "file": "sprites/hub_bush_berry.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_campfire": {
+  "type": "sheet",
+  "file": "sprites/hub_campfire.png",
+  "frameW": 166,
+  "frameH": 306,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 10,
+    "loop": true
+   }
+  }
+ },
+ "hub_destiny_tree": {
+  "type": "image",
+  "file": "sprites/hub_destiny_tree.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_dirt_a": {
+  "type": "image",
+  "file": "sprites/hub_dirt_a.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "desc": "big ground decal for the hub (draw under objects)"
+ },
+ "hub_dirt_b": {
+  "type": "image",
+  "file": "sprites/hub_dirt_b.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "desc": "big ground decal for the hub (draw under objects)"
+ },
+ "hub_flowers": {
+  "type": "image",
+  "file": "sprites/hub_flowers.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_house": {
+  "type": "sheet",
+  "file": "sprites/hub_house.png",
+  "frameW": 366,
+  "frameH": 330,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "broken": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "repaired": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "hub_journal_stand": {
+  "type": "image",
+  "file": "sprites/hub_journal_stand.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_mirror": {
+  "type": "image",
+  "file": "sprites/hub_mirror.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_mushrooms": {
+  "type": "image",
+  "file": "sprites/hub_mushrooms.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_pond": {
+  "type": "image",
+  "file": "sprites/hub_pond.png",
+  "anchor": [
+   0.5,
+   0.6
+  ],
+  "scale": 0.5
+ },
+ "hub_portal": {
+  "type": "image",
+  "file": "sprites/hub_portal.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_rock": {
+  "type": "image",
+  "file": "sprites/hub_rock.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_tent_smith": {
+  "type": "image",
+  "file": "sprites/hub_tent_smith.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_training_dummy": {
+  "type": "image",
+  "file": "sprites/hub_training_dummy.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_tree_a": {
+  "type": "image",
+  "file": "sprites/hub_tree_a.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_tree_b": {
+  "type": "image",
+  "file": "sprites/hub_tree_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_tree_c": {
+  "type": "image",
+  "file": "sprites/hub_tree_c.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_wardrobe": {
+  "type": "image",
+  "file": "sprites/hub_wardrobe.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "hub_weapon_rack": {
+  "type": "image",
+  "file": "sprites/hub_weapon_rack.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "icons_ui": {
+  "type": "atlas",
+  "file": "sprites/icons_ui.png",
+  "atlas": "sprites/icons_ui.json",
+  "scale": 0.5,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "96px frames shown at 48px; frame names ic_*, node_*, mod_*, combo_*, st_<StatKey>, btn_*, pot_*, mir_1..8, wic_<WeaponId>"
+ },
+ "merchant_rat": {
+  "type": "image",
+  "file": "sprites/merchant_rat.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "obelisk": {
+  "type": "image",
+  "file": "sprites/obelisk.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "orb_levelup": {
+  "type": "sheet",
+  "file": "sprites/orb_levelup.png",
+  "frameW": 104,
+  "frameH": 104,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 8,
+    "loop": true
+   }
+  }
+ },
+ "pj_bolt": {
+  "type": "sheet",
+  "file": "sprites/pj_bolt.png",
+  "frameW": 72,
+  "frameH": 28,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 1,
+  "anims": {
+   "fly": {
+    "frames": [
+     0
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_bomb": {
+  "type": "sheet",
+  "file": "sprites/pj_bomb.png",
+  "frameW": 52,
+  "frameH": 52,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_enemy_arrow": {
+  "type": "sheet",
+  "file": "sprites/pj_enemy_arrow.png",
+  "frameW": 72,
+  "frameH": 28,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 1,
+  "anims": {
+   "fly": {
+    "frames": [
+     0
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_enemy_orb": {
+  "type": "sheet",
+  "file": "sprites/pj_enemy_orb.png",
+  "frameW": 44,
+  "frameH": 44,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_fireball": {
+  "type": "sheet",
+  "file": "sprites/pj_fireball.png",
+  "frameW": 84,
+  "frameH": 44,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_icebolt": {
+  "type": "sheet",
+  "file": "sprites/pj_icebolt.png",
+  "frameW": 76,
+  "frameH": 36,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_lightning": {
+  "type": "sheet",
+  "file": "sprites/pj_lightning.png",
+  "frameW": 100,
+  "frameH": 44,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_orb_magic": {
+  "type": "sheet",
+  "file": "sprites/pj_orb_magic.png",
+  "frameW": 48,
+  "frameH": 48,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_star": {
+  "type": "sheet",
+  "file": "sprites/pj_star.png",
+  "frameW": 48,
+  "frameH": 48,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pocket_portal": {
+  "type": "image",
+  "file": "sprites/pocket_portal.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "portal_exit": {
+  "type": "image",
+  "file": "sprites/portal_exit.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_boulder": {
+  "type": "image",
+  "file": "sprites/prop_ch1_boulder.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_boulder_b": {
+  "type": "image",
+  "file": "sprites/prop_ch1_boulder_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_bramble": {
+  "type": "image",
+  "file": "sprites/prop_ch1_bramble.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch1_breakable.png",
+  "frameW": 110,
+  "frameH": 102,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch1_lantern": {
+  "type": "image",
+  "file": "sprites/prop_ch1_lantern.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_log": {
+  "type": "image",
+  "file": "sprites/prop_ch1_log.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_mushrooms": {
+  "type": "image",
+  "file": "sprites/prop_ch1_mushrooms.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_stones": {
+  "type": "image",
+  "file": "sprites/prop_ch1_stones.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_stump": {
+  "type": "image",
+  "file": "sprites/prop_ch1_stump.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch1_tree": {
+  "type": "image",
+  "file": "sprites/prop_ch1_tree.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_barrel_flag": {
+  "type": "image",
+  "file": "sprites/prop_ch2_barrel_flag.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch2_breakable.png",
+  "frameW": 123,
+  "frameH": 110,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch2_crates": {
+  "type": "image",
+  "file": "sprites/prop_ch2_crates.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_crystals": {
+  "type": "image",
+  "file": "sprites/prop_ch2_crystals.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_deadbush": {
+  "type": "image",
+  "file": "sprites/prop_ch2_deadbush.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_minecart": {
+  "type": "image",
+  "file": "sprites/prop_ch2_minecart.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_rubble": {
+  "type": "image",
+  "file": "sprites/prop_ch2_rubble.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_rubble_b": {
+  "type": "image",
+  "file": "sprites/prop_ch2_rubble_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_spire": {
+  "type": "image",
+  "file": "sprites/prop_ch2_spire.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch2_support": {
+  "type": "image",
+  "file": "sprites/prop_ch2_support.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_armchair": {
+  "type": "image",
+  "file": "sprites/prop_ch3_armchair.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_bookshelf": {
+  "type": "image",
+  "file": "sprites/prop_ch3_bookshelf.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_bookstack": {
+  "type": "image",
+  "file": "sprites/prop_ch3_bookstack.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch3_breakable.png",
+  "frameW": 110,
+  "frameH": 94,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch3_candelabra": {
+  "type": "image",
+  "file": "sprites/prop_ch3_candelabra.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_desk": {
+  "type": "image",
+  "file": "sprites/prop_ch3_desk.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_floating_rock": {
+  "type": "image",
+  "file": "sprites/prop_ch3_floating_rock.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_floating_rock_b": {
+  "type": "image",
+  "file": "sprites/prop_ch3_floating_rock_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_globe": {
+  "type": "image",
+  "file": "sprites/prop_ch3_globe.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch3_shelf_round": {
+  "type": "image",
+  "file": "sprites/prop_ch3_shelf_round.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch4_breakable.png",
+  "frameW": 132,
+  "frameH": 106,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch4_fish_barrel": {
+  "type": "image",
+  "file": "sprites/prop_ch4_fish_barrel.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_frost_bush": {
+  "type": "image",
+  "file": "sprites/prop_ch4_frost_bush.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_ice_crystals": {
+  "type": "image",
+  "file": "sprites/prop_ch4_ice_crystals.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_ice_pillar": {
+  "type": "image",
+  "file": "sprites/prop_ch4_ice_pillar.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_pine": {
+  "type": "image",
+  "file": "sprites/prop_ch4_pine.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_signpost": {
+  "type": "image",
+  "file": "sprites/prop_ch4_signpost.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_snow_boulder": {
+  "type": "image",
+  "file": "sprites/prop_ch4_snow_boulder.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_snow_rocks": {
+  "type": "image",
+  "file": "sprites/prop_ch4_snow_rocks.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch4_snowman": {
+  "type": "image",
+  "file": "sprites/prop_ch4_snowman.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_barrels": {
+  "type": "image",
+  "file": "sprites/prop_ch5_barrels.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_barrels_b": {
+  "type": "image",
+  "file": "sprites/prop_ch5_barrels_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_boiler": {
+  "type": "image",
+  "file": "sprites/prop_ch5_boiler.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch5_breakable.png",
+  "frameW": 115,
+  "frameH": 113,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch5_chimney": {
+  "type": "image",
+  "file": "sprites/prop_ch5_chimney.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_gears": {
+  "type": "image",
+  "file": "sprites/prop_ch5_gears.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_lamp": {
+  "type": "image",
+  "file": "sprites/prop_ch5_lamp.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_parts_crate": {
+  "type": "image",
+  "file": "sprites/prop_ch5_parts_crate.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_pipe_valve": {
+  "type": "image",
+  "file": "sprites/prop_ch5_pipe_valve.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch5_workbench": {
+  "type": "image",
+  "file": "sprites/prop_ch5_workbench.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_brazier": {
+  "type": "image",
+  "file": "sprites/prop_ch6_brazier.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch6_breakable.png",
+  "frameW": 119,
+  "frameH": 110,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch6_crystal": {
+  "type": "image",
+  "file": "sprites/prop_ch6_crystal.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_crystal_b": {
+  "type": "image",
+  "file": "sprites/prop_ch6_crystal_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_crystal_flowers": {
+  "type": "image",
+  "file": "sprites/prop_ch6_crystal_flowers.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_glow_mushrooms": {
+  "type": "image",
+  "file": "sprites/prop_ch6_glow_mushrooms.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_meteorite": {
+  "type": "image",
+  "file": "sprites/prop_ch6_meteorite.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_moon_rock": {
+  "type": "image",
+  "file": "sprites/prop_ch6_moon_rock.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_pillar": {
+  "type": "image",
+  "file": "sprites/prop_ch6_pillar.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_ring_statue": {
+  "type": "image",
+  "file": "sprites/prop_ch6_ring_statue.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_ch6_rubble": {
+  "type": "image",
+  "file": "sprites/prop_ch6_rubble.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_cracked_wall": {
+  "type": "image",
+  "file": "sprites/prop_cracked_wall.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_fence": {
+  "type": "image",
+  "file": "sprites/prop_fence.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "prop_wall_block": {
+  "type": "image",
+  "file": "sprites/prop_wall_block.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "roots_tree": {
+  "type": "image",
+  "file": "sprites/roots_tree.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "shop_stall": {
+  "type": "image",
+  "file": "sprites/shop_stall.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "training_dummy": {
+  "type": "image",
+  "file": "sprites/training_dummy.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5
+ },
+ "ts_ch1": {
+  "type": "sheet",
+  "file": "sprites/ts_ch1.png",
+  "frameW": 96,
+  "frameH": 96,
+  "scale": 0.5,
+  "anchor": [
+   0,
+   0
+  ],
+  "frames": 32,
+  "frameNames": {
+   "0": "floor_0",
+   "1": "floor_1",
+   "2": "floor_2",
+   "3": "floor_3",
+   "4": "floor_4",
+   "5": "floor_5",
+   "6": "floor_6",
+   "7": "floor_7",
+   "8": "decal_0",
+   "9": "decal_1",
+   "10": "decal_2",
+   "11": "decal_3",
+   "12": "decal_4",
+   "13": "decal_5",
+   "14": "decal_6",
+   "15": "decal_7",
+   "16": "wall_top",
+   "17": "wall_top_edge_e",
+   "18": "wall_top_edge_w",
+   "19": "wall_top_edge_n",
+   "20": "wall_top_corner_ne",
+   "21": "wall_top_corner_nw",
+   "22": "wall_face_upper",
+   "23": "wall_face_lower",
+   "24": "liquid",
+   "25": "liquid_alt",
+   "26": "liquid_cliff_n",
+   "27": "liquid_edge_s",
+   "28": "liquid_edge_w",
+   "29": "liquid_edge_e",
+   "30": "liquid_cliff_nw",
+   "31": "liquid_cliff_ne"
+  },
+  "frameDoc": "floor_*: interchangeable floor variants (identical borders). decal_*: transparent ground details drawn over floor. wall_top: wall mass seen from above; wall_top_edge_X: wall top whose X side borders the floor (edge_e = west wall column, edge_w = east wall column, edge_n = south wall row); wall_top_corner_ne/nw: wall top with inner notch where floor touches only diagonally (south wall corners); wall_face_upper + wall_face_lower: the north wall front face is 2 tiles tall - upper (with the cap band) on top, lower (with the floor contact shadow) directly above the floor row; stack them. liquid(_alt): water/lava/void fill; liquid_cliff_n: liquid cell directly BELOW a floor cell (cliff face + rim at top); liquid_edge_s: liquid cell directly ABOVE floor; liquid_edge_w/e: floor on the west/east side; liquid_cliff_nw/ne: floor to the north AND west/east."
+ },
+ "ts_ch2": {
+  "type": "sheet",
+  "file": "sprites/ts_ch2.png",
+  "frameW": 96,
+  "frameH": 96,
+  "scale": 0.5,
+  "anchor": [
+   0,
+   0
+  ],
+  "frames": 32,
+  "frameNames": {
+   "0": "floor_0",
+   "1": "floor_1",
+   "2": "floor_2",
+   "3": "floor_3",
+   "4": "floor_4",
+   "5": "floor_5",
+   "6": "floor_6",
+   "7": "floor_7",
+   "8": "decal_0",
+   "9": "decal_1",
+   "10": "decal_2",
+   "11": "decal_3",
+   "12": "decal_4",
+   "13": "decal_5",
+   "14": "decal_6",
+   "15": "decal_7",
+   "16": "wall_top",
+   "17": "wall_top_edge_e",
+   "18": "wall_top_edge_w",
+   "19": "wall_top_edge_n",
+   "20": "wall_top_corner_ne",
+   "21": "wall_top_corner_nw",
+   "22": "wall_face_upper",
+   "23": "wall_face_lower",
+   "24": "liquid",
+   "25": "liquid_alt",
+   "26": "liquid_cliff_n",
+   "27": "liquid_edge_s",
+   "28": "liquid_edge_w",
+   "29": "liquid_edge_e",
+   "30": "liquid_cliff_nw",
+   "31": "liquid_cliff_ne"
+  },
+  "frameDoc": "floor_*: interchangeable floor variants (identical borders). decal_*: transparent ground details drawn over floor. wall_top: wall mass seen from above; wall_top_edge_X: wall top whose X side borders the floor (edge_e = west wall column, edge_w = east wall column, edge_n = south wall row); wall_top_corner_ne/nw: wall top with inner notch where floor touches only diagonally (south wall corners); wall_face_upper + wall_face_lower: the north wall front face is 2 tiles tall - upper (with the cap band) on top, lower (with the floor contact shadow) directly above the floor row; stack them. liquid(_alt): water/lava/void fill; liquid_cliff_n: liquid cell directly BELOW a floor cell (cliff face + rim at top); liquid_edge_s: liquid cell directly ABOVE floor; liquid_edge_w/e: floor on the west/east side; liquid_cliff_nw/ne: floor to the north AND west/east."
+ },
+ "ts_ch3": {
+  "type": "sheet",
+  "file": "sprites/ts_ch3.png",
+  "frameW": 96,
+  "frameH": 96,
+  "scale": 0.5,
+  "anchor": [
+   0,
+   0
+  ],
+  "frames": 32,
+  "frameNames": {
+   "0": "floor_0",
+   "1": "floor_1",
+   "2": "floor_2",
+   "3": "floor_3",
+   "4": "floor_4",
+   "5": "floor_5",
+   "6": "floor_6",
+   "7": "floor_7",
+   "8": "decal_0",
+   "9": "decal_1",
+   "10": "decal_2",
+   "11": "decal_3",
+   "12": "decal_4",
+   "13": "decal_5",
+   "14": "decal_6",
+   "15": "decal_7",
+   "16": "wall_top",
+   "17": "wall_top_edge_e",
+   "18": "wall_top_edge_w",
+   "19": "wall_top_edge_n",
+   "20": "wall_top_corner_ne",
+   "21": "wall_top_corner_nw",
+   "22": "wall_face_upper",
+   "23": "wall_face_lower",
+   "24": "liquid",
+   "25": "liquid_alt",
+   "26": "liquid_cliff_n",
+   "27": "liquid_edge_s",
+   "28": "liquid_edge_w",
+   "29": "liquid_edge_e",
+   "30": "liquid_cliff_nw",
+   "31": "liquid_cliff_ne"
+  },
+  "frameDoc": "floor_*: interchangeable floor variants (identical borders). decal_*: transparent ground details drawn over floor. wall_top: wall mass seen from above; wall_top_edge_X: wall top whose X side borders the floor (edge_e = west wall column, edge_w = east wall column, edge_n = south wall row); wall_top_corner_ne/nw: wall top with inner notch where floor touches only diagonally (south wall corners); wall_face_upper + wall_face_lower: the north wall front face is 2 tiles tall - upper (with the cap band) on top, lower (with the floor contact shadow) directly above the floor row; stack them. liquid(_alt): water/lava/void fill; liquid_cliff_n: liquid cell directly BELOW a floor cell (cliff face + rim at top); liquid_edge_s: liquid cell directly ABOVE floor; liquid_edge_w/e: floor on the west/east side; liquid_cliff_nw/ne: floor to the north AND west/east."
+ },
+ "ts_ch4": {
+  "type": "sheet",
+  "file": "sprites/ts_ch4.png",
+  "frameW": 96,
+  "frameH": 96,
+  "scale": 0.5,
+  "anchor": [
+   0,
+   0
+  ],
+  "frames": 32,
+  "frameNames": {
+   "0": "floor_0",
+   "1": "floor_1",
+   "2": "floor_2",
+   "3": "floor_3",
+   "4": "floor_4",
+   "5": "floor_5",
+   "6": "floor_6",
+   "7": "floor_7",
+   "8": "decal_0",
+   "9": "decal_1",
+   "10": "decal_2",
+   "11": "decal_3",
+   "12": "decal_4",
+   "13": "decal_5",
+   "14": "decal_6",
+   "15": "decal_7",
+   "16": "wall_top",
+   "17": "wall_top_edge_e",
+   "18": "wall_top_edge_w",
+   "19": "wall_top_edge_n",
+   "20": "wall_top_corner_ne",
+   "21": "wall_top_corner_nw",
+   "22": "wall_face_upper",
+   "23": "wall_face_lower",
+   "24": "liquid",
+   "25": "liquid_alt",
+   "26": "liquid_cliff_n",
+   "27": "liquid_edge_s",
+   "28": "liquid_edge_w",
+   "29": "liquid_edge_e",
+   "30": "liquid_cliff_nw",
+   "31": "liquid_cliff_ne"
+  },
+  "frameDoc": "floor_*: interchangeable floor variants (identical borders). decal_*: transparent ground details drawn over floor. wall_top: wall mass seen from above; wall_top_edge_X: wall top whose X side borders the floor (edge_e = west wall column, edge_w = east wall column, edge_n = south wall row); wall_top_corner_ne/nw: wall top with inner notch where floor touches only diagonally (south wall corners); wall_face_upper + wall_face_lower: the north wall front face is 2 tiles tall - upper (with the cap band) on top, lower (with the floor contact shadow) directly above the floor row; stack them. liquid(_alt): water/lava/void fill; liquid_cliff_n: liquid cell directly BELOW a floor cell (cliff face + rim at top); liquid_edge_s: liquid cell directly ABOVE floor; liquid_edge_w/e: floor on the west/east side; liquid_cliff_nw/ne: floor to the north AND west/east."
+ },
+ "ts_ch5": {
+  "type": "sheet",
+  "file": "sprites/ts_ch5.png",
+  "frameW": 96,
+  "frameH": 96,
+  "scale": 0.5,
+  "anchor": [
+   0,
+   0
+  ],
+  "frames": 32,
+  "frameNames": {
+   "0": "floor_0",
+   "1": "floor_1",
+   "2": "floor_2",
+   "3": "floor_3",
+   "4": "floor_4",
+   "5": "floor_5",
+   "6": "floor_6",
+   "7": "floor_7",
+   "8": "decal_0",
+   "9": "decal_1",
+   "10": "decal_2",
+   "11": "decal_3",
+   "12": "decal_4",
+   "13": "decal_5",
+   "14": "decal_6",
+   "15": "decal_7",
+   "16": "wall_top",
+   "17": "wall_top_edge_e",
+   "18": "wall_top_edge_w",
+   "19": "wall_top_edge_n",
+   "20": "wall_top_corner_ne",
+   "21": "wall_top_corner_nw",
+   "22": "wall_face_upper",
+   "23": "wall_face_lower",
+   "24": "liquid",
+   "25": "liquid_alt",
+   "26": "liquid_cliff_n",
+   "27": "liquid_edge_s",
+   "28": "liquid_edge_w",
+   "29": "liquid_edge_e",
+   "30": "liquid_cliff_nw",
+   "31": "liquid_cliff_ne"
+  },
+  "frameDoc": "floor_*: interchangeable floor variants (identical borders). decal_*: transparent ground details drawn over floor. wall_top: wall mass seen from above; wall_top_edge_X: wall top whose X side borders the floor (edge_e = west wall column, edge_w = east wall column, edge_n = south wall row); wall_top_corner_ne/nw: wall top with inner notch where floor touches only diagonally (south wall corners); wall_face_upper + wall_face_lower: the north wall front face is 2 tiles tall - upper (with the cap band) on top, lower (with the floor contact shadow) directly above the floor row; stack them. liquid(_alt): water/lava/void fill; liquid_cliff_n: liquid cell directly BELOW a floor cell (cliff face + rim at top); liquid_edge_s: liquid cell directly ABOVE floor; liquid_edge_w/e: floor on the west/east side; liquid_cliff_nw/ne: floor to the north AND west/east."
+ },
+ "ts_ch6": {
+  "type": "sheet",
+  "file": "sprites/ts_ch6.png",
+  "frameW": 96,
+  "frameH": 96,
+  "scale": 0.5,
+  "anchor": [
+   0,
+   0
+  ],
+  "frames": 32,
+  "frameNames": {
+   "0": "floor_0",
+   "1": "floor_1",
+   "2": "floor_2",
+   "3": "floor_3",
+   "4": "floor_4",
+   "5": "floor_5",
+   "6": "floor_6",
+   "7": "floor_7",
+   "8": "decal_0",
+   "9": "decal_1",
+   "10": "decal_2",
+   "11": "decal_3",
+   "12": "decal_4",
+   "13": "decal_5",
+   "14": "decal_6",
+   "15": "decal_7",
+   "16": "wall_top",
+   "17": "wall_top_edge_e",
+   "18": "wall_top_edge_w",
+   "19": "wall_top_edge_n",
+   "20": "wall_top_corner_ne",
+   "21": "wall_top_corner_nw",
+   "22": "wall_face_upper",
+   "23": "wall_face_lower",
+   "24": "liquid",
+   "25": "liquid_alt",
+   "26": "liquid_cliff_n",
+   "27": "liquid_edge_s",
+   "28": "liquid_edge_w",
+   "29": "liquid_edge_e",
+   "30": "liquid_cliff_nw",
+   "31": "liquid_cliff_ne"
+  },
+  "frameDoc": "floor_*: interchangeable floor variants (identical borders). decal_*: transparent ground details drawn over floor. wall_top: wall mass seen from above; wall_top_edge_X: wall top whose X side borders the floor (edge_e = west wall column, edge_w = east wall column, edge_n = south wall row); wall_top_corner_ne/nw: wall top with inner notch where floor touches only diagonally (south wall corners); wall_face_upper + wall_face_lower: the north wall front face is 2 tiles tall - upper (with the cap band) on top, lower (with the floor contact shadow) directly above the floor row; stack them. liquid(_alt): water/lava/void fill; liquid_cliff_n: liquid cell directly BELOW a floor cell (cliff face + rim at top); liquid_edge_s: liquid cell directly ABOVE floor; liquid_edge_w/e: floor on the west/east side; liquid_cliff_nw/ne: floor to the north AND west/east."
+ },
+ "ts_hub": {
+  "type": "sheet",
+  "file": "sprites/ts_hub.png",
+  "frameW": 96,
+  "frameH": 96,
+  "scale": 0.5,
+  "anchor": [
+   0,
+   0
+  ],
+  "frames": 32,
+  "frameNames": {
+   "0": "floor_0",
+   "1": "floor_1",
+   "2": "floor_2",
+   "3": "floor_3",
+   "4": "floor_4",
+   "5": "floor_5",
+   "6": "floor_6",
+   "7": "floor_7",
+   "8": "decal_0",
+   "9": "decal_1",
+   "10": "decal_2",
+   "11": "decal_3",
+   "12": "decal_4",
+   "13": "decal_5",
+   "14": "decal_6",
+   "15": "decal_7",
+   "16": "wall_top",
+   "17": "wall_top_edge_e",
+   "18": "wall_top_edge_w",
+   "19": "wall_top_edge_n",
+   "20": "wall_top_corner_ne",
+   "21": "wall_top_corner_nw",
+   "22": "wall_face_upper",
+   "23": "wall_face_lower",
+   "24": "liquid",
+   "25": "liquid_alt",
+   "26": "liquid_cliff_n",
+   "27": "liquid_edge_s",
+   "28": "liquid_edge_w",
+   "29": "liquid_edge_e",
+   "30": "liquid_cliff_nw",
+   "31": "liquid_cliff_ne"
+  },
+  "frameDoc": "floor_*: interchangeable floor variants (identical borders). decal_*: transparent ground details drawn over floor. wall_top: wall mass seen from above; wall_top_edge_X: wall top whose X side borders the floor (edge_e = west wall column, edge_w = east wall column, edge_n = south wall row); wall_top_corner_ne/nw: wall top with inner notch where floor touches only diagonally (south wall corners); wall_face_upper + wall_face_lower: the north wall front face is 2 tiles tall - upper (with the cap band) on top, lower (with the floor contact shadow) directly above the floor row; stack them. liquid(_alt): water/lava/void fill; liquid_cliff_n: liquid cell directly BELOW a floor cell (cliff face + rim at top); liquid_edge_s: liquid cell directly ABOVE floor; liquid_edge_w/e: floor on the west/east side; liquid_cliff_nw/ne: floor to the north AND west/east."
+ },
+ "ui_badge_red": {
+  "type": "image",
+  "file": "ui/ui_badge_red.png",
+  "file2x": "ui/ui_badge_red@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "red count/alert badge; number Baloo 16px white/2px stroke"
+ },
+ "ui_bar_hp": {
+  "type": "image",
+  "file": "ui/ui_bar_hp.png",
+  "file2x": "ui/ui_bar_hp@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   9,
+   9,
+   8,
+   8
+  ],
+  "desc": "hp fill (crop/scale width to value)"
+ },
+ "ui_bar_mp": {
+  "type": "image",
+  "file": "ui/ui_bar_mp.png",
+  "file2x": "ui/ui_bar_mp@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   9,
+   9,
+   8,
+   8
+  ],
+  "desc": "mp fill (crop/scale width to value)"
+ },
+ "ui_bar_track": {
+  "type": "image",
+  "file": "ui/ui_bar_track.png",
+  "file2x": "ui/ui_bar_track@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   12,
+   12,
+   11,
+   11
+  ],
+  "desc": "bar background; fills go inside at inset 3px"
+ },
+ "ui_bar_xp": {
+  "type": "image",
+  "file": "ui/ui_bar_xp.png",
+  "file2x": "ui/ui_bar_xp@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   9,
+   9,
+   8,
+   8
+  ],
+  "desc": "xp fill (crop/scale width to value)"
+ },
+ "ui_btn_close": {
+  "type": "image",
+  "file": "ui/ui_btn_close.png",
+  "file2x": "ui/ui_btn_close@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "close button for cards"
+ },
+ "ui_btn_green": {
+  "type": "image",
+  "file": "ui/ui_btn_green.png",
+  "file2x": "ui/ui_btn_green@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   22,
+   22,
+   22,
+   26
+  ],
+  "desc": "confirm / CTA / + buttons"
+ },
+ "ui_btn_orange": {
+  "type": "image",
+  "file": "ui/ui_btn_orange.png",
+  "file2x": "ui/ui_btn_orange@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   24,
+   24,
+   24,
+   30
+  ],
+  "desc": "primary square action button (bottom HUD); icon centred at y=38, label 15px at y=72"
+ },
+ "ui_btn_orange_pressed": {
+  "type": "image",
+  "file": "ui/ui_btn_orange_pressed.png",
+  "file2x": "ui/ui_btn_orange_pressed@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   24,
+   24,
+   24,
+   30
+  ],
+  "desc": "pressed state (same size)"
+ },
+ "ui_btn_plus": {
+  "type": "image",
+  "file": "ui/ui_btn_plus.png",
+  "file2x": "ui/ui_btn_plus@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "green + at pill right end"
+ },
+ "ui_btn_purple": {
+  "type": "image",
+  "file": "ui/ui_btn_purple.png",
+  "file2x": "ui/ui_btn_purple@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   20,
+   20,
+   20,
+   24
+  ],
+  "desc": "side-column button"
+ },
+ "ui_btn_red": {
+  "type": "image",
+  "file": "ui/ui_btn_red.png",
+  "file2x": "ui/ui_btn_red@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   22,
+   22,
+   22,
+   26
+  ],
+  "desc": "danger / close / sell"
+ },
+ "ui_btn_wood": {
+  "type": "image",
+  "file": "ui/ui_btn_wood.png",
+  "file2x": "ui/ui_btn_wood@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   24,
+   24,
+   24,
+   30
+  ],
+  "desc": "secondary square button"
+ },
+ "ui_card_cream": {
+  "type": "image",
+  "file": "ui/ui_card_cream.png",
+  "file2x": "ui/ui_card_cream@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   32,
+   32,
+   32,
+   40
+  ],
+  "desc": "cream card / tooltip / choice card; content inset 20; text #3B2416"
+ },
+ "ui_card_header": {
+  "type": "image",
+  "file": "ui/ui_card_header.png",
+  "file2x": "ui/ui_card_header@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   20,
+   20,
+   18,
+   22
+  ],
+  "desc": "title ribbon on card top edge"
+ },
+ "ui_cell": {
+  "type": "image",
+  "file": "ui/ui_cell.png",
+  "file2x": "ui/ui_cell@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   16,
+   16,
+   16,
+   16
+  ],
+  "desc": "inventory grid cell (recessed cream)"
+ },
+ "ui_cell_bad": {
+  "type": "image",
+  "file": "ui/ui_cell_bad.png",
+  "file2x": "ui/ui_cell_bad@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   16,
+   16,
+   16,
+   16
+  ],
+  "desc": "invalid drop cell"
+ },
+ "ui_cell_hi": {
+  "type": "image",
+  "file": "ui/ui_cell_hi.png",
+  "file2x": "ui/ui_cell_hi@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   16,
+   16,
+   16,
+   16
+  ],
+  "desc": "valid drop / highlighted cell"
+ },
+ "ui_joystick_base": {
+  "type": "image",
+  "file": "ui/ui_joystick_base.png",
+  "file2x": "ui/ui_joystick_base@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "virtual joystick base (translucent)"
+ },
+ "ui_joystick_knob": {
+  "type": "image",
+  "file": "ui/ui_joystick_knob.png",
+  "file2x": "ui/ui_joystick_knob@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "joystick knob"
+ },
+ "ui_panel_dark": {
+  "type": "image",
+  "file": "ui/ui_panel_dark.png",
+  "file2x": "ui/ui_panel_dark@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   28,
+   28,
+   28,
+   28
+  ],
+  "desc": "translucent dark tray (minimap, belts, bottom bar)"
+ },
+ "ui_pill_dark": {
+  "type": "image",
+  "file": "ui/ui_pill_dark.png",
+  "file2x": "ui/ui_pill_dark@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   22,
+   22,
+   18,
+   20
+  ],
+  "desc": "dark counter pill; icon 40px overlapping left cap, value Baloo 21px at x+40, ui_btn_plus at right end"
+ },
+ "ui_rarity_frame_common": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_common.png",
+  "file2x": "ui/ui_rarity_frame_common@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "common rarity frame, transparent centre"
+ },
+ "ui_rarity_frame_epic": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_epic.png",
+  "file2x": "ui/ui_rarity_frame_epic@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "epic rarity frame, transparent centre"
+ },
+ "ui_rarity_frame_legendary": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_legendary.png",
+  "file2x": "ui/ui_rarity_frame_legendary@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "legendary rarity frame, transparent centre"
+ },
+ "ui_rarity_frame_rare": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_rare.png",
+  "file2x": "ui/ui_rarity_frame_rare@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "rare rarity frame, transparent centre"
+ },
+ "ui_star_off": {
+  "type": "image",
+  "file": "ui/ui_star_off.png",
+  "file2x": "ui/ui_star_off@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "empty star"
+ },
+ "ui_star_on": {
+  "type": "image",
+  "file": "ui/ui_star_on.png",
+  "file2x": "ui/ui_star_on@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "desc": "rarity / level star filled"
+ }
+}

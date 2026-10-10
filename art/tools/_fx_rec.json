@@ -1,0 +1,629 @@
+{
+ "fx_slash_small": {
+  "type": "sheet",
+  "file": "sprites/fx_slash_small.png",
+  "frameW": 192,
+  "frameH": 192,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 20,
+    "loop": false
+   }
+  }
+ },
+ "fx_slash_big": {
+  "type": "sheet",
+  "file": "sprites/fx_slash_big.png",
+  "frameW": 288,
+  "frameH": 288,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 7,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "fps": 20,
+    "loop": false
+   }
+  }
+ },
+ "fx_thrust": {
+  "type": "sheet",
+  "file": "sprites/fx_thrust.png",
+  "frameW": 256,
+  "frameH": 96,
+  "anchor": [
+   0.06,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 5,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "fps": 20,
+    "loop": false
+   }
+  }
+ },
+ "fx_hit": {
+  "type": "sheet",
+  "file": "sprites/fx_hit.png",
+  "frameW": 128,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 5,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "fps": 22,
+    "loop": false
+   }
+  }
+ },
+ "fx_crit": {
+  "type": "sheet",
+  "file": "sprites/fx_crit.png",
+  "frameW": 176,
+  "frameH": 176,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 22,
+    "loop": false
+   }
+  }
+ },
+ "fx_dash_dust": {
+  "type": "sheet",
+  "file": "sprites/fx_dash_dust.png",
+  "frameW": 144,
+  "frameH": 96,
+  "anchor": [
+   0.7,
+   0.75
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 16,
+    "loop": false
+   }
+  }
+ },
+ "fx_explosion": {
+  "type": "sheet",
+  "file": "sprites/fx_explosion.png",
+  "frameW": 256,
+  "frameH": 256,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 8,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "fps": 16,
+    "loop": false
+   }
+  }
+ },
+ "fx_burn": {
+  "type": "sheet",
+  "file": "sprites/fx_burn.png",
+  "frameW": 96,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.9
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "fx_freeze": {
+  "type": "sheet",
+  "file": "sprites/fx_freeze.png",
+  "frameW": 128,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.75
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 14,
+    "loop": false
+   }
+  }
+ },
+ "fx_shock": {
+  "type": "sheet",
+  "file": "sprites/fx_shock.png",
+  "frameW": 128,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 18,
+    "loop": true
+   }
+  }
+ },
+ "fx_poison": {
+  "type": "sheet",
+  "file": "sprites/fx_poison.png",
+  "frameW": 96,
+  "frameH": 128,
+  "anchor": [
+   0.5,
+   0.9
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 10,
+    "loop": true
+   }
+  }
+ },
+ "fx_heal": {
+  "type": "sheet",
+  "file": "sprites/fx_heal.png",
+  "frameW": 128,
+  "frameH": 160,
+  "anchor": [
+   0.5,
+   0.85
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  }
+ },
+ "fx_levelup": {
+  "type": "sheet",
+  "file": "sprites/fx_levelup.png",
+  "frameW": 192,
+  "frameH": 256,
+  "anchor": [
+   0.5,
+   0.9
+  ],
+  "scale": 0.5,
+  "frames": 8,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "fps": 12,
+    "loop": false
+   }
+  }
+ },
+ "fx_spawn": {
+  "type": "sheet",
+  "file": "sprites/fx_spawn.png",
+  "frameW": 160,
+  "frameH": 160,
+  "anchor": [
+   0.5,
+   0.69
+  ],
+  "scale": 0.5,
+  "frames": 8,
+  "anims": {
+   "play": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "fps": 12,
+    "loop": false
+   }
+  }
+ },
+ "fx_telegraph_circle": {
+  "type": "sheet",
+  "file": "sprites/fx_telegraph_circle.png",
+  "frameW": 192,
+  "frameH": 192,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 8,
+    "loop": true
+   }
+  }
+ },
+ "fx_telegraph_line": {
+  "type": "sheet",
+  "file": "sprites/fx_telegraph_line.png",
+  "frameW": 256,
+  "frameH": 64,
+  "anchor": [
+   0.0,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "loop": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 10,
+    "loop": true
+   }
+  }
+ },
+ "pj_bolt": {
+  "type": "sheet",
+  "file": "sprites/pj_bolt.png",
+  "frameW": 72,
+  "frameH": 28,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 1,
+  "anims": {
+   "fly": {
+    "frames": [
+     0
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_enemy_arrow": {
+  "type": "sheet",
+  "file": "sprites/pj_enemy_arrow.png",
+  "frameW": 72,
+  "frameH": 28,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 1,
+  "anims": {
+   "fly": {
+    "frames": [
+     0
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_orb_magic": {
+  "type": "sheet",
+  "file": "sprites/pj_orb_magic.png",
+  "frameW": 48,
+  "frameH": 48,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_enemy_orb": {
+  "type": "sheet",
+  "file": "sprites/pj_enemy_orb.png",
+  "frameW": 44,
+  "frameH": 44,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_fireball": {
+  "type": "sheet",
+  "file": "sprites/pj_fireball.png",
+  "frameW": 84,
+  "frameH": 44,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_icebolt": {
+  "type": "sheet",
+  "file": "sprites/pj_icebolt.png",
+  "frameW": 76,
+  "frameH": 36,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_lightning": {
+  "type": "sheet",
+  "file": "sprites/pj_lightning.png",
+  "frameW": 100,
+  "frameH": 44,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_bomb": {
+  "type": "sheet",
+  "file": "sprites/pj_bomb.png",
+  "frameW": 52,
+  "frameH": 52,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ },
+ "pj_star": {
+  "type": "sheet",
+  "file": "sprites/pj_star.png",
+  "frameW": 48,
+  "frameH": 48,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "fly": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 12,
+    "loop": true
+   }
+  }
+ }
+}

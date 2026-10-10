@@ -1,0 +1,7 @@
+{
+ "icons_items": {
+  "type": "atlas",
+  "file": "sprites/icons_items.png",
+  "atlas": "sprites/icons_items.json"
+ }
+}

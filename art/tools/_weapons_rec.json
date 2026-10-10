@@ -1,0 +1,72 @@
+{
+ "wpn_swordshield": {
+  "type": "image",
+  "file": "sprites/wpn_swordshield.png",
+  "anchor": [
+   0.19,
+   0.48
+  ],
+  "scale": 0.5,
+  "facing": "right"
+ },
+ "wpn_shield": {
+  "type": "image",
+  "file": "sprites/wpn_shield.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "facing": "right"
+ },
+ "wpn_greatsword": {
+  "type": "image",
+  "file": "sprites/wpn_greatsword.png",
+  "anchor": [
+   0.151,
+   0.484
+  ],
+  "scale": 0.5,
+  "facing": "right"
+ },
+ "wpn_dagger": {
+  "type": "image",
+  "file": "sprites/wpn_dagger.png",
+  "anchor": [
+   0.225,
+   0.472
+  ],
+  "scale": 0.5,
+  "facing": "right"
+ },
+ "wpn_katana": {
+  "type": "image",
+  "file": "sprites/wpn_katana.png",
+  "anchor": [
+   0.154,
+   0.45
+  ],
+  "scale": 0.5,
+  "facing": "right"
+ },
+ "wpn_crossbow": {
+  "type": "image",
+  "file": "sprites/wpn_crossbow.png",
+  "anchor": [
+   0.32,
+   0.62
+  ],
+  "scale": 0.5,
+  "facing": "right"
+ },
+ "wpn_staff": {
+  "type": "image",
+  "file": "sprites/wpn_staff.png",
+  "anchor": [
+   0.279,
+   0.481
+  ],
+  "scale": 0.5,
+  "facing": "right"
+ }
+}

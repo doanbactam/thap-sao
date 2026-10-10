@@ -1,0 +1,3777 @@
+{
+ "hero_bong": {
+  "type": "sheet",
+  "file": "sprites/hero_bong.png",
+  "frameW": 143,
+  "frameH": 124,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "dash": {
+    "frames": [
+     14,
+     15,
+     16
+    ],
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": [
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     21,
+     22
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     23,
+     24,
+     25,
+     26,
+     27
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5577,
+   0.8879
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 12
+ },
+ "boss_mushroom_king": {
+  "type": "sheet",
+  "file": "sprites/boss_mushroom_king.png",
+  "frameW": 553,
+  "frameH": 520,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "attack2": {
+    "frames": [
+     14,
+     15,
+     16,
+     17
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "phase": {
+    "frames": [
+     18,
+     19,
+     20,
+     21
+    ],
+    "fps": 8,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     22,
+     23
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     24,
+     25,
+     26,
+     27,
+     28
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.472,
+   0.8346
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 70
+ },
+ "hero_scarecrow": {
+  "type": "sheet",
+  "file": "sprites/hero_scarecrow.png",
+  "frameW": 143,
+  "frameH": 123,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "dash": {
+    "frames": [
+     14,
+     15,
+     16
+    ],
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": [
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     21,
+     22
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     23,
+     24,
+     25,
+     26,
+     27
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5507,
+   0.8951
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 12
+ },
+ "hero_redcat": {
+  "type": "sheet",
+  "file": "sprites/hero_redcat.png",
+  "frameW": 137,
+  "frameH": 124,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "dash": {
+    "frames": [
+     14,
+     15,
+     16
+    ],
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": [
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     21,
+     22
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     23,
+     24,
+     25,
+     26,
+     27
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.542,
+   0.8879
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 12
+ },
+ "hero_frog": {
+  "type": "sheet",
+  "file": "sprites/hero_frog.png",
+  "frameW": 140,
+  "frameH": 122,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "dash": {
+    "frames": [
+     14,
+     15,
+     16
+    ],
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": [
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     21,
+     22
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     23,
+     24,
+     25,
+     26,
+     27
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5518,
+   0.9025
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 12
+ },
+ "hero_fox": {
+  "type": "sheet",
+  "file": "sprites/hero_fox.png",
+  "frameW": 146,
+  "frameH": 123,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "dash": {
+    "frames": [
+     14,
+     15,
+     16
+    ],
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": [
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     21,
+     22
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     23,
+     24,
+     25,
+     26,
+     27
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5668,
+   0.8951
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 12
+ },
+ "hero_knight": {
+  "type": "sheet",
+  "file": "sprites/hero_knight.png",
+  "frameW": 141,
+  "frameH": 124,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "dash": {
+    "frames": [
+     14,
+     15,
+     16
+    ],
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": [
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     21,
+     22
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     23,
+     24,
+     25,
+     26,
+     27
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.555,
+   0.8879
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 12
+ },
+ "cmp_sprout": {
+  "type": "sheet",
+  "file": "sprites/cmp_sprout.png",
+  "frameW": 96,
+  "frameH": 83,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5417,
+   0.8735
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 8
+ },
+ "cmp_bat": {
+  "type": "sheet",
+  "file": "sprites/cmp_bat.png",
+  "frameW": 114,
+  "frameH": 78,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4649,
+   0.8615
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 8
+ },
+ "cmp_wisp": {
+  "type": "sheet",
+  "file": "sprites/cmp_wisp.png",
+  "frameW": 81,
+  "frameH": 80,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4938,
+   0.8938
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 8
+ },
+ "npc_elder": {
+  "type": "sheet",
+  "file": "sprites/npc_elder.png",
+  "frameW": 155,
+  "frameH": 122,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   }
+  },
+  "anchor": [
+   0.5113,
+   0.9246
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "npc_smith": {
+  "type": "sheet",
+  "file": "sprites/npc_smith.png",
+  "frameW": 125,
+  "frameH": 118,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   }
+  },
+  "anchor": [
+   0.456,
+   0.9195
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "npc_tailor": {
+  "type": "sheet",
+  "file": "sprites/npc_tailor.png",
+  "frameW": 101,
+  "frameH": 118,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   }
+  },
+  "anchor": [
+   0.5891,
+   0.9195
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "npc_merchant": {
+  "type": "sheet",
+  "file": "sprites/npc_merchant.png",
+  "frameW": 137,
+  "frameH": 118,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   }
+  },
+  "anchor": [
+   0.4672,
+   0.9195
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "npc_trainer": {
+  "type": "sheet",
+  "file": "sprites/npc_trainer.png",
+  "frameW": 97,
+  "frameH": 118,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   }
+  },
+  "anchor": [
+   0.5052,
+   0.9195
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "npc_bard": {
+  "type": "sheet",
+  "file": "sprites/npc_bard.png",
+  "frameW": 101,
+  "frameH": 118,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   }
+  },
+  "anchor": [
+   0.4505,
+   0.9195
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "npc_sleeper": {
+  "type": "sheet",
+  "file": "sprites/npc_sleeper.png",
+  "frameW": 116,
+  "frameH": 79,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   }
+  },
+  "anchor": [
+   0.4763,
+   0.9025
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_slime_moss": {
+  "type": "sheet",
+  "file": "sprites/en_slime_moss.png",
+  "frameW": 128,
+  "frameH": 119,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.498,
+   0.842
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_mushroom_spore": {
+  "type": "sheet",
+  "file": "sprites/en_mushroom_spore.png",
+  "frameW": 137,
+  "frameH": 119,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4708,
+   0.8571
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_beetle_charger": {
+  "type": "sheet",
+  "file": "sprites/en_beetle_charger.png",
+  "frameW": 150,
+  "frameH": 105,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.49,
+   0.8667
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 16
+ },
+ "en_sprout_archer": {
+  "type": "sheet",
+  "file": "sprites/en_sprout_archer.png",
+  "frameW": 132,
+  "frameH": 119,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.536,
+   0.8496
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 13
+ },
+ "en_bee_swarm": {
+  "type": "sheet",
+  "file": "sprites/en_bee_swarm.png",
+  "frameW": 152,
+  "frameH": 118,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4572,
+   0.8458
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 15
+ },
+ "en_rat_bandit": {
+  "type": "sheet",
+  "file": "sprites/en_rat_bandit.png",
+  "frameW": 170,
+  "frameH": 125,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4735,
+   0.852
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_rat_bomber": {
+  "type": "sheet",
+  "file": "sprites/en_rat_bomber.png",
+  "frameW": 145,
+  "frameH": 122,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4793,
+   0.8598
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_rat_shield": {
+  "type": "sheet",
+  "file": "sprites/en_rat_shield.png",
+  "frameW": 137,
+  "frameH": 123,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4799,
+   0.8724
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 16
+ },
+ "en_mole_digger": {
+  "type": "sheet",
+  "file": "sprites/en_mole_digger.png",
+  "frameW": 136,
+  "frameH": 128,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4522,
+   0.8789
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 17
+ },
+ "en_rat_crossbow": {
+  "type": "sheet",
+  "file": "sprites/en_rat_crossbow.png",
+  "frameW": 138,
+  "frameH": 129,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4402,
+   0.8473
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_book_flyer": {
+  "type": "sheet",
+  "file": "sprites/en_book_flyer.png",
+  "frameW": 211,
+  "frameH": 110,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4964,
+   0.8682
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_ink_blob": {
+  "type": "sheet",
+  "file": "sprites/en_ink_blob.png",
+  "frameW": 134,
+  "frameH": 128,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5187,
+   0.8242
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_candle_mage": {
+  "type": "sheet",
+  "file": "sprites/en_candle_mage.png",
+  "frameW": 130,
+  "frameH": 121,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4885,
+   0.8942
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 13
+ },
+ "en_mirror_construct": {
+  "type": "sheet",
+  "file": "sprites/en_mirror_construct.png",
+  "frameW": 145,
+  "frameH": 145,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4759,
+   0.8931
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 16
+ },
+ "en_quill_turret": {
+  "type": "sheet",
+  "file": "sprites/en_quill_turret.png",
+  "frameW": 142,
+  "frameH": 135,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5704,
+   0.8481
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 15
+ },
+ "en_penguin_slider": {
+  "type": "sheet",
+  "file": "sprites/en_penguin_slider.png",
+  "frameW": 139,
+  "frameH": 119,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5162,
+   0.8866
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_ice_spirit": {
+  "type": "sheet",
+  "file": "sprites/en_ice_spirit.png",
+  "frameW": 133,
+  "frameH": 131,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4474,
+   0.8756
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 13
+ },
+ "en_seal_lobber": {
+  "type": "sheet",
+  "file": "sprites/en_seal_lobber.png",
+  "frameW": 140,
+  "frameH": 130,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5357,
+   0.9077
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 15
+ },
+ "en_frost_wolf": {
+  "type": "sheet",
+  "file": "sprites/en_frost_wolf.png",
+  "frameW": 182,
+  "frameH": 122,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5316,
+   0.8672
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 17
+ },
+ "en_snow_golem_small": {
+  "type": "sheet",
+  "file": "sprites/en_snow_golem_small.png",
+  "frameW": 142,
+  "frameH": 131,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4859,
+   0.8664
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 16
+ },
+ "en_gear_bot": {
+  "type": "sheet",
+  "file": "sprites/en_gear_bot.png",
+  "frameW": 128,
+  "frameH": 115,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4863,
+   0.8704
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_steam_turret": {
+  "type": "sheet",
+  "file": "sprites/en_steam_turret.png",
+  "frameW": 144,
+  "frameH": 129,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5694,
+   0.8876
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 15
+ },
+ "en_raccoon_mechanic": {
+  "type": "sheet",
+  "file": "sprites/en_raccoon_mechanic.png",
+  "frameW": 144,
+  "frameH": 125,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4514,
+   0.8936
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_drone_bomber": {
+  "type": "sheet",
+  "file": "sprites/en_drone_bomber.png",
+  "frameW": 166,
+  "frameH": 124,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4654,
+   0.9169
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 14
+ },
+ "en_piston_brute": {
+  "type": "sheet",
+  "file": "sprites/en_piston_brute.png",
+  "frameW": 196,
+  "frameH": 147,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5472,
+   0.8531
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 20
+ },
+ "en_star_shard": {
+  "type": "sheet",
+  "file": "sprites/en_star_shard.png",
+  "frameW": 134,
+  "frameH": 114,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4739,
+   0.8377
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 13
+ },
+ "en_void_eye": {
+  "type": "sheet",
+  "file": "sprites/en_void_eye.png",
+  "frameW": 166,
+  "frameH": 131,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4639,
+   0.8023
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 15
+ },
+ "en_comet_hound": {
+  "type": "sheet",
+  "file": "sprites/en_comet_hound.png",
+  "frameW": 216,
+  "frameH": 106,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.6007,
+   0.8309
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 16
+ },
+ "en_nebula_healer": {
+  "type": "sheet",
+  "file": "sprites/en_nebula_healer.png",
+  "frameW": 142,
+  "frameH": 130,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4789,
+   0.9154
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 15
+ },
+ "en_star_knight": {
+  "type": "sheet",
+  "file": "sprites/en_star_knight.png",
+  "frameW": 121,
+  "frameH": 134,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4938,
+   0.8716
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 16
+ },
+ "mb_thorn_boar": {
+  "type": "sheet",
+  "file": "sprites/mb_thorn_boar.png",
+  "frameW": 369,
+  "frameH": 275,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4912,
+   0.8182
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 40
+ },
+ "mb_rat_captain": {
+  "type": "sheet",
+  "file": "sprites/mb_rat_captain.png",
+  "frameW": 356,
+  "frameH": 294,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4565,
+   0.8888
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 36
+ },
+ "mb_ink_golem": {
+  "type": "sheet",
+  "file": "sprites/mb_ink_golem.png",
+  "frameW": 362,
+  "frameH": 312,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4648,
+   0.8276
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 44
+ },
+ "mb_yeti": {
+  "type": "sheet",
+  "file": "sprites/mb_yeti.png",
+  "frameW": 420,
+  "frameH": 315,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4619,
+   0.8689
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 44
+ },
+ "mb_saw_crab": {
+  "type": "sheet",
+  "file": "sprites/mb_saw_crab.png",
+  "frameW": 360,
+  "frameH": 247,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4972,
+   0.8794
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 44
+ },
+ "mb_dark_twin": {
+  "type": "sheet",
+  "file": "sprites/mb_dark_twin.png",
+  "frameW": 336,
+  "frameH": 265,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     16,
+     17,
+     18,
+     19,
+     20
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5007,
+   0.8709
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 34
+ },
+ "boss_rat_chief": {
+  "type": "sheet",
+  "file": "sprites/boss_rat_chief.png",
+  "frameW": 589,
+  "frameH": 482,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "attack2": {
+    "frames": [
+     14,
+     15,
+     16,
+     17
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "phase": {
+    "frames": [
+     18,
+     19,
+     20,
+     21
+    ],
+    "fps": 8,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     22,
+     23
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     24,
+     25,
+     26,
+     27,
+     28
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5127,
+   0.9004
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 64
+ },
+ "boss_owl_librarian": {
+  "type": "sheet",
+  "file": "sprites/boss_owl_librarian.png",
+  "frameW": 589,
+  "frameH": 468,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "attack2": {
+    "frames": [
+     14,
+     15,
+     16,
+     17
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "phase": {
+    "frames": [
+     18,
+     19,
+     20,
+     21
+    ],
+    "fps": 8,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     22,
+     23
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     24,
+     25,
+     26,
+     27,
+     28
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4873,
+   0.8996
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 68
+ },
+ "boss_ice_walrus": {
+  "type": "sheet",
+  "file": "sprites/boss_ice_walrus.png",
+  "frameW": 521,
+  "frameH": 469,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "attack2": {
+    "frames": [
+     14,
+     15,
+     16,
+     17
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "phase": {
+    "frames": [
+     18,
+     19,
+     20,
+     21
+    ],
+    "fps": 8,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     22,
+     23
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     24,
+     25,
+     26,
+     27,
+     28
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.489,
+   0.8721
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 76
+ },
+ "boss_raccoon_golem": {
+  "type": "sheet",
+  "file": "sprites/boss_raccoon_golem.png",
+  "frameW": 598,
+  "frameH": 522,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "attack2": {
+    "frames": [
+     14,
+     15,
+     16,
+     17
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "phase": {
+    "frames": [
+     18,
+     19,
+     20,
+     21
+    ],
+    "fps": 8,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     22,
+     23
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     24,
+     25,
+     26,
+     27,
+     28
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.5075,
+   0.8793
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 76
+ },
+ "boss_fallen_star": {
+  "type": "sheet",
+  "file": "sprites/boss_fallen_star.png",
+  "frameW": 598,
+  "frameH": 521,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 6,
+    "loop": true
+   },
+   "run": {
+    "frames": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "fps": 12,
+    "loop": true
+   },
+   "attack": {
+    "frames": [
+     10,
+     11,
+     12,
+     13
+    ],
+    "fps": 14,
+    "loop": false
+   },
+   "attack2": {
+    "frames": [
+     14,
+     15,
+     16,
+     17
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "phase": {
+    "frames": [
+     18,
+     19,
+     20,
+     21
+    ],
+    "fps": 8,
+    "loop": false
+   },
+   "hurt": {
+    "frames": [
+     22,
+     23
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "die": {
+    "frames": [
+     24,
+     25,
+     26,
+     27,
+     28
+    ],
+    "fps": 10,
+    "loop": false
+   }
+  },
+  "anchor": [
+   0.4569,
+   0.881
+  ],
+  "scale": 0.5,
+  "facing": "right",
+  "hitRadius": 70
+ }
+}

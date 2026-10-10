@@ -1,0 +1,9 @@
+node_modules
+dist*
+out
+tools/.sysroot
+work
+docs/ThapSao.html
+docs/ThapSao_src.zip
+art/raw_*
+art/stills_chars

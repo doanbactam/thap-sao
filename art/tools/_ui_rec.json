@@ -1,0 +1,548 @@
+{
+ "ui_btn_orange": {
+  "type": "image",
+  "file": "ui/ui_btn_orange.png",
+  "file2x": "ui/ui_btn_orange@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   104,
+   92
+  ],
+  "nine": [
+   24,
+   24,
+   24,
+   30
+  ],
+  "desc": "primary square action button (bottom HUD); icon centred at y=38, label 15px at y=72"
+ },
+ "ui_btn_wood": {
+  "type": "image",
+  "file": "ui/ui_btn_wood.png",
+  "file2x": "ui/ui_btn_wood@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   104,
+   92
+  ],
+  "nine": [
+   24,
+   24,
+   24,
+   30
+  ],
+  "desc": "secondary square button"
+ },
+ "ui_btn_green": {
+  "type": "image",
+  "file": "ui/ui_btn_green.png",
+  "file2x": "ui/ui_btn_green@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   160,
+   56
+  ],
+  "nine": [
+   22,
+   22,
+   22,
+   26
+  ],
+  "desc": "confirm / CTA / + buttons"
+ },
+ "ui_btn_red": {
+  "type": "image",
+  "file": "ui/ui_btn_red.png",
+  "file2x": "ui/ui_btn_red@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   160,
+   56
+  ],
+  "nine": [
+   22,
+   22,
+   22,
+   26
+  ],
+  "desc": "danger / close / sell"
+ },
+ "ui_btn_purple": {
+  "type": "image",
+  "file": "ui/ui_btn_purple.png",
+  "file2x": "ui/ui_btn_purple@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   60,
+   60
+  ],
+  "nine": [
+   20,
+   20,
+   20,
+   24
+  ],
+  "desc": "side-column button"
+ },
+ "ui_btn_orange_pressed": {
+  "type": "image",
+  "file": "ui/ui_btn_orange_pressed.png",
+  "file2x": "ui/ui_btn_orange_pressed@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   104,
+   92
+  ],
+  "nine": [
+   24,
+   24,
+   24,
+   30
+  ],
+  "desc": "pressed state (same size)"
+ },
+ "ui_card_cream": {
+  "type": "image",
+  "file": "ui/ui_card_cream.png",
+  "file2x": "ui/ui_card_cream@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   120,
+   120
+  ],
+  "nine": [
+   32,
+   32,
+   32,
+   40
+  ],
+  "desc": "cream card / tooltip / choice card; content inset 20; text #3B2416"
+ },
+ "ui_pill_dark": {
+  "type": "image",
+  "file": "ui/ui_pill_dark.png",
+  "file2x": "ui/ui_pill_dark@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   150,
+   40
+  ],
+  "nine": [
+   22,
+   22,
+   18,
+   20
+  ],
+  "desc": "dark counter pill; icon 40px overlapping left cap, value Baloo 21px at x+40, ui_btn_plus at right end"
+ },
+ "ui_panel_dark": {
+  "type": "image",
+  "file": "ui/ui_panel_dark.png",
+  "file2x": "ui/ui_panel_dark@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   160,
+   120
+  ],
+  "nine": [
+   28,
+   28,
+   28,
+   28
+  ],
+  "desc": "translucent dark tray (minimap, belts, bottom bar)"
+ },
+ "ui_bar_track": {
+  "type": "image",
+  "file": "ui/ui_bar_track.png",
+  "file2x": "ui/ui_bar_track@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   120,
+   22
+  ],
+  "nine": [
+   12,
+   12,
+   11,
+   11
+  ],
+  "desc": "bar background; fills go inside at inset 3px"
+ },
+ "ui_bar_hp": {
+  "type": "image",
+  "file": "ui/ui_bar_hp.png",
+  "file2x": "ui/ui_bar_hp@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   120,
+   16
+  ],
+  "nine": [
+   9,
+   9,
+   8,
+   8
+  ],
+  "desc": "hp fill (crop/scale width to value)"
+ },
+ "ui_bar_mp": {
+  "type": "image",
+  "file": "ui/ui_bar_mp.png",
+  "file2x": "ui/ui_bar_mp@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   120,
+   16
+  ],
+  "nine": [
+   9,
+   9,
+   8,
+   8
+  ],
+  "desc": "mp fill (crop/scale width to value)"
+ },
+ "ui_bar_xp": {
+  "type": "image",
+  "file": "ui/ui_bar_xp.png",
+  "file2x": "ui/ui_bar_xp@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   120,
+   16
+  ],
+  "nine": [
+   9,
+   9,
+   8,
+   8
+  ],
+  "desc": "xp fill (crop/scale width to value)"
+ },
+ "ui_cell": {
+  "type": "image",
+  "file": "ui/ui_cell.png",
+  "file2x": "ui/ui_cell@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   64,
+   64
+  ],
+  "nine": [
+   16,
+   16,
+   16,
+   16
+  ],
+  "desc": "inventory grid cell (recessed cream)"
+ },
+ "ui_cell_hi": {
+  "type": "image",
+  "file": "ui/ui_cell_hi.png",
+  "file2x": "ui/ui_cell_hi@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   64,
+   64
+  ],
+  "nine": [
+   16,
+   16,
+   16,
+   16
+  ],
+  "desc": "valid drop / highlighted cell"
+ },
+ "ui_cell_bad": {
+  "type": "image",
+  "file": "ui/ui_cell_bad.png",
+  "file2x": "ui/ui_cell_bad@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   64,
+   64
+  ],
+  "nine": [
+   16,
+   16,
+   16,
+   16
+  ],
+  "desc": "invalid drop cell"
+ },
+ "ui_badge_red": {
+  "type": "image",
+  "file": "ui/ui_badge_red.png",
+  "file2x": "ui/ui_badge_red@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   30,
+   30
+  ],
+  "desc": "red count/alert badge; number Baloo 16px white/2px stroke"
+ },
+ "ui_btn_plus": {
+  "type": "image",
+  "file": "ui/ui_btn_plus.png",
+  "file2x": "ui/ui_btn_plus@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   30,
+   30
+  ],
+  "desc": "green + at pill right end"
+ },
+ "ui_btn_close": {
+  "type": "image",
+  "file": "ui/ui_btn_close.png",
+  "file2x": "ui/ui_btn_close@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   36,
+   36
+  ],
+  "desc": "close button for cards"
+ },
+ "ui_card_header": {
+  "type": "image",
+  "file": "ui/ui_card_header.png",
+  "file2x": "ui/ui_card_header@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   160,
+   44
+  ],
+  "nine": [
+   20,
+   20,
+   18,
+   22
+  ],
+  "desc": "title ribbon on card top edge"
+ },
+ "ui_joystick_base": {
+  "type": "image",
+  "file": "ui/ui_joystick_base.png",
+  "file2x": "ui/ui_joystick_base@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   160,
+   160
+  ],
+  "desc": "virtual joystick base (translucent)"
+ },
+ "ui_joystick_knob": {
+  "type": "image",
+  "file": "ui/ui_joystick_knob.png",
+  "file2x": "ui/ui_joystick_knob@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   72,
+   72
+  ],
+  "desc": "joystick knob"
+ },
+ "ui_rarity_frame_common": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_common.png",
+  "file2x": "ui/ui_rarity_frame_common@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   112,
+   112
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "common rarity frame, transparent centre"
+ },
+ "ui_rarity_frame_rare": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_rare.png",
+  "file2x": "ui/ui_rarity_frame_rare@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   112,
+   112
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "rare rarity frame, transparent centre"
+ },
+ "ui_rarity_frame_epic": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_epic.png",
+  "file2x": "ui/ui_rarity_frame_epic@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   112,
+   112
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "epic rarity frame, transparent centre"
+ },
+ "ui_rarity_frame_legendary": {
+  "type": "image",
+  "file": "ui/ui_rarity_frame_legendary.png",
+  "file2x": "ui/ui_rarity_frame_legendary@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   112,
+   112
+  ],
+  "nine": [
+   30,
+   30,
+   30,
+   30
+  ],
+  "desc": "legendary rarity frame, transparent centre"
+ },
+ "ui_star_on": {
+  "type": "image",
+  "file": "ui/ui_star_on.png",
+  "file2x": "ui/ui_star_on@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   32,
+   32
+  ],
+  "desc": "rarity / level star filled"
+ },
+ "ui_star_off": {
+  "type": "image",
+  "file": "ui/ui_star_off.png",
+  "file2x": "ui/ui_star_off@2x.png",
+  "scale": 1,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "size": [
+   32,
+   32
+  ],
+  "desc": "empty star"
+ }
+}

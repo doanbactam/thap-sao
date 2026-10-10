@@ -1,0 +1,1523 @@
+{
+ "prop_ch1_tree": {
+  "type": "image",
+  "file": "sprites/prop_ch1_tree.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   234,
+   266
+  ]
+ },
+ "prop_ch1_stump": {
+  "type": "image",
+  "file": "sprites/prop_ch1_stump.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   140,
+   174
+  ]
+ },
+ "prop_ch1_boulder": {
+  "type": "image",
+  "file": "sprites/prop_ch1_boulder.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   127,
+   114
+  ]
+ },
+ "prop_ch1_boulder_b": {
+  "type": "image",
+  "file": "sprites/prop_ch1_boulder_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   138,
+   98
+  ]
+ },
+ "prop_ch1_log": {
+  "type": "image",
+  "file": "sprites/prop_ch1_log.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   126,
+   86
+  ]
+ },
+ "prop_ch1_mushrooms": {
+  "type": "image",
+  "file": "sprites/prop_ch1_mushrooms.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   108,
+   118
+  ]
+ },
+ "prop_ch1_bramble": {
+  "type": "image",
+  "file": "sprites/prop_ch1_bramble.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   120,
+   118
+  ]
+ },
+ "prop_ch1_lantern": {
+  "type": "image",
+  "file": "sprites/prop_ch1_lantern.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   80,
+   150
+  ]
+ },
+ "prop_ch1_stones": {
+  "type": "image",
+  "file": "sprites/prop_ch1_stones.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   101,
+   102
+  ]
+ },
+ "prop_ch2_spire": {
+  "type": "image",
+  "file": "sprites/prop_ch2_spire.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   158,
+   198
+  ]
+ },
+ "prop_ch2_minecart": {
+  "type": "image",
+  "file": "sprites/prop_ch2_minecart.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   112,
+   118
+  ]
+ },
+ "prop_ch2_crates": {
+  "type": "image",
+  "file": "sprites/prop_ch2_crates.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   133,
+   138
+  ]
+ },
+ "prop_ch2_rubble": {
+  "type": "image",
+  "file": "sprites/prop_ch2_rubble.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   112,
+   98
+  ]
+ },
+ "prop_ch2_crystals": {
+  "type": "image",
+  "file": "sprites/prop_ch2_crystals.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   114,
+   130
+  ]
+ },
+ "prop_ch2_support": {
+  "type": "image",
+  "file": "sprites/prop_ch2_support.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   151,
+   198
+  ]
+ },
+ "prop_ch2_rubble_b": {
+  "type": "image",
+  "file": "sprites/prop_ch2_rubble_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   96,
+   94
+  ]
+ },
+ "prop_ch2_deadbush": {
+  "type": "image",
+  "file": "sprites/prop_ch2_deadbush.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   109,
+   102
+  ]
+ },
+ "prop_ch2_barrel_flag": {
+  "type": "image",
+  "file": "sprites/prop_ch2_barrel_flag.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   115,
+   150
+  ]
+ },
+ "prop_ch3_bookshelf": {
+  "type": "image",
+  "file": "sprites/prop_ch3_bookshelf.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   147,
+   214
+  ]
+ },
+ "prop_ch3_shelf_round": {
+  "type": "image",
+  "file": "sprites/prop_ch3_shelf_round.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   106,
+   154
+  ]
+ },
+ "prop_ch3_bookstack": {
+  "type": "image",
+  "file": "sprites/prop_ch3_bookstack.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   113,
+   130
+  ]
+ },
+ "prop_ch3_desk": {
+  "type": "image",
+  "file": "sprites/prop_ch3_desk.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   139,
+   122
+  ]
+ },
+ "prop_ch3_globe": {
+  "type": "image",
+  "file": "sprites/prop_ch3_globe.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   125,
+   146
+  ]
+ },
+ "prop_ch3_candelabra": {
+  "type": "image",
+  "file": "sprites/prop_ch3_candelabra.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   94,
+   166
+  ]
+ },
+ "prop_ch3_floating_rock": {
+  "type": "image",
+  "file": "sprites/prop_ch3_floating_rock.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   116,
+   130
+  ]
+ },
+ "prop_ch3_floating_rock_b": {
+  "type": "image",
+  "file": "sprites/prop_ch3_floating_rock_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   117,
+   122
+  ]
+ },
+ "prop_ch3_armchair": {
+  "type": "image",
+  "file": "sprites/prop_ch3_armchair.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   121,
+   130
+  ]
+ },
+ "prop_ch4_ice_pillar": {
+  "type": "image",
+  "file": "sprites/prop_ch4_ice_pillar.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   92,
+   198
+  ]
+ },
+ "prop_ch4_pine": {
+  "type": "image",
+  "file": "sprites/prop_ch4_pine.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   187,
+   246
+  ]
+ },
+ "prop_ch4_snow_boulder": {
+  "type": "image",
+  "file": "sprites/prop_ch4_snow_boulder.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   140,
+   126
+  ]
+ },
+ "prop_ch4_snow_rocks": {
+  "type": "image",
+  "file": "sprites/prop_ch4_snow_rocks.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   124,
+   94
+  ]
+ },
+ "prop_ch4_ice_crystals": {
+  "type": "image",
+  "file": "sprites/prop_ch4_ice_crystals.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   118,
+   138
+  ]
+ },
+ "prop_ch4_snowman": {
+  "type": "image",
+  "file": "sprites/prop_ch4_snowman.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   114,
+   134
+  ]
+ },
+ "prop_ch4_signpost": {
+  "type": "image",
+  "file": "sprites/prop_ch4_signpost.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   87,
+   130
+  ]
+ },
+ "prop_ch4_fish_barrel": {
+  "type": "image",
+  "file": "sprites/prop_ch4_fish_barrel.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   92,
+   126
+  ]
+ },
+ "prop_ch4_frost_bush": {
+  "type": "image",
+  "file": "sprites/prop_ch4_frost_bush.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   126,
+   114
+  ]
+ },
+ "prop_ch5_boiler": {
+  "type": "image",
+  "file": "sprites/prop_ch5_boiler.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   156,
+   198
+  ]
+ },
+ "prop_ch5_pipe_valve": {
+  "type": "image",
+  "file": "sprites/prop_ch5_pipe_valve.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   133,
+   130
+  ]
+ },
+ "prop_ch5_gears": {
+  "type": "image",
+  "file": "sprites/prop_ch5_gears.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   124,
+   102
+  ]
+ },
+ "prop_ch5_barrels": {
+  "type": "image",
+  "file": "sprites/prop_ch5_barrels.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   119,
+   126
+  ]
+ },
+ "prop_ch5_workbench": {
+  "type": "image",
+  "file": "sprites/prop_ch5_workbench.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   138,
+   118
+  ]
+ },
+ "prop_ch5_barrels_b": {
+  "type": "image",
+  "file": "sprites/prop_ch5_barrels_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   114,
+   130
+  ]
+ },
+ "prop_ch5_chimney": {
+  "type": "image",
+  "file": "sprites/prop_ch5_chimney.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   78,
+   226
+  ]
+ },
+ "prop_ch5_parts_crate": {
+  "type": "image",
+  "file": "sprites/prop_ch5_parts_crate.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   109,
+   118
+  ]
+ },
+ "prop_ch5_lamp": {
+  "type": "image",
+  "file": "sprites/prop_ch5_lamp.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   87,
+   174
+  ]
+ },
+ "prop_ch6_crystal": {
+  "type": "image",
+  "file": "sprites/prop_ch6_crystal.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   132,
+   186
+  ]
+ },
+ "prop_ch6_moon_rock": {
+  "type": "image",
+  "file": "sprites/prop_ch6_moon_rock.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   120,
+   126
+  ]
+ },
+ "prop_ch6_pillar": {
+  "type": "image",
+  "file": "sprites/prop_ch6_pillar.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   110,
+   206
+  ]
+ },
+ "prop_ch6_meteorite": {
+  "type": "image",
+  "file": "sprites/prop_ch6_meteorite.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   70,
+   118
+  ]
+ },
+ "prop_ch6_brazier": {
+  "type": "image",
+  "file": "sprites/prop_ch6_brazier.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   93,
+   130
+  ]
+ },
+ "prop_ch6_ring_statue": {
+  "type": "image",
+  "file": "sprites/prop_ch6_ring_statue.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   158,
+   158
+  ]
+ },
+ "prop_ch6_crystal_flowers": {
+  "type": "image",
+  "file": "sprites/prop_ch6_crystal_flowers.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   109,
+   126
+  ]
+ },
+ "prop_ch6_crystal_b": {
+  "type": "image",
+  "file": "sprites/prop_ch6_crystal_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   115,
+   146
+  ]
+ },
+ "prop_ch6_glow_mushrooms": {
+  "type": "image",
+  "file": "sprites/prop_ch6_glow_mushrooms.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   136,
+   134
+  ]
+ },
+ "prop_ch6_rubble": {
+  "type": "image",
+  "file": "sprites/prop_ch6_rubble.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   115,
+   86
+  ]
+ },
+ "prop_ch1_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch1_breakable.png",
+  "frameW": 110,
+  "frameH": 102,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch2_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch2_breakable.png",
+  "frameW": 123,
+  "frameH": 110,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch3_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch3_breakable.png",
+  "frameW": 110,
+  "frameH": 94,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch4_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch4_breakable.png",
+  "frameW": 132,
+  "frameH": 106,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch5_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch5_breakable.png",
+  "frameW": 115,
+  "frameH": 113,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_ch6_breakable": {
+  "type": "sheet",
+  "file": "sprites/prop_ch6_breakable.png",
+  "frameW": 119,
+  "frameH": 110,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "whole": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "broken": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "prop_cracked_wall": {
+  "type": "image",
+  "file": "sprites/prop_cracked_wall.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   198,
+   238
+  ]
+ },
+ "prop_wall_block": {
+  "type": "image",
+  "file": "sprites/prop_wall_block.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   198,
+   256
+  ]
+ },
+ "prop_fence": {
+  "type": "image",
+  "file": "sprites/prop_fence.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   103,
+   118
+  ]
+ },
+ "hub_tree_a": {
+  "type": "image",
+  "file": "sprites/hub_tree_a.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   253,
+   270
+  ]
+ },
+ "hub_tree_b": {
+  "type": "image",
+  "file": "sprites/hub_tree_b.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   239,
+   286
+  ]
+ },
+ "hub_tree_c": {
+  "type": "image",
+  "file": "sprites/hub_tree_c.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   271,
+   254
+  ]
+ },
+ "hub_bush_berry": {
+  "type": "image",
+  "file": "sprites/hub_bush_berry.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   122,
+   106
+  ]
+ },
+ "hub_mushrooms": {
+  "type": "image",
+  "file": "sprites/hub_mushrooms.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   93,
+   86
+  ]
+ },
+ "hub_rock": {
+  "type": "image",
+  "file": "sprites/hub_rock.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   112,
+   98
+  ]
+ },
+ "hub_flowers": {
+  "type": "image",
+  "file": "sprites/hub_flowers.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   99,
+   74
+  ]
+ },
+ "hub_wardrobe": {
+  "type": "image",
+  "file": "sprites/hub_wardrobe.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   113,
+   182
+  ]
+ },
+ "hub_weapon_rack": {
+  "type": "image",
+  "file": "sprites/hub_weapon_rack.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   135,
+   158
+  ]
+ },
+ "hub_mirror": {
+  "type": "image",
+  "file": "sprites/hub_mirror.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   87,
+   178
+  ]
+ },
+ "hub_journal_stand": {
+  "type": "image",
+  "file": "sprites/hub_journal_stand.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   101,
+   138
+  ]
+ },
+ "hub_training_dummy": {
+  "type": "image",
+  "file": "sprites/hub_training_dummy.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   81,
+   150
+  ]
+ },
+ "hub_destiny_tree": {
+  "type": "image",
+  "file": "sprites/hub_destiny_tree.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   389,
+   478
+  ]
+ },
+ "hub_tent_smith": {
+  "type": "image",
+  "file": "sprites/hub_tent_smith.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   306,
+   313
+  ]
+ },
+ "hub_portal": {
+  "type": "image",
+  "file": "sprites/hub_portal.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   228,
+   286
+  ]
+ },
+ "hub_pond": {
+  "type": "image",
+  "file": "sprites/hub_pond.png",
+  "anchor": [
+   0.5,
+   0.6
+  ],
+  "scale": 0.5,
+  "size": [
+   426,
+   359
+  ]
+ },
+ "hub_house": {
+  "type": "sheet",
+  "file": "sprites/hub_house.png",
+  "frameW": 366,
+  "frameH": 330,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 2,
+  "anims": {
+   "broken": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "repaired": {
+    "frames": [
+     1
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "hub_campfire": {
+  "type": "sheet",
+  "file": "sprites/hub_campfire.png",
+  "frameW": 166,
+  "frameH": 306,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 10,
+    "loop": true
+   }
+  }
+ },
+ "door_closed": {
+  "type": "image",
+  "file": "sprites/door_closed.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   206,
+   271
+  ]
+ },
+ "door_open": {
+  "type": "image",
+  "file": "sprites/door_open.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   206,
+   249
+  ]
+ },
+ "door_boss": {
+  "type": "image",
+  "file": "sprites/door_boss.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   246,
+   321
+  ]
+ },
+ "anvil": {
+  "type": "image",
+  "file": "sprites/anvil.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   96,
+   114
+  ]
+ },
+ "obelisk": {
+  "type": "image",
+  "file": "sprites/obelisk.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   112,
+   206
+  ]
+ },
+ "blood_altar": {
+  "type": "image",
+  "file": "sprites/blood_altar.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   124,
+   150
+  ]
+ },
+ "chest_money": {
+  "type": "sheet",
+  "file": "sprites/chest_money.png",
+  "frameW": 142,
+  "frameH": 157,
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "frames": 4,
+  "anims": {
+   "closed": {
+    "frames": [
+     0
+    ],
+    "fps": 1,
+    "loop": false
+   },
+   "open": {
+    "frames": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "fps": 10,
+    "loop": false
+   },
+   "opened": {
+    "frames": [
+     3
+    ],
+    "fps": 1,
+    "loop": false
+   }
+  }
+ },
+ "altar_enchant_s": {
+  "type": "image",
+  "file": "sprites/altar_enchant_s.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   128,
+   106
+  ]
+ },
+ "altar_enchant_m": {
+  "type": "image",
+  "file": "sprites/altar_enchant_m.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   90,
+   150
+  ]
+ },
+ "altar_enchant_l": {
+  "type": "image",
+  "file": "sprites/altar_enchant_l.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   153,
+   198
+  ]
+ },
+ "shop_stall": {
+  "type": "image",
+  "file": "sprites/shop_stall.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   254,
+   299
+  ]
+ },
+ "merchant_rat": {
+  "type": "image",
+  "file": "sprites/merchant_rat.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   107,
+   122
+  ]
+ },
+ "roots_tree": {
+  "type": "image",
+  "file": "sprites/roots_tree.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   198,
+   183
+  ]
+ },
+ "heart_green": {
+  "type": "image",
+  "file": "sprites/heart_green.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "size": [
+   73,
+   66
+  ]
+ },
+ "dice_pickup": {
+  "type": "image",
+  "file": "sprites/dice_pickup.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "size": [
+   62,
+   66
+  ]
+ },
+ "clover": {
+  "type": "image",
+  "file": "sprites/clover.png",
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "size": [
+   54,
+   66
+  ]
+ },
+ "fountain_gold": {
+  "type": "image",
+  "file": "sprites/fountain_gold.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   174,
+   139
+  ]
+ },
+ "fountain_red": {
+  "type": "image",
+  "file": "sprites/fountain_red.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   174,
+   138
+  ]
+ },
+ "fountain_green": {
+  "type": "image",
+  "file": "sprites/fountain_green.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   174,
+   138
+  ]
+ },
+ "pocket_portal": {
+  "type": "image",
+  "file": "sprites/pocket_portal.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   89,
+   138
+  ]
+ },
+ "portal_exit": {
+  "type": "image",
+  "file": "sprites/portal_exit.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   206,
+   187
+  ]
+ },
+ "training_dummy": {
+  "type": "image",
+  "file": "sprites/training_dummy.png",
+  "anchor": [
+   0.5,
+   1.0
+  ],
+  "scale": 0.5,
+  "size": [
+   91,
+   138
+  ]
+ },
+ "orb_levelup": {
+  "type": "sheet",
+  "file": "sprites/orb_levelup.png",
+  "frameW": 104,
+  "frameH": 104,
+  "anchor": [
+   0.5,
+   0.5
+  ],
+  "scale": 0.5,
+  "frames": 6,
+  "anims": {
+   "idle": {
+    "frames": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "fps": 8,
+    "loop": true
+   }
+  }
+ }
+}

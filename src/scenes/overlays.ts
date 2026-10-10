@@ -1,0 +1,199 @@
+// In-run overlay scenes: Inventory, Choice (1 of 3), Shop, Enchant, Map, Pause, Event dialog.
+import Phaser from 'phaser';
+import { Overlay } from './Overlay';
+import { G } from '../game/state';
+import { PAL, RARITY_COLOR, RARITY_TEXT, iconRef, MANIFEST } from '../game/assets';
+import { sfx } from '../game/audio';
+import { txt, darkTxt, card, button, stars, wrapText, toast, pill, dim, title } from '../ui/kit';
+import { GridView, itemDesc } from '../ui/gridView';
+import { t } from '../systems/i18n';
+import { getArtifact, getTablet, getMiracle, getUpgrade, getCombo, getPotion, getChapter } from '../systems/registry';
+import { rerollChoice, takeChoice, skipChoice, buy, sell, rerollShop, enchant, runStats, discard, itemBasePrice } from '../systems/run';
+import { resolve } from '../systems/inventory';
+import { sellPrice } from '../systems/stats';
+import type { RunState } from '../systems/run';
+
+const run = (): RunState => G.run!;
+const statsNow = () => runStats(run(), G.meta);
+
+export class InventoryScene extends Overlay {
+  constructor() { super('Inventory'); }
+  view!: GridView; side!: Phaser.GameObjects.Container;
+  create() {
+    this.frame(t('inv.title'));
+    const r = run();
+    const cell = r.grid.cols > 6 || r.grid.rows > 4 ? 66 : 76;
+    this.view = new GridView(this, r.grid, { x: 90, y: 130, cell, discard: true, onChange: () => this.refreshSide() });
+    darkTxt(this, 90, 650, 'Kéo để di chuyển · Q/E hoặc nút Xoay · Kéo ra ngoài để vứt', 15);
+    button(this, 640, 660, 150, 50, t('inv.rotate'), () => this.view.rotate(1), 'wood', { icon: 'btn_rotate', id: 'rotate' });
+    this.refreshSide();
+    this.input.keyboard?.on('keydown-TAB', () => this.close()); this.input.keyboard?.on('keydown-I', () => this.close()); this.input.keyboard?.on('keydown-ESC', () => this.close());
+  }
+  refreshSide() {
+    this.side?.destroy(); this.side = this.add.container(0, 0);
+    const s = statsNow(); const r = run();
+    this.side.add(GridView.comboPanel(this, r.grid, 760, 110, 420));
+    const lines = [`HP ${Math.ceil(r.hp)}/${s.maxHp}   MP ${Math.ceil(r.mp)}/${s.maxMp}`, `Vật lý ${Math.round(s.physical)} · Lửa ${Math.round(s.fire)} · Băng ${Math.round(s.ice)} · Sét ${Math.round(s.lightning)}`, `Phép ${Math.round(s.magic)} · Thủ ${Math.round(s.defense)}% · Né ${Math.round(s.evasion)}% · Chí mạng ${Math.round(s.critChance)}%`, `Tốc đánh ${Math.round(s.attackSpeed)}% · Tốc chạy ${Math.round(s.moveSpeed)}% · May ${Math.round(s.luck)}`];
+    this.side.add(wrapText(this, 760, 470, lines.join('\n'), 420, 15));
+    // miracles
+    r.miracles.forEach((id, i) => { const m = getMiracle(id); if (!m) return; const ir = iconRef(this, m.icon); this.side.add(this.add.image(780 + i * 40, 590, ir.tex, ir.frame).setDisplaySize(34, 34)); });
+  }
+}
+
+export class ChoiceScene extends Overlay {
+  constructor() { super('Choice'); }
+  create() { this.build(); }
+  build() {
+    this.children.removeAll(true);
+    const r = run(); const c = r.choice; if (!c) { this.close(); return; }
+    dim(this); title(this, `${t('choice.title')} — ${t(`choice.${c.kind}`)}`, 70);
+    c.options.forEach((id, i) => this.cardFor(c.kind, id, 240 + i * 400, 360, i));
+    const rr = button(this, 520, 650, 260, 56, `${t('choice.reroll')} (${r.dice})`, () => { if (rerollChoice(r, G.meta, statsNow().luck)) { sfx('magic'); G.logEvent('reroll', { kind: c.kind }); this.build(); } }, 'purple', { icon: 'btn_reroll', id: 'reroll' });
+    rr.setEnabled(r.dice > 0);
+    button(this, 800, 650, 200, 56, t('choice.skip'), () => { skipChoice(r); this.close(); }, 'wood', { id: 'skip' });
+    G.logEvent('choiceShown', { kind: c.kind, options: c.options });
+  }
+  cardFor(kind: string, id: string, x: number, y: number, i: number) {
+    const W = 340, H = 400; card(this, x, y, W, H);
+    let name = id, desc = '', icon = '', rar = 'common', maxL = 0, tags: string[] = [];
+    if (kind === 'artifact') { const a = getArtifact(id)!; name = a.name; desc = itemDesc(id, 0); icon = a.icon; rar = a.rarity; maxL = a.maxLevel; tags = a.tags.map((tg) => getCombo(tg)?.name ?? tg); if (a.constraint) desc += '\n! ' + ({ touchEdge: 'Ràng buộc mép', emptyNeighbor: 'Cần ô trống', cornerOnly: 'Chỉ ở góc', noOtherOfTag: 'Độc nhất' } as any)[a.constraint.kind]; }
+    else if (kind === 'tablet') { const tb = getTablet(id)!; name = tb.name; desc = tb.desc; icon = tb.icon; rar = tb.rarity; }
+    else if (kind === 'miracle') { const m = getMiracle(id)!; name = m.name; desc = m.desc; icon = m.icon; rar = 'legendary'; }
+    else { const u = getUpgrade(id)!; name = u.name; desc = u.desc; icon = `wic_${u.weapon}`; rar = (['common', 'rare', 'epic'] as const)[u.tier - 1]; tags = [`Bậc ${u.tier}`]; }
+    const col = RARITY_COLOR[rar];
+    const g = this.add.graphics(); g.fillStyle(col, 1).fillRoundedRect(x - W / 2 + 14, y - H / 2 + 14, W - 28, 140, 14).lineStyle(3, PAL.outline, 1).strokeRoundedRect(x - W / 2 + 14, y - H / 2 + 14, W - 28, 140, 14);
+    const ir = iconRef(this, icon); this.add.image(x, y - H / 2 + 84, ir.tex, ir.frame).setDisplaySize(110, 110);
+    // footprint (polyomino) preview in the header's top-right corner
+    const shape = kind === 'artifact' ? getArtifact(id)?.shape : kind === 'tablet' ? getTablet(id)?.shape : undefined;
+    if (shape) { const cs = 13; const mx = Math.max(...shape.map((c) => c[0])); const fg = this.add.graphics(); for (const [cx, cy] of shape) fg.fillStyle(PAL.cream, 1).fillRect(x + W / 2 - 30 - (mx + 1) * cs + cx * cs, y - H / 2 + 24 + cy * cs, cs - 2, cs - 2).lineStyle(2, PAL.outline, 1).strokeRect(x + W / 2 - 30 - (mx + 1) * cs + cx * cs, y - H / 2 + 24 + cy * cs, cs - 2, cs - 2); }
+    darkTxt(this, x, y - 40, name, 24, { fontStyle: '800', align: 'center', wordWrap: { width: W - 30 } }).setOrigin(0.5, 0);
+    darkTxt(this, x, y - 4, t(`rar.${rar}`), 17, { color: RARITY_TEXT[rar], fontStyle: '800' }).setOrigin(0.5, 0);
+    if (maxL) stars(this, x - (maxL - 1) * 7, y + 30, 0, maxL, 13);
+    if (tags.length) darkTxt(this, x, y + 42, tags.join(' · '), 15, { color: '#A9531E' }).setOrigin(0.5, 0);
+    wrapText(this, x - W / 2 + 20, y + 66, desc, W - 40, 15).setOrigin(0, 0);
+    button(this, x, y + H / 2 - 36, 200, 50, t('choice.take'), () => {
+      if (takeChoice(run(), G.meta, i)) { sfx('pickup'); G.logEvent('choiceTaken', { kind, id }); G.saveMeta(); this.close(); }
+      else { toast(this, t('inv.full'), '#ff7a66'); sfx('deny'); }
+    }, 'green', { id: `take${i}` });
+  }
+}
+
+export class ShopScene extends Overlay {
+  constructor() { super('Shop'); }
+  view!: GridView; list!: Phaser.GameObjects.Container; money!: ReturnType<typeof pill>;
+  create() {
+    this.frame(t('shop.title'));
+    const r = run();
+    this.money = pill(this, 90, 92, 150, 'ic_money', r.money); pill(this, 260, 92, 110, 'ic_dice', r.dice);
+    const cell = r.grid.cols > 6 ? 58 : 64;
+    this.view = new GridView(this, r.grid, { x: 70, y: 150, cell, onChange: () => this.refresh(), sellZone: { x: 70, y: 150 + cell * r.grid.rows + (r.grid.sideUnlocked ? cell + 60 : 20), w: cell * 5, h: 70, onSell: (p) => { const v = sellPrice(itemBasePrice(p.id), statsNow().barter); r.money += v; sfx('coin'); toast(this, `+${v} Hạt Dẻ`, '#ffcb6b'); this.refresh(); } } });
+    this.refresh();
+  }
+  refresh() {
+    const r = run(); this.money.set(r.money); this.list?.destroy(); this.list = this.add.container(0, 0);
+    const shop = r.shop; if (!shop) return;
+    shop.items.forEach((it, i) => {
+      const x = 620 + (i % 3) * 200, y = 200 + Math.floor(i / 3) * 230;
+      const g = this.add.graphics(); g.fillStyle(it.sold ? 0xd8c8a8 : PAL.creamLo, 1).fillRoundedRect(x - 90, y - 90, 180, 210, 14).lineStyle(3, PAL.outline, 1).strokeRoundedRect(x - 90, y - 90, 180, 210, 14); this.list.add(g);
+      const def: any = it.kind === 'artifact' ? getArtifact(it.id) : it.kind === 'tablet' ? getTablet(it.id) : getPotion(it.id);
+      const ir = iconRef(this, def?.icon ?? it.id); const im = this.add.image(x, y - 40, ir.tex, ir.frame).setDisplaySize(72, 72); this.list.add(im);
+      if (def?.rarity) { const rc = this.add.graphics(); rc.lineStyle(4, RARITY_COLOR[def.rarity], 1).strokeRoundedRect(x - 44, y - 78, 88, 76, 10); this.list.add(rc); }
+      this.list.add(darkTxt(this, x, y + 4, def?.name ?? it.id, 16, { fontStyle: '800', align: 'center', wordWrap: { width: 170 } }).setOrigin(0.5, 0));
+      const b = button(this, x, y + 88, 160, 44, it.sold ? t('shop.sold') : `${it.price} Hạt Dẻ`, () => {
+        if (buy(r, G.meta, i)) { sfx('coin'); G.logEvent('shopBuy', { id: it.id, price: it.price }); this.view.redraw(); this.refresh(); G.saveMeta(); }
+        else { sfx('deny'); toast(this, r.money < it.price ? 'Không đủ Hạt Dẻ' : t('inv.full'), '#ff7a66'); }
+      }, it.sold ? 'wood' : 'green', { id: `buy${i}` });
+      b.setEnabled(!it.sold); this.list.add(b);
+    });
+    const rr = button(this, 1020, 650, 220, 52, `${t('shop.reroll')} (${r.dice} xúc xắc)`, () => { const s = statsNow(); if (rerollShop(r, G.meta, s.luck, s.barter)) { sfx('magic'); G.logEvent('shopReroll', {}); this.refresh(); } }, 'purple', { id: 'shopReroll' });
+    rr.setEnabled(r.dice > 0); this.list.add(rr);
+    this.list.add(darkTxt(this, 620, 650, shop.discount ? `Giảm ${Math.round(shop.discount * 100)}%!` : t('shop.sellHint'), 15));
+  }
+}
+
+export class EnchantScene extends Overlay {
+  constructor() { super('Enchant'); }
+  left = 1; view!: GridView; info!: Phaser.GameObjects.Text;
+  create() {
+    this.left = this.data0.times ?? 1;
+    this.frame(t('enchant.title'));
+    const r = run();
+    this.info = darkTxt(this, 760, 140, '', 22, { fontStyle: '800' });
+    this.view = new GridView(this, r.grid, { x: 90, y: 130, cell: 72, selectMode: (p) => {
+      if (this.left <= 0) return;
+      const before = p.level; enchant(r, p.uid, 1);
+      if (p.level === before) { sfx('deny'); toast(this, 'Đã đạt cấp tối đa', '#ff7a66'); return; }
+      this.left--; sfx('levelup'); G.logEvent('enchant', { id: p.id, level: p.level }); this.view.redraw(); this.upd();
+      if (this.left <= 0) this.time.delayedCall(500, () => this.close());
+    } });
+    wrapText(this, 760, 190, t('enchant.hint') + '. Cường hóa tăng cấp vĩnh viễn (tối đa = số sao).', 400, 17);
+    this.upd();
+  }
+  upd() { this.info.setText(`${t('enchant.left')}: ${this.left}`); }
+}
+
+export class MapScene extends Overlay {
+  constructor() { super('Map'); }
+  create() {
+    this.frame(`${t('map.title')} — ${t('chapter')} ${run().chapter}: ${getChapter(run().chapter).name} · ${t('floor')} ${run().floor}`);
+    drawMap(this, run(), 640, 380, 1.4);
+  }
+}
+/** Node map drawing (shared by Map overlay and HUD mini map). */
+export function drawMap(s: Phaser.Scene, r: RunState, cx: number, cy: number, scale = 1): Phaser.GameObjects.Container {
+  const c = s.add.container(cx, cy); const f = r.floorData; const g = s.add.graphics(); c.add(g);
+  const P = (col: number, depth: number) => ({ x: (col - 1) * 90 * scale, y: (1 - depth) * 70 * scale });
+  const start = { x: 0, y: 140 * scale }, gate = { x: 0, y: -140 * scale };
+  g.lineStyle(4 * scale, PAL.woodLo, 1);
+  for (const n of f.nodes) { const a = P(n.col, n.depth); if (n.depth === 0) g.lineBetween(start.x, start.y, a.x, a.y); if (n.depth === 2) g.lineBetween(a.x, a.y, gate.x, gate.y); for (const nx of n.next) { const b = P(f.nodes[nx].col, f.nodes[nx].depth); g.lineBetween(a.x, a.y, b.x, b.y); } }
+  const dot = (p: { x: number; y: number }, icon: string, cur: boolean, visited: boolean, mod?: string) => {
+    g.fillStyle(cur ? PAL.orange : visited ? 0x9c8a70 : PAL.cream, 1).fillCircle(p.x, p.y, 22 * scale).lineStyle(3, PAL.outline, 1).strokeCircle(p.x, p.y, 22 * scale);
+    const ir = iconRef(s, icon); c.add(s.add.image(p.x, p.y, ir.tex, ir.frame).setDisplaySize(30 * scale, 30 * scale).setAlpha(visited && !cur ? 0.6 : 1));
+    if (mod) { const mr = iconRef(s, mod); c.add(s.add.image(p.x + 16 * scale, p.y + 14 * scale, mr.tex, mr.frame).setDisplaySize(16 * scale, 16 * scale)); }
+  };
+  dot(start, 'node_start', r.pos === 'start', true);
+  for (const n of f.nodes) dot(P(n.col, n.depth), `node_${n.type}`, r.pos === n.id, r.visited.includes(n.id), n.modifier !== 'none' ? `mod_${n.modifier}` : undefined);
+  dot(gate, 'node_boss', r.pos === 'gate', false);
+  return c;
+}
+
+export class PauseScene extends Overlay {
+  constructor() { super('Pause'); }
+  create() {
+    dim(this, 0.6); card(this, 640, 360, 460, 470); title(this, t('menu.pause'), 160);
+    button(this, 640, 250, 320, 60, t('menu.resume'), () => this.close(), 'green', { id: 'resume' });
+    button(this, 640, 330, 320, 60, t('map.title'), () => { if (G.training) return; this.scene.stop(); this.scene.launch('Map', { from: this.data0.from }); }, 'wood', { id: 'map' });
+    button(this, 640, 410, 320, 60, G.meta.settings.mute ? t('settings.unmute') : t('settings.mute'), () => { G.meta.settings.mute = !G.meta.settings.mute; G.saveMeta(); this.scene.restart(this.data0); }, 'purple', { id: 'mute' });
+    button(this, 640, 490, 320, 60, G.training ? t('menu.back') : t('menu.quit'), () => { G.saveRun(); this.toHub(); }, 'orange', { id: 'quit' });
+    if (!G.training) button(this, 640, 570, 320, 56, t('menu.abandon'), () => { const rs = this.scene.get('Run') as any; this.scene.stop(); this.scene.resume('Run'); if (rs && G.run) { G.run.hp = 0; G.run.dead = true; rs.dieRun(); } }, 'red', { id: 'abandon' });
+    this.input.keyboard?.on('keydown-ESC', () => this.close());
+  }
+  toHub() { G.logEvent('quitToHub', {}); this.scene.stop('Run'); this.scene.stop('Hud'); this.scene.stop(); G.run = null; G.training = false; this.scene.start('Hub'); }
+}
+
+export class EventScene extends Overlay {
+  constructor() { super('Event'); }
+  create() {
+    const ev: string = this.data0.event; dim(this); card(this, 640, 360, 640, 420); title(this, t(`ev.${ev}`), 190);
+    const opts: Array<[string, string, string?]> = [];
+    switch (ev) {
+      case 'clover': opts.push(['hp', t('ev.clover.hp')], ['def', t('ev.clover.def')]); break;
+      case 'merchant': opts.push(['go', t('shop.title')]); break;
+      case 'obelisk': opts.push(['go', t('ev.obelisk.touch')]); break;
+      case 'fountain': { const f = this.data0.fountain ?? 'green'; opts.push([f, t(`ev.fountain.${f}`)]); break; }
+      case 'companion': opts.push(['go', t('ev.companion.pay')]); break;
+      case 'blood': opts.push(['pay', t('ev.blood.pay')], ['bat', t('ev.blood.bat')]); break;
+      case 'pocket': opts.push(['go', `${t('ev.pocket.pay')} (${G.meta.sapphires} Ngọc)`]); break;
+      default: opts.push(['go', 'OK']);
+    }
+    opts.push(['leave', t('ev.leave')]);
+    const art = ({ clover: 'clover', merchant: 'merchant_rat', obelisk: 'obelisk', fountain: `fountain_${this.data0.fountain ?? 'green'}`, companion: 'cmp_sprout', blood: 'blood_altar', pocket: 'pocket_portal' } as Record<string, string>)[ev];
+    if (art && MANIFEST[art] && this.textures.exists(art)) { const im = this.add.image(440, 470, art).setOrigin(0.5, 1); const sc = Math.min(150 / im.height, 190 / im.width); im.setScale(sc); }
+    wrapText(this, 560, 240, eventText(ev), 380, 17);
+    opts.forEach(([k, label], i) => button(this, 750, 350 + i * 70, 360, 56, label, () => this.close(k), k === 'leave' ? 'wood' : 'orange', { id: `ev_${k}` }));
+  }
+}
+function eventText(ev: string) {
+  return ({ clover: 'Một cây cỏ bốn lá lấp lánh. Hãy chọn phúc lành.', merchant: 'Thương nhân chuột lang thang bán rẻ hơn 10%.', obelisk: 'Bia đá cổ hoán đổi sức mạnh của bạn một cách ngẫu nhiên.', fountain: 'Đài phun nước kỳ lạ…', companion: 'Một người bạn đồng hành đang chờ được thuê.', blood: 'Bàn thờ đòi máu. Hoặc… đánh con dơi canh giữ.', pocket: 'Một khe nứt dẫn tới không gian túi. Ngọc Sao có thể mở khóa cổ vật vĩnh viễn.' } as any)[ev] ?? '';
+}
+void discard; void sell; void resolve; void getCombo;
